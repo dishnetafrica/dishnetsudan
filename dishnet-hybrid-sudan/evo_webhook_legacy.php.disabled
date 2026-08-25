@@ -1,0 +1,415 @@
+<?php
+declare(strict_types=1);
+chdir(__DIR__);
+require_once __DIR__ . '/lib/error_handler.php';
+$GLOBALS['_DISHNET_ERROR_FORMAT'] = 'json';
+
+/**
+ * evo_webhook.php — Evolution API Webhook Receiver
+ *
+ * Receives real-time events from Evolution API:
+ *   - MESSAGES_UPSERT:    new message (incoming or outgoing)
+ *   - MESSAGES_UPDATE:    status change (sent, delivered, read)
+ *   - CONTACTS_UPSERT:    contact info update
+ *   - CONNECTION_UPDATE:   instance connection state change
+ *
+ * Configure in Evolution API Manager → Instance → Webhook:
+ *   URL: https://crm.dishnetafrica.com/_plugins/dishnet-hybrid-telecom/evo_webhook.php
+ *   Events: MESSAGES_UPSERT, CONTACTS_UPSERT
+ *
+ * Payload format (MESSAGES_UPSERT):
+ * {
+ *   "event": "messages.upsert",
+ *   "instance": "sales",
+ *   "data": {
+ *     "key": { "remoteJid": "211912345678@s.whatsapp.net", "fromMe": false, "id": "3EB0..." },
+ *     "pushName": "John Doe",
+ *     "message": { "conversation": "Hello" },
+ *     "messageTimestamp": 1712345678
+ *   }
+ * }
+ */
+
+// PHP 7.4 polyfills
+if (!function_exists('str_contains')) {
+    function str_contains(string $h, string $n): bool { return $n === '' || strpos($h, $n) !== false; }
+}
+
+require_once __DIR__ . '/lib/bootstrap_data.php';
+$dataDir = getDataDir(__DIR__);
+if (!is_dir($dataDir)) @mkdir($dataDir, 0755, true);
+
+require_once __DIR__ . '/lib/SqliteStore.php';
+require_once __DIR__ . '/lib/ConversationService.php';
+require_once __DIR__ . '/lib/TemplateReplyEngine.php';
+require_once __DIR__ . '/lib/NotificationService.php';
+
+// ── Response helper ──────────────────────────────────────────────────────────
+function evoResp(int $code, string $msg): void {
+    http_response_code($code);
+    header('Content-Type: application/json');
+    echo json_encode(['status' => $code < 300 ? 'ok' : 'error', 'message' => $msg]);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    evoResp(405, 'POST required');
+}
+
+$rawBody = file_get_contents('php://input');
+if (empty($rawBody)) evoResp(400, 'Empty body');
+
+$payload = json_decode($rawBody, true);
+if (!is_array($payload)) evoResp(400, 'Invalid JSON');
+
+$store   = SqliteStore::create($dataDir);
+$config  = $store->load('kyc_config.json') ?? [];
+$convSvc = new ConversationService($dataDir, $store->getPdo());
+$channel = $config['evo_channel_name'] ?? 'marketing';
+
+// ── Detect if this evo instance IS the accounts number ───────────────────────
+// Evolution API sends one instance per WA number. If the configured evo instance
+// name matches the accounts instance, OR the payload's instance field matches,
+// treat this as the accounts channel for the auto-reply guard.
+// Also check wa_accounts_number against the payload instance phone if available.
+$_evoAccountsInstance = trim($config['evo_accounts_instance_name'] ?? '');
+$_evoCurrentInstance  = trim($payload['instance'] ?? $payload['instanceName'] ?? '');
+if ($_evoAccountsInstance && $_evoCurrentInstance &&
+    strtolower($_evoCurrentInstance) === strtolower($_evoAccountsInstance)) {
+    $channel = 'accounts';
+}
+
+// ── Route by event type ──────────────────────────────────────────────────────
+$event = $payload['event'] ?? '';
+$data  = $payload['data'] ?? [];
+
+if ($event === 'messages.upsert' || $event === 'MESSAGES_UPSERT') {
+    // Might be a single message or array of messages
+    $messages = isset($data['key']) ? [$data] : (is_array($data) ? $data : []);
+
+    $stored = 0;
+    foreach ($messages as $msg) {
+        $key = $msg['key'] ?? [];
+        $remoteJid = $key['remoteJid'] ?? '';
+
+        // Skip groups, status broadcasts
+        if (empty($remoteJid) || str_contains($remoteJid, '@g.us') || str_contains($remoteJid, 'status@')) {
+            continue;
+        }
+
+        $convId = $convSvc->importEvoMessage($msg, $channel);
+        if ($convId !== null) $stored++;
+
+        // ── AUTO-CREATE LEAD from marketing channel messages ──────────────
+        // Every new incoming message on the marketing number = potential lead.
+        // Fires once per phone number (deduped via wa_conversations.lead_id).
+        // Skips: staff phones, existing CRM customers, already-has-a-lead.
+        if (!$fromMe && $channel === 'marketing' && $convId !== null) {
+            try {
+                $pdo = $store->getPdo();
+
+                // Check if this conversation already has a lead
+                $convRow = $pdo->prepare("SELECT lead_id, crm_client_id, display_name FROM wa_conversations WHERE id = ?");
+                $convRow->execute([$convId]);
+                $convData = $convRow->fetch(\PDO::FETCH_ASSOC);
+
+                $alreadyHasLead = !empty($convData['lead_id']);
+                $isCrmCustomer  = !empty($convData['crm_client_id']);
+
+                if (!$alreadyHasLead && !$isCrmCustomer) {
+                    // ── 2-message minimum — shows genuine interest ────────────
+                    $inStmt = $pdo->prepare(
+                        "SELECT COUNT(*) FROM wa_messages WHERE conversation_id = ? AND direction = 'in'"
+                    );
+                    $inStmt->execute([$convId]);
+                    $incomingCount = (int)$inStmt->fetchColumn();
+                    if ($incomingCount < 2) throw new \RuntimeException("Only {$incomingCount} msg(s) — waiting for 2+");
+
+                    // Extract phone
+                    $senderPn2 = $key['senderPn'] ?? '';
+                    $leadPhone = '';
+                    if (!empty($senderPn2)) {
+                        $leadPhone = preg_replace('/[^0-9+]/', '', explode('@', $senderPn2)[0]);
+                    } elseif (strpos($remoteJid, '@lid') === false) {
+                        $leadPhone = preg_replace('/[^0-9+]/', '', explode('@', $remoteJid)[0]);
+                    }
+                    if (empty($leadPhone)) throw new \RuntimeException('No phone');
+
+                    // Skip staff phones
+                    $retailers2  = $store->load('retailers.json') ?? [];
+                    $isStaff2    = false;
+                    $staffSuffix = substr(preg_replace('/[^0-9]/', '', $leadPhone), -9);
+                    foreach ($retailers2 as $r2) {
+                        $rSuffix = substr(preg_replace('/[^0-9]/', '', $r2['phone'] ?? ''), -9);
+                        if ($rSuffix && $rSuffix === $staffSuffix) { $isStaff2 = true; break; }
+                    }
+                    if ($isStaff2) throw new \RuntimeException('Staff phone — skip');
+
+                    // Check phone not already in leads.json (any open lead)
+                    $allLeads2   = $store->load('leads.json') ?? [];
+                    $leadSuffix9 = substr(preg_replace('/[^0-9]/', '', $leadPhone), -9);
+                    foreach ($allLeads2 as $el) {
+                        $elSuffix = substr(preg_replace('/[^0-9]/', '', $el['phone'] ?? ''), -9);
+                        if ($elSuffix && $elSuffix === $leadSuffix9 &&
+                            !in_array($el['status'] ?? '', ['won','lost','dead'], true)) {
+                            // Already has active lead — link conv to it and stop
+                            $pdo->prepare("UPDATE wa_conversations SET lead_id = ? WHERE id = ?")
+                                ->execute([(int)$el['id'], $convId]);
+                            throw new \RuntimeException('Lead already exists #' . $el['id']);
+                        }
+                    }
+
+                    // ── Smart-assign: agent with fewest open leads ────────────
+                    $salesRoles2    = ['sales','field_agent','sales_staff'];
+                    $_allowedIds2   = array_filter(array_map('intval', explode(',', $config['lead_assignee_ids'] ?? '')));
+                    $salesAgents2   = [];
+                    foreach ($retailers2 as $r3) {
+                        if (empty($r3['is_active'])) continue;
+                        if (!in_array($r3['role'] ?? '', $salesRoles2, true)) continue;
+                        if (!empty($_allowedIds2) && !in_array((int)$r3['id'], $_allowedIds2, true)) continue;
+                        $salesAgents2[] = $r3;
+                    }
+
+                    $assignTo2 = null;
+                    if (!empty($salesAgents2)) {
+                        // Count open leads per agent
+                        $loads2 = [];
+                        foreach ($salesAgents2 as $ag2) {
+                            $aid2 = (int)$ag2['id'];
+                            $loads2[$aid2] = count(array_filter($allLeads2, function($l) use ($aid2) {
+                                return (int)($l['assigned_to'] ?? 0) === $aid2
+                                    && !in_array($l['status'] ?? '', ['won','lost','dead'], true)
+                                    && empty($l['archived']);
+                            }));
+                        }
+                        // Pick lightest
+                        $lightestId = array_keys($loads2, min($loads2))[0];
+                        foreach ($salesAgents2 as $ag2) {
+                            if ((int)$ag2['id'] === $lightestId) { $assignTo2 = $ag2; break; }
+                        }
+                    }
+
+                    // ── Detect service interest from message text ─────────────
+                    $msgText2   = $msg['message']['conversation'] ?? $msg['message']['extendedTextMessage']['text'] ?? '';
+                    $serviceType2 = 'fiber'; // default for marketing number
+                    if (stripos($msgText2, 'starlink') !== false) $serviceType2 = 'starlink';
+                    elseif (stripos($msgText2, 'lte') !== false || stripos($msgText2, '4g') !== false) $serviceType2 = 'lte';
+
+                    $displayName2 = $msg['pushName'] ?? ($convData['display_name'] ?? '');
+                    $now2 = date('Y-m-d H:i:s');
+
+                    // ── Create lead ───────────────────────────────────────────
+                    $newLead2 = [
+                        'id'              => $store->nextId('leads.json'),
+                        'customer_name'   => $displayName2 ?: $leadPhone,
+                        'phone'           => $leadPhone,
+                        'email'           => '',
+                        'address'         => '',
+                        'service_type'    => $serviceType2,
+                        'source'          => 'whatsapp_marketing',
+                        'source_detail'   => 'Messaged marketing WA number',
+                        'priority'        => 'high',
+                        'notes'           => $msgText2 ? "First message: \"{$msgText2}\"" : 'Messaged marketing number',
+                        'retailer_id'     => $assignTo2 ? (int)$assignTo2['id'] : 0,
+                        'retailer_name'   => $assignTo2 ? ($assignTo2['name'] ?? '') : '',
+                        'assigned_to'     => $assignTo2 ? (int)$assignTo2['id'] : null,
+                        'assigned_name'   => $assignTo2 ? ($assignTo2['name'] ?? '') : '',
+                        'assigned_by'     => 'Auto — WA marketing',
+                        'assigned_at'     => $now2,
+                        'daily_assign_to' => $assignTo2 ? (int)$assignTo2['id'] : null,
+                        'daily_assign_name'=> $assignTo2 ? ($assignTo2['name'] ?? '') : '',
+                        'daily_assign_date'=> date('Y-m-d'),
+                        'status'          => 'open',
+                        'wa_assigned_notified' => 0, // cron_lead_alerts will send WA
+                        'created_at'      => $now2,
+                        'updated_at'      => $now2,
+                    ];
+
+                    $allLeads2[] = $newLead2;
+                    $store->save('leads.json', $allLeads2);
+
+                    // Link conversation to new lead
+                    $pdo->prepare("UPDATE wa_conversations SET lead_id = ? WHERE id = ?")
+                        ->execute([(int)$newLead2['id'], $convId]);
+
+                    error_log("[evo_webhook] Auto-lead #{$newLead2['id']} created for {$leadPhone}"
+                        . ($assignTo2 ? " → assigned to {$assignTo2['name']}" : ' (unassigned)'));
+                }
+            } catch (\RuntimeException $e) {
+                // Expected skips (staff, duplicate, etc.) — log only
+                error_log("[evo_webhook] Auto-lead skipped for conv #{$convId}: " . $e->getMessage());
+            } catch (\Throwable $e) {
+                // Never break webhook for lead creation errors
+                error_log("[evo_webhook] Auto-lead error for conv #{$convId}: " . $e->getMessage());
+            }
+        }
+
+        // ── Auto-convert: if followed-up lead replies positively → create sales lead ──
+        $fromMe = (bool)($key['fromMe'] ?? false);
+        if (!$fromMe) {
+            $senderPn = $key['senderPn'] ?? '';
+            $replyPhone = '';
+            if (!empty($senderPn)) {
+                $replyPhone = preg_replace('/[^0-9]/', '', explode('@', $senderPn)[0]);
+            } elseif (strpos($remoteJid, '@lid') === false) {
+                $replyPhone = preg_replace('/[^0-9]/', '', explode('@', $remoteJid)[0]);
+            }
+            $msgText = $msg['message']['conversation']
+                    ?? $msg['message']['extendedTextMessage']['text']
+                    ?? '';
+            $pushName = $msg['pushName'] ?? '';
+
+            if (!empty($replyPhone) && !empty($msgText)) {
+                try {
+                    require_once __DIR__ . '/lib/LeadRecoveryService.php';
+                    $leadSvc = new LeadRecoveryService($store->getPdo());
+                    $leadSvc->handleReply($store, $replyPhone, $pushName, $msgText, $config);
+                } catch (Throwable $e) { /* don't break webhook */ }
+            }
+        }
+
+        // ── Auto-reply via WaAutoReplyService (channel-aware) ─────────────
+        $fromMe = (bool)($key['fromMe'] ?? false);
+        if (!$fromMe && (!empty($config['evo_auto_reply_enabled']) || !empty($config['wa_auto_reply_enabled']) || !empty($config['wa_bot_enabled']))) {
+            $message = $msg['message'] ?? [];
+            $text = $message['conversation']
+                 ?? $message['extendedTextMessage']['text']
+                 ?? $message['imageMessage']['caption']
+                 ?? $message['videoMessage']['caption']
+                 ?? $message['documentMessage']['caption']
+                 ?? '';
+
+            // ── Detect media type for smart acknowledgment ────────────────
+            $mediaType = null;
+            if (isset($message['imageMessage']))           $mediaType = 'image';
+            elseif (isset($message['videoMessage']))       $mediaType = 'video';
+            elseif (isset($message['audioMessage']))       $mediaType = 'audio';
+            elseif (isset($message['documentMessage']))    $mediaType = 'document';
+            elseif (isset($message['stickerMessage']))     $mediaType = 'sticker';
+            elseif (isset($message['locationMessage']))    $mediaType = 'location';
+            elseif (isset($message['contactMessage']))     $mediaType = 'contact';
+
+            // If no text but media present — generate acknowledgment reply
+            if (empty($text) && $mediaType) {
+                $mediaAckMap = [
+                    'image'    => "Thanks for the photo 📷 Could you also describe the issue in a message so we can help faster? Our team will review the image.",
+                    'video'    => "Thanks for the video. Could you also type a brief description of the issue? Our team will review it.",
+                    'audio'    => "We received your voice note. We're not able to listen to audio messages automatically — could you also type a quick message describing what you need? Our team will listen and respond.",
+                    'document' => "Got your document. What is this regarding? Our team will review it.",
+                    'location' => "Got your location 📍 Are you requesting a site visit or installation? Type YES to confirm or tell us more.",
+                    'sticker'  => null, // ignore stickers silently
+                    'contact'  => "Got the contact. What would you like us to do with it?",
+                ];
+                $ackText = $mediaAckMap[$mediaType] ?? null;
+
+                if ($ackText) {
+                    // Use $text = ack trigger text so handleIncoming processes it as a real message
+                    // But we send the ack directly — bypass auto-reply flow for media
+                    try {
+                        $senderPn = $key['senderPn'] ?? '';
+                        $phone = '';
+                        if (!empty($senderPn)) {
+                            $phone = preg_replace('/[^0-9]/', '', explode('@', $senderPn)[0]);
+                        } elseif (strpos($remoteJid, '@lid') === false) {
+                            $phone = preg_replace('/[^0-9]/', '', explode('@', $remoteJid)[0]);
+                        }
+                        $pushName = $msg['pushName'] ?? '';
+
+                        if (!empty($phone) && !($channel === 'accounts' && empty($config['wa_accounts_autoreply_enabled']))) {
+                            require_once __DIR__ . '/lib/NotificationService.php';
+                            $notify = new NotificationService($store, $config);
+
+                            // Store the media event in conversation before replying
+                            if ($convId) {
+                                $convSvc->storeMessage($convId, [
+                                    'direction'  => 'in',
+                                    'role'       => 'customer',
+                                    'body'       => '[' . strtoupper($mediaType) . ' received]',
+                                    'media_type' => $mediaType,
+                                    'sent_at'    => date('Y-m-d H:i:s'),
+                                ]);
+                            }
+
+                            // Send acknowledgment
+                            $notify->sendRaw($phone, $ackText, 'wa_media_ack');
+
+                            // Store our reply
+                            if ($convId) {
+                                $convSvc->storeMessage($convId, [
+                                    'direction'  => 'out',
+                                    'role'       => 'agent',
+                                    'body'       => $ackText,
+                                    'agent_name' => 'DishNet Bot',
+                                    'sent_at'    => date('Y-m-d H:i:s'),
+                                ]);
+                            }
+
+                            // Alert support team with media context
+                            $name = $pushName ?: 'Customer';
+                            $notify->sendAdmin(
+                                "📎 *Media received from {$name}* ({$phone})\nType: " . strtoupper($mediaType) . "\nChannel: {$channel}\n\n_Auto-acknowledged. Please review in WA Inbox._",
+                                'wa_media_received'
+                            );
+                        }
+                    } catch (Throwable $e) {
+                        // Never break webhook
+                    }
+                }
+            }
+
+            if (!empty($text)) {
+                try {
+                    // Extract phone for reply
+                    $senderPn = $key['senderPn'] ?? '';
+                    $phone = '';
+                    if (!empty($senderPn)) {
+                        $phone = preg_replace('/[^0-9]/', '', explode('@', $senderPn)[0]);
+                    } elseif (strpos($remoteJid, '@lid') === false) {
+                        $phone = preg_replace('/[^0-9]/', '', explode('@', $remoteJid)[0]);
+                    }
+                    $pushName = $msg['pushName'] ?? '';
+
+                    if (!empty($phone)) {
+                        require_once __DIR__ . '/lib/NotificationService.php';
+                        require_once __DIR__ . '/lib/WaAutoReplyService.php';
+                        $notify = new NotificationService($store, $config);
+                        $autoReply = new WaAutoReplyService($store, $convSvc->getPdo(), $notify, $config, $convSvc);
+                        // Per-channel guard: Accounts can be silenced without affecting Support
+                        if ($channel === 'accounts' && empty($config['wa_accounts_autoreply_enabled'])) {
+                            // Log only — do not call handleIncoming
+                        } else {
+                            $arResult = $autoReply->handleIncoming($phone, $text, $channel, $pushName ?: null, $convId);
+                        }
+                    }
+                } catch (Throwable $e) {
+                    // Don't break webhook on auto-reply failure
+                }
+            }
+        }
+    }
+
+    evoResp(200, "Stored {$stored} messages");
+}
+
+if ($event === 'contacts.upsert' || $event === 'CONTACTS_UPSERT') {
+    // Update contact names in conversations
+    $contacts = is_array($data) ? $data : [$data];
+    foreach ($contacts as $contact) {
+        $jid  = $contact['id'] ?? $contact['remoteJid'] ?? '';
+        $name = $contact['pushName'] ?? $contact['name'] ?? $contact['notify'] ?? '';
+        if (empty($jid) || empty($name) || str_contains($jid, '@g.us')) continue;
+
+        $phone = preg_replace('/[^0-9]/', '', explode('@', $jid)[0]);
+        // Update display_name if conversation exists
+        try {
+            $convSvc->getPdo()->prepare(
+                "UPDATE wa_conversations SET display_name = ?, updated_at = datetime('now') 
+                 WHERE phone = ? AND channel = ? AND (display_name IS NULL OR display_name = 'Unknown')"
+            )->execute([$name, $phone, $channel]);
+        } catch (Throwable $e) { /* ignore */ }
+    }
+    evoResp(200, 'Contacts updated');
+}
+
+// Default
+evoResp(200, "Event '{$event}' received (no action)");

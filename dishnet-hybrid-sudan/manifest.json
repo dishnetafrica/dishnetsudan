@@ -1,0 +1,131 @@
+{
+    "version": "1",
+    "information": {
+        "name": "dishnet-hybrid-sudan",
+        "displayName": "DishNet Hybrid \u2014 Sudan Edition",
+        "description": "The full DishNet Hybrid platform for a fresh Sudan deployment, with the AI WhatsApp brain built in. Carries the complete mature feature set \u2014 CRM, customer portal and PWA, sales and KYC, support and field operations, accounting and cashbook, HRM and payroll, retailers, stock, LTE, Starlink, reporting and the existing APIs, webhooks and automation \u2014 and adds Sales, Support and Accounts on WhatsApp through Evolution API, answered by one AI brain grounded in live UISP/uCRM data. Ships with no data: no customers, no employees, no accounting records, and no default passwords. The first administrator is created through a setup step on first run.",
+        "url": "https://dishnetafrica.com",
+        "version": "5.0.0",
+        "ucrmVersionCompliability": {
+            "min": "2.14.0",
+            "max": null
+        },
+        "unmsVersionCompliancy": {
+            "min": "1.0.0",
+            "max": null
+        },
+        "author": "DishNet Africa Ltd"
+    },
+    "executionPeriod": 5,
+    "menu": [
+        {
+            "label": "DishNet Sudan",
+            "type": "admin",
+            "target": "iframe"
+        }
+    ],
+    "configuration": [
+        {
+            "key": "ai_enabled",
+            "label": "Answer customers automatically",
+            "description": "Leave OFF until the setup checks on the plugin page pass. While OFF, messages are still received and stored, but no reply is sent.",
+            "required": 0,
+            "type": "checkbox"
+        },
+        {
+            "key": "admin_token",
+            "label": "Setup tab fallback token",
+            "description": "OPTIONAL \u2014 leave blank. The plugin page recognises you from your UISP login automatically. Set a token here only as a way back in if that stops working.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "evo_api_url",
+            "label": "Evolution API URL",
+            "description": "Base URL with no trailing slash, e.g. https://evo-evolution-api.example.easypanel.host \u2014 must be HTTPS.",
+            "required": 1,
+            "type": "text"
+        },
+        {
+            "key": "evo_api_key",
+            "label": "Evolution API key",
+            "description": "SECRET. Stored in the plugin data directory. Never shown on the plugin page and never written to logs.",
+            "required": 1,
+            "type": "text"
+        },
+        {
+            "key": "evo_instance_sales",
+            "label": "Sales WhatsApp instance",
+            "description": "Evolution instance name for the sales number, e.g. dishnet_sales. Leave blank if this number is not in use yet. You can also pick this from a live list on the plugin page once the API key is set.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "evo_instance_support",
+            "label": "Support WhatsApp instance",
+            "description": "Evolution instance name for the support number. You can also pick this from a live list on the plugin page once the API key is set.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "evo_instance_account",
+            "label": "Accounts WhatsApp instance",
+            "description": "Evolution instance name for the accounts number. You can also pick this from a live list on the plugin page once the API key is set.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "ai_provider",
+            "label": "AI provider",
+            "description": "Which model answers customers.",
+            "required": 1,
+            "type": "choice",
+            "choices": {
+                "claude": "Anthropic Claude",
+                "openai": "OpenAI"
+            }
+        },
+        {
+            "key": "claude_api_key",
+            "label": "Anthropic API key",
+            "description": "SECRET. Required when the provider is Claude.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "openai_api_key",
+            "label": "OpenAI API key",
+            "description": "SECRET. Required when the provider is OpenAI.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "ai_model",
+            "label": "Model",
+            "description": "Optional. Defaults to claude-haiku-4-5 or gpt-4o-mini depending on the provider.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "bot_custom_instructions",
+            "label": "Extra instructions for the AI",
+            "description": "Added to the AI's instructions. Use it for office hours, payment methods, locations. It cannot override the safety rules that stop the AI inventing prices or revealing another customer's information.",
+            "required": 0,
+            "type": "textarea"
+        },
+        {
+            "key": "ai_tools_token",
+            "label": "Tool API token",
+            "description": "SECRET. Optional. Only needed if an external service must read DishNet business data through this plugin. Leave blank to keep that endpoint disabled.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "tools_legacy_phone_match",
+            "label": "Use loose phone matching",
+            "description": "Leave OFF. Strict matching requires 9 digits to agree before a customer is identified. Turning this ON restores looser matching, which can identify the WRONG customer and disclose their balance. Only for emergency rollback.",
+            "required": 0,
+            "type": "checkbox"
+        }
+    ]
+}

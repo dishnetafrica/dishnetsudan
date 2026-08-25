@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DishNet Africa — {{QUOTE_TYPE}} {{QUOTE_REF}}</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@page{margin:0;size:A4}
+html,body{height:100%;font-family:'Barlow',sans-serif;font-size:9.5px;color:#141414;line-height:1.4;background:#fff}
+:root{--red:#D41C1C;--orange:#E8521A;--dark:#141414;--dark-2:#222;--gray:#6B6B6B;--gray-2:#9B9B9B;--gray-light:#EBEBEB;--swoosh:linear-gradient(110deg,#D41C1C 0%,#E8521A 60%,#FF7A35 100%)}
+.page-wrap{display:flex;flex-direction:column;min-height:100vh}
+
+/* ═══ HEADER — compact ═══ */
+.hdr{background:var(--dark);position:relative;overflow:hidden}
+.hdr-glow{position:absolute;top:-20px;right:-20px;width:180px;height:120px;background:radial-gradient(ellipse at center,rgba(212,28,28,.3) 0%,transparent 70%)}
+.hdr-in{position:relative;padding:16px 32px 12px;display:flex;justify-content:space-between;align-items:center}
+.wm{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;color:#fff;letter-spacing:-.5px;line-height:1;position:relative;display:inline-block}
+.wm::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2.5px;background:var(--swoosh);border-radius:2px}
+.pill{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:8px;letter-spacing:1.5px;padding:2px 6px 1px;border-radius:3px;margin-left:5px;text-transform:uppercase;vertical-align:6px}
+.pill.starlink{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25)}
+.pill.fiber{background:var(--red);color:#fff}
+.pill.lte{background:#1A4DB5;color:#fff}
+.hdr-sub{font-size:8px;color:rgba(255,255,255,.4);letter-spacing:.3px;margin-top:3px}
+.qb{text-align:right;color:#fff}
+.qb .qt{font-family:'Barlow Condensed',sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.4)}
+.qb .qr{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.5px;margin:1px 0}
+.qb .qd{font-size:8px;color:rgba(255,255,255,.35)}
+.sw{height:3px;background:var(--swoosh)}
+
+/* ═══ CONTENT ═══ */
+.cnt{flex:1;padding:14px 32px 8px;display:flex;flex-direction:column}
+
+/* Info */
+.ig{display:flex;gap:14px;margin-bottom:14px}
+.ib{flex:1;padding:10px 12px;background:#f8f8f8;border-radius:6px}
+.ib.to{border-left:3px solid var(--red)}.ib.fr{border-left:3px solid var(--dark)}
+.bt{font-family:'Barlow Condensed',sans-serif;font-size:7.5px;text-transform:uppercase;letter-spacing:1.5px;color:var(--gray-2);font-weight:700;margin-bottom:4px}
+.bn{font-size:12px;font-weight:700;margin-bottom:2px}
+.bl{font-size:9px;color:var(--gray);line-height:1.4}
+
+/* Items */
+.sl{font-family:'Barlow Condensed',sans-serif;font-size:8px;text-transform:uppercase;letter-spacing:2px;color:var(--gray-2);font-weight:700;margin-bottom:4px}
+table.it{width:100%;border-collapse:collapse;margin-bottom:2px}
+table.it thead th{background:var(--dark);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:8px;text-transform:uppercase;letter-spacing:.8px;padding:7px 10px;font-weight:700;text-align:left}
+table.it thead th.r{text-align:right}
+table.it tbody td{padding:8px 10px;font-size:9.5px;border-bottom:1px solid #f0f0f0}
+table.it tbody td.r{text-align:right}
+table.it tbody tr:nth-child(even){background:#fafafa}
+.in{font-weight:700;font-size:10px}
+.id{font-size:8px;color:var(--gray);margin-top:1px}
+
+/* Totals */
+.tw{display:flex;justify-content:flex-end;margin-bottom:12px}
+.tb{width:240px;background:#f8f8f8;border-radius:6px;overflow:hidden}
+.tl{display:flex;justify-content:space-between;padding:5px 14px;font-size:9.5px;color:var(--gray)}
+.tl.s{border-bottom:1px solid #eee}
+.tl.g{background:var(--dark);color:#fff;font-size:13px;font-weight:800;padding:8px 14px}
+.tl .lb{font-weight:600}.tl .vl{font-weight:700}
+
+/* Validity */
+.vy{background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:7px 14px;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.vi{width:22px;height:22px;background:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:900;flex-shrink:0}
+.vt{font-size:9px;color:#065f46}.vt strong{font-size:9.5px}
+
+/* Notes */
+.nt{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:7px 14px;margin-bottom:10px}
+.nt-t{font-family:'Barlow Condensed',sans-serif;font-size:7.5px;text-transform:uppercase;letter-spacing:1px;color:#92400e;font-weight:700;margin-bottom:3px}
+.nt-b{font-size:9px;color:#78350f;line-height:1.5}
+
+/* Terms — 3col ultra-compact */
+.ts{margin-bottom:8px}
+.tg{display:flex;gap:8px}
+.tc{flex:1}
+.ti{font-size:7px;color:#444;padding:1.5px 0 1.5px 8px;position:relative;line-height:1.35}
+.ti::before{content:"•";position:absolute;left:0;color:var(--red);font-weight:900;font-size:8px}
+.ti strong{color:var(--dark);font-size:7px}
+.ta{font-size:7.5px;font-weight:700;color:var(--dark);margin-top:4px}
+
+/* Spacer */
+.sp{flex:1;min-height:0}
+
+/* Signature */
+.sg{display:flex;gap:36px;padding-top:8px;border-top:1px solid #eee}
+.sb{flex:1}
+.sgl{font-family:'Barlow Condensed',sans-serif;font-size:7px;text-transform:uppercase;letter-spacing:1px;color:var(--gray-2);font-weight:700;margin-bottom:14px}
+.sgln{border-top:1.5px solid var(--dark);padding-top:3px;display:flex;justify-content:space-between}
+.sgn{font-size:9px;font-weight:700}.sgr{font-size:8px;color:var(--gray)}
+
+/* ═══ FOOTER ═══ */
+.fsw{height:2.5px;background:var(--swoosh)}
+.ft{background:var(--dark);color:rgba(255,255,255,.45);padding:7px 32px;display:flex;justify-content:space-between;align-items:center;font-size:7.5px}
+.ft a{color:rgba(255,255,255,.65);text-decoration:none}
+.ft .tg{font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:.3px;font-size:8px}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+<div class="hdr"><div class="hdr-glow"></div>
+  <div class="hdr-in">
+    <div><span class="wm">DishNet</span><span class="pill {{SERVICE_CLASS}}">{{SERVICE_LABEL}}</span><div class="hdr-sub">Internet Service Provider · Juba, South Sudan</div></div>
+    <div class="qb"><div class="qt">{{QUOTE_TYPE}}</div><div class="qr">{{QUOTE_REF}}</div><div class="qd">{{DATE_FULL}}</div></div>
+  </div>
+</div>
+<div class="sw"></div>
+
+<div class="cnt">
+  <div class="ig">
+    <div class="ib to"><div class="bt">Bill To</div><div class="bn">{{CUSTOMER_NAME}}</div>{{CUSTOMER_COMPANY_LINE}}<div class="bl">{{CUSTOMER_PHONE}}</div><div class="bl">{{CUSTOMER_EMAIL}}</div><div class="bl">{{CUSTOMER_LOCATION}}</div></div>
+    <div class="ib fr"><div class="bt">From</div><div class="bn">DishNet Africa Ltd</div><div class="bl">Opp. Ministries, Kololo Area, Juba</div><div class="bl">+211 921 443 009 · +211 920 000 000</div><div class="bl">sales@dishnetafrica.com</div><div class="bl">www.dishnetafrica.com</div></div>
+  </div>
+
+  <div class="sl">Quotation Details</div>
+  <table class="it">
+    <thead><tr><th style="width:5%">#</th><th style="width:43%">Description</th><th class="r" style="width:12%">Qty</th><th class="r" style="width:18%">Unit Price</th><th class="r" style="width:22%">Amount (USD)</th></tr></thead>
+    <tbody>{{ITEMS_ROWS}}</tbody>
+  </table>
+
+  <div class="tw"><div class="tb">
+    <div class="tl s"><span class="lb">Subtotal</span><span class="vl">${{SUBTOTAL}}</span></div>
+    {{DISCOUNT_LINE}}{{TAX_LINE}}
+    <div class="tl g"><span class="lb">Total Due</span><span class="vl">${{GRAND_TOTAL}}</span></div>
+    {{PAID_LINE}}{{BALANCE_LINE}}
+  </div></div>
+
+  <div class="vy"><div class="vi">✓</div><div class="vt">Valid for <strong>{{VALIDITY_DAYS}} days</strong> (until <strong>{{VALID_UNTIL}}</strong>). Prices subject to change after expiry.</div></div>
+
+  {{NOTES_BLOCK}}
+
+  <div class="ts">
+    <div class="sl">Terms &amp; Conditions</div>
+    {{TERMS_HTML}}
+    <div class="ta">By accepting this quotation, you agree to the above Terms &amp; Conditions.</div>
+  </div>
+
+  <div class="sp"></div>
+
+  <div class="sg">
+    <div class="sb"><div class="sgl">Prepared By</div><div class="sgln"><span class="sgn">{{AGENT_NAME}}</span><span class="sgr">{{AGENT_ROLE}}</span></div></div>
+    <div class="sb"><div class="sgl">Accepted By (Customer)</div><div class="sgln"><span class="sgn">______________________________</span><span class="sgr">Date: ____________</span></div></div>
+  </div>
+</div>
+
+<div class="fsw"></div>
+<div class="ft">
+  <div>DishNet Africa Ltd · Juba, South Sudan</div>
+  <div class="tg">Of course we can ...</div>
+  <div><a href="https://www.dishnetafrica.com">www.dishnetafrica.com</a></div>
+</div>
+
+</div>
+</body>
+</html>

@@ -20,3 +20,5 @@ dishnet-ai/data/*
 *.sqlite3-wal
 *.sqlite3-shm
 config.json.migrated
+dishnet-hybrid-sudan/data/*
+!dishnet-hybrid-sudan/data/.gitkeep
