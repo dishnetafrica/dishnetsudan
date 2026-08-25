@@ -299,6 +299,11 @@ if ($MODE === 'suite') {
                 : bad("quoted \${$amt} — NOT in the uCRM catalogue");
         }
         foreach ($forbidden as $f) {
+            // A figure stops being forbidden the moment it is a real catalogue
+            // price: $50 was the old South Sudan install fee AND is now the
+            // live Sudan installation price. The live catalogue always wins.
+            $num = rtrim(rtrim(str_replace([',', '$'], '', $f), '0'), '.');
+            if (in_array($num, $ucrmPrices, true)) continue;
             if (stripos($reply, $f) !== false) bad("reply contains forbidden figure {$f}");
         }
         if ($reply === '' && empty($r['escalate'])) bad('empty reply without escalation');
