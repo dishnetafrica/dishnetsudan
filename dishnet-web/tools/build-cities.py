@@ -115,9 +115,12 @@ def distance(c):
 
 def page(c):
     n, ar, st = c['name'], c['ar'], c['state']
-    title = f"Starlink in {n}, {st} — Installation &amp; Support | DishNet Sudan"
-    desc  = (f"Starlink satellite internet in {n}, {st} State. {c['character'].capitalize()}. "
-             f"Kit supply, professional installation and support from DishNet.")
+    # "Starlink in Khartoum, Khartoum" read as a bug in the tab. When the city
+    # names its own state, the state adds nothing.
+    place = n if n == st else f"{n}, {st}"
+    title = f"Starlink in {place} — Installation &amp; Support | DishNet Sudan"
+    # Google truncates around 165 characters; long city characters blew past it.
+    desc = f"Starlink satellite internet in {n}, {st} State — kit supply, professional installation and local support from DishNet Sudan."
     areas = ''.join(f'<span class="badge-label" style="margin:0 6px 6px 0;display:inline-block;">{a}</span>' for a in c['areas'])
     faq_html = '\n'.join(
         f'    <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">{q}</button>\n'

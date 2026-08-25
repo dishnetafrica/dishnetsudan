@@ -75,6 +75,7 @@ done
 echo "== pages =="
 bad=0
 while IFS= read -r f; do
+  case "$f" in */404.html) continue;; esac   # asserted separately below
   c=$(curl -s -o /dev/null -w '%{http_code}' "$B/${f#site/}")
   [ "$c" = 200 ] || { echo "  HTTP $c  /${f#site/}"; bad=$((bad+1)); }
 done < <(find "$HERE/site" -name '*.html' | sed "s|$HERE/||" | sort)
@@ -107,6 +108,17 @@ while IFS= read -r u; do
 done < "$TMP/refs"
 echo "  $(wc -l < "$TMP/refs") references, $bad broken"
 [ $bad -gt 0 ] && fail=1
+
+echo "== 404 behaviour =="
+c=$(curl -s -o /dev/null -w '%{http_code}' "$B/this-page-does-not-exist")
+b=$(curl -s "$B/this-page-does-not-exist" | grep -c "That page isn")
+if [ "$c" = 404 ] && [ "$b" -ge 1 ]; then
+  echo "  unknown URLs return a real 404 with the branded page"
+else
+  echo "  FAIL: unknown URL returned $c (branded content: $b)"; fail=1
+fi
+d=$(curl -s -o /dev/null -w '%{http_code}' "$B/404.html")
+[ "$d" = 404 ] && echo "  /404.html not directly reachable (internal)" || { echo "  FAIL: /404.html directly returned $d"; fail=1; }
 
 echo "== seo =="
 # A canonical pointing at another domain tells Google not to index this site at
@@ -176,7 +188,11 @@ for f in glob.glob(os.path.join(root,'**','*.html'), recursive=True):
     if re.search(r'\bSSP\b', t) and not rel.startswith('tutorials/'):
         err(f'{rel}: SSP reference')
     # 4. Plan prices only ever the uCRM five (plan contexts on the money pages).
-    if base in ('index.html','faq.html','services.html'):
+    MONEY = ('index.html','faq.html','services.html','starlink-price-sudan.html',
+             'starlink-plans-sudan.html','starlink-priority-500gb-sudan.html',
+             'starlink-priority-1tb-sudan.html','starlink-priority-2tb-sudan.html',
+             'starlink-priority-3tb-sudan.html','starlink-priority-5tb-sudan.html')
+    if base in MONEY:
         for p in re.findall(r'\$([0-9][0-9,]*)(?=\s*(?:<small>)?\s*/mo)', t):
             seen_prices.setdefault(p.replace(',',''), set()).add(base)
 for p, where in sorted(seen_prices.items()):
@@ -192,7 +208,11 @@ PYCOM
 python3 - "$HERE/site" <<'PYHW' || fail=1
 import sys, re, glob, os
 root = sys.argv[1]
-ALLOWED = {'350', '600', '50'}
+BASE = [350, 600, 50]
+sums = {0}
+for b in BASE:
+    sums |= {x + b for x in sums}
+ALLOWED = {str(x) for x in sums if x}
 seen, bad = set(), 0
 for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True):
     t = open(f, encoding='utf-8', errors='ignore').read()
@@ -201,7 +221,8 @@ for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True):
         seen.add(v)
         if v not in ALLOWED:
             print(f'  {os.path.relpath(f, root)}: ${v} one-time is not a uCRM hardware price'); bad = 1
-missing = ALLOWED - seen
+REQUIRED = {'350', '600', '50'}   # the base items must appear; sums are merely permitted
+missing = REQUIRED - seen
 if missing:
     print(f'  uCRM hardware prices missing from the site: {sorted(missing)}'); bad = 1
 sys.exit(bad)

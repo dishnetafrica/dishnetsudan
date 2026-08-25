@@ -59,6 +59,7 @@ HOLD = {
   "fiber.html":      "fibre in Sudan undecided; page is Juba coverage and South Sudan prices",
   "testimonials.html":"named South Sudan customers",
   "gallery.html":    "photographs of South Sudan installations",
+  "404.html":        "error page - served with 404 status, never indexed, never in the sitemap",
   "blog-starlink-south-sudan.html": "post is South Sudan market analysis",
   # Ported from the Uganda build. Each describes a service or a payment rail
   # that nobody has confirmed for Sudan.
@@ -224,6 +225,26 @@ PRICES = [
     ("Kit\\ pricing\\ changes\\ with\\ supply,\\ so\\ ask\\ us\\ for\\ today's\\ price\\.",
      'The Standard kit is $600 and the Mini is $350, one-time; professional installation is $50 one-time. Your monthly plan is charged separately.',
      "hardware prices published from uCRM"),
+    # Claims we cannot document are not published. "Official reseller" and
+    # "certified" survive only when the paperwork exists; until then the site
+    # says what is verifiably true: we sell and install Starlink in Sudan.
+    # "Official Starlink datasheets" stays -- those ARE Starlink's documents.
+    (r"the official Starlink reseller for Sudan",
+     "a Starlink supplier and installer for Sudan", "unsupported reseller claim"),
+    (r"we are the official Starlink reseller and installer for Sudan",
+     "we supply and install Starlink across Sudan", "unsupported reseller claim"),
+    (r"Became an official Starlink reseller and installer for Sudan",
+     "Began supplying and installing Starlink", "unsupported reseller claim"),
+    (r"Official Starlink Reseller — Sudan",
+     "Starlink Sales &amp; Installation — Sudan", "unsupported reseller claim"),
+    (r"Official Starlink reseller and installer for Sudan",
+     "Starlink supply and professional installation for Sudan", "unsupported reseller claim"),
+    (r"Official Starlink reseller and ISP for Sudan\. Fiber, Starlink, and LTE internet services\.",
+     "Starlink internet supply and professional installation across Sudan.", "unsupported reseller claim in schema"),
+    (r"certified Starlink installation, mobile money billing",
+     "professional Starlink installation, straightforward billing", "unsupported certification + payment claim"),
+    (r"[Cc]ertified technicians", "our technicians", "unsupported certification claim"),
+    (r"Certified installation", "Professional installation", "unsupported certification claim"),
     (r"For most homes: the Mini Kit \(\$299\) or V4 Standard \(\$550\)\. For businesses needing maximum performance: the Flat High Performance \(\$2,600\)\. The Standard Actuated \(\$650\) is great for permanent outdoor installations\.",
      "Starlink currently sells two consumer kits, and we stock both. The Standard is the kit for homes and offices \u2014 current-generation kickstand dish, WiFi 6 router, sealed against dust. The Mini is the size of a laptop, runs on 25\u201340 W and travels in a backpack \u2014 ideal for field teams and anyone on the move. Performance kits for large organisations are available on request. Kit pricing changes with supply, so ask us for today's price.",
      "South Sudan hardware prices in FAQ"),
