@@ -16,7 +16,7 @@
         },
         "author": "DishNet Africa Ltd"
     },
-    "executionPeriod": 1,
+    "executionPeriod": 5,
     "menu": [
         {
             "label": "DishNet AI",

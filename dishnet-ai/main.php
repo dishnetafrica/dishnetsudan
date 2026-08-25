@@ -6,8 +6,13 @@ require_once __DIR__ . '/lib/error_handler.php';
 /**
  * main.php — the scheduled entry point.
  *
- * uCRM runs this on the plugin schedule (executionPeriod in manifest.json,
- * currently every minute). It drains the AI reply queue.
+ * uCRM runs this on the plugin schedule (executionPeriod in manifest.json).
+ * It drains the AI reply queue.
+ *
+ * The schedule is the SAFETY NET, not the main path. evo_webhook.php spawns a
+ * worker the moment a message arrives, so replies are normally immediate. This
+ * exists so that nothing is stranded if that spawn is unavailable — which is
+ * why a few minutes' granularity is acceptable here.
  *
  * This is the GUARANTEED path. The webhook also tries to kick a worker the
  * moment a message arrives, which is what makes replies feel immediate — but
@@ -53,9 +58,9 @@ if (!PluginConfig::toBool($config['ai_enabled'] ?? false)) {
 }
 
 try {
-    // 50s ceiling keeps this well inside a one-minute schedule, so two runs
-    // never overlap. WorkerBase also holds a lock, but not colliding is better
-    // than colliding safely.
+    // A 50s ceiling keeps a run well short of the schedule, so two never
+    // overlap. WorkerBase holds a lock as well, but not colliding beats
+    // colliding safely.
     $worker = new AiReplyWorker($store, $config, 50, 10);
     $result = $worker->run();
 
