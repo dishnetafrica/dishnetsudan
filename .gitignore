@@ -12,3 +12,11 @@ dishnet-backups/
 *.pem
 acme.json
 unms.conf
+
+# Plugin runtime data — created at boot, never committed
+dishnet-ai/data/*
+!dishnet-ai/data/.gitkeep
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+config.json.migrated

@@ -1,0 +1,125 @@
+{
+    "version": "1",
+    "information": {
+        "name": "dishnet-ai",
+        "displayName": "DishNet AI WhatsApp Platform",
+        "description": "Answers customers on WhatsApp across three numbers (Sales, Support, Accounts) using one AI brain grounded in live UISP/uCRM data. Products, customer records, services, balances and invoices are read from uCRM at the moment of the conversation, never from a static list. Messages arrive from Evolution API, are queued, answered, and sent back. Hands over to a human when it is not confident.",
+        "url": "https://dishnetafrica.com",
+        "version": "1.0.0",
+        "ucrmVersionCompliancy": { "min": "2.14.0", "max": null },
+        "unmsVersionCompliancy": { "min": "1.0.0", "max": null },
+        "author": "DishNet Africa Ltd"
+    },
+    "executionPeriod": 1,
+    "menu": [
+        {
+            "label": "DishNet AI",
+            "type": "admin",
+            "target": "iframe"
+        }
+    ],
+    "configuration": [
+        {
+            "key": "ai_enabled",
+            "label": "Answer customers automatically",
+            "description": "Leave OFF until the setup checks on the plugin page pass. While OFF, messages are still received and stored, but no reply is sent.",
+            "required": 0,
+            "type": "checkbox"
+        },
+        {
+            "key": "evo_api_url",
+            "label": "Evolution API URL",
+            "description": "Base URL with no trailing slash, e.g. https://evo-evolution-api.example.easypanel.host — must be HTTPS.",
+            "required": 1,
+            "type": "text"
+        },
+        {
+            "key": "evo_api_key",
+            "label": "Evolution API key",
+            "description": "SECRET. Stored in the plugin data directory. Never shown on the plugin page and never written to logs.",
+            "required": 1,
+            "type": "text"
+        },
+        {
+            "key": "evo_webhook_secret",
+            "label": "Webhook secret",
+            "description": "SECRET. Generate with: openssl rand -hex 32. Evolution API does not sign its webhooks, so this token is what proves a request came from Evolution. Until it is set, the webhook rejects everything.",
+            "required": 1,
+            "type": "text"
+        },
+        {
+            "key": "evo_instance_sales",
+            "label": "Sales WhatsApp instance",
+            "description": "Evolution instance name for the sales number, e.g. dishnet_sales. Leave blank if this number is not in use yet.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "evo_instance_support",
+            "label": "Support WhatsApp instance",
+            "description": "Evolution instance name for the support number.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "evo_instance_account",
+            "label": "Accounts WhatsApp instance",
+            "description": "Evolution instance name for the accounts number.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "ai_provider",
+            "label": "AI provider",
+            "description": "Which model answers customers.",
+            "required": 1,
+            "type": "choice",
+            "choices": {
+                "claude": "Anthropic Claude",
+                "openai": "OpenAI"
+            }
+        },
+        {
+            "key": "claude_api_key",
+            "label": "Anthropic API key",
+            "description": "SECRET. Required when the provider is Claude.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "openai_api_key",
+            "label": "OpenAI API key",
+            "description": "SECRET. Required when the provider is OpenAI.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "ai_model",
+            "label": "Model",
+            "description": "Optional. Defaults to claude-haiku-4-5 or gpt-4o-mini depending on the provider.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "bot_custom_instructions",
+            "label": "Extra instructions for the AI",
+            "description": "Added to the AI's instructions. Use it for office hours, payment methods, locations. It cannot override the safety rules that stop the AI inventing prices or revealing another customer's information.",
+            "required": 0,
+            "type": "textarea"
+        },
+        {
+            "key": "ai_tools_token",
+            "label": "Tool API token",
+            "description": "SECRET. Optional. Only needed if an external service must read DishNet business data through this plugin. Leave blank to keep that endpoint disabled.",
+            "required": 0,
+            "type": "text"
+        },
+        {
+            "key": "tools_legacy_phone_match",
+            "label": "Use loose phone matching",
+            "description": "Leave OFF. Strict matching requires 9 digits to agree before a customer is identified. Turning this ON restores looser matching, which can identify the WRONG customer and disclose their balance. Only for emergency rollback.",
+            "required": 0,
+            "type": "checkbox"
+        }
+    ]
+}
