@@ -16,7 +16,7 @@ mkdir -p "$TMP"/{logs,client,tmp}
 trap 'nginx -s stop -c "$TMP/nginx.conf" 2>/dev/null; rm -rf "$TMP"' EXIT
 
 sed -e "s|root         /usr/share/nginx/html;|root         $HERE/site;|" \
-    -e "s|listen       8080;|listen       $PORT;|" "$HERE/nginx.conf" > "$TMP/server.conf"
+    -e "s|listen  *[0-9]*;|listen       $PORT;|" "$HERE/nginx.conf" > "$TMP/server.conf"
 cat > "$TMP/nginx.conf" <<EOF
 user $(id -un);
 worker_processes 1;
@@ -107,6 +107,35 @@ while IFS= read -r u; do
 done < "$TMP/refs"
 echo "  $(wc -l < "$TMP/refs") references, $bad broken"
 [ $bad -gt 0 ] && fail=1
+
+echo "== seo =="
+# A canonical pointing at another domain tells Google not to index this site at
+# all, which is how the South Sudan copy arrived. Cheap to check, fatal to miss.
+foreign=$(grep -rho 'rel="canonical" href="https\?://[^/"]*' "$HERE/site" --include='*.html' \
+  | grep -v '/demo/' | sed 's|.*//||' | sort -u | grep -v '^dishnetsudan\.com$' || true)
+[ -n "$foreign" ] && { echo "  canonical points off-domain: $foreign"; fail=1; } \
+                  || echo "  all canonicals on dishnetsudan.com"
+grep -q 'dishnetsudan.com/sitemap.xml' "$HERE/site/robots.txt" \
+  || { echo "  robots.txt sitemap line wrong"; fail=1; }
+python3 -c "import xml.dom.minidom,sys;xml.dom.minidom.parse('$HERE/site/sitemap.xml')" 2>/dev/null \
+  || { echo "  sitemap.xml is not well-formed"; fail=1; }
+# Claims that are true of South Sudan and false of Sudan. Anchored so the
+# protected history ("South Sudan's First FTTH") is not matched as a substring.
+python3 - "$HERE/site" <<'PYCHK' || fail=1
+import sys,re,glob,os
+root=sys.argv[1]
+BAD=[r"(?<!South )Sudan's First FTTH", r"(?<!South )Sudan's first Fiber",
+     r"Juba,\s*Sudan\b", r"offices in 7 cities", r"Juba warehouse"]
+bad=0
+for f in glob.glob(os.path.join(root,'**','*.html'),recursive=True):
+    if '/demo/' in f: continue
+    t=open(f,encoding='utf-8',errors='ignore').read()
+    for b in BAD:
+        if re.search(b,t):
+            print(f"  false-for-Sudan claim {b!r} in {os.path.relpath(f,root)}"); bad=1
+sys.exit(bad)
+PYCHK
+[ $fail -eq 0 ] && echo "  no South-Sudan-only claims, sitemap well-formed"
 
 echo
 [ $fail -eq 0 ] && echo "PASS" || echo "FAIL"
