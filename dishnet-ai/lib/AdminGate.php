@@ -45,6 +45,15 @@ class AdminGate
     {
         if (session_status() === PHP_SESSION_ACTIVE) return;
 
+        // Cookie parameters can only be set before output begins. Callers
+        // should have started the session at the top of the request; if output
+        // is already underway, start it without touching the cookie params
+        // rather than emitting a warning into the middle of the page.
+        if (headers_sent()) {
+            @session_start();
+            return;
+        }
+
         // The page runs in an iframe on the same origin as uCRM, so Lax is
         // sufficient and avoids requiring a valid certificate for None.
         if (PHP_VERSION_ID >= 70300) {

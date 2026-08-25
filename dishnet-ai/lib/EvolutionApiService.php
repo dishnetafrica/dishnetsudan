@@ -151,6 +151,54 @@ class EvolutionApiService
         return $out;
     }
 
+    /**
+     * Create an instance. Evolution generates a QR straight away.
+     *
+     * integration WHATSAPP-BAILEYS is the QR-pairing mode (as opposed to the
+     * Meta Cloud API mode), which is what a normal WhatsApp number uses.
+     */
+    public function createInstance(string $name): array
+    {
+        return $this->request('POST', '/instance/create', [
+            'instanceName' => $name,
+            'integration'  => 'WHATSAPP-BAILEYS',
+            'qrcode'       => true,
+        ]);
+    }
+
+    /**
+     * Ask for a pairing QR.
+     *
+     * Returns ['qr' => data-uri or '', 'pairing_code' => string]. Evolution
+     * rotates the code every few seconds and gives up after a limited number
+     * of attempts, so treat what comes back as valid for about a minute.
+     *
+     * An already-connected instance returns no QR — check connectionState
+     * first if you need to distinguish that from a failure.
+     */
+    public function connect(string $instance): array
+    {
+        $r = $this->request('GET', '/instance/connect/' . rawurlencode($instance));
+        if (!$r['ok']) return $r;
+
+        $d  = $r['data'];
+        $qr = (string)($d['base64'] ?? ($d['qrcode']['base64'] ?? ''));
+        // Some builds return raw base64, others a full data URI.
+        if ($qr !== '' && strpos($qr, 'data:') !== 0) {
+            $qr = 'data:image/png;base64,' . $qr;
+        }
+
+        $r['qr']           = $qr;
+        $r['pairing_code'] = (string)($d['pairingCode'] ?? ($d['code'] ?? ''));
+        return $r;
+    }
+
+    /** Sign a number out of WhatsApp without deleting the instance. */
+    public function logoutInstance(string $instance): array
+    {
+        return $this->request('DELETE', '/instance/logout/' . rawurlencode($instance));
+    }
+
     // ── Webhook management ───────────────────────────────────────────────────
 
     /**

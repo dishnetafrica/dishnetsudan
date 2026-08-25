@@ -41,7 +41,12 @@ $config = PluginConfig::load(__DIR__, $dataDir);
 $pdo    = $store->getPdo();
 $gate   = new AdminGate($config, $dataDir);
 
-$flash = null;   // ['ok'=>bool, 'msg'=>string]
+// Before a single byte of output: session cookie parameters cannot be set once
+// headers are sent, and csrfField() needs a session while rendering.
+$gate->startSession();
+
+$flash   = null;   // ['ok'=>bool, 'msg'=>string]
+$qrPanel = null;   // set when a pairing QR has just been fetched
 
 // ── Actions ──────────────────────────────────────────────────────────────────
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
@@ -97,6 +102,49 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $r   = $evoW->setWebhook($inst, $url);
                     $flash = ['ok' => $r['ok'], 'msg' => $r['ok']
                         ? "Evolution will now send {$ch} messages to this plugin."
+                        : ('Evolution refused: ' . $r['error'])];
+                }
+                break;
+
+            case 'create_instance':
+                $name = trim((string)($_POST['instance_name'] ?? ''));
+                if (!preg_match('/^[A-Za-z0-9_-]{3,40}$/', $name)) {
+                    $flash = ['ok' => false, 'msg' => 'Use 3-40 letters, numbers, dashes or underscores — no spaces.'];
+                } else {
+                    $r = $evoW->createInstance($name);
+                    $flash = ['ok' => $r['ok'], 'msg' => $r['ok']
+                        ? "Created \"{$name}\". Assign it to a number below, then scan its QR code."
+                        : ('Evolution refused: ' . $r['error'])];
+                }
+                break;
+
+            case 'show_qr':
+                $ch   = (string)($_POST['channel'] ?? '');
+                $inst = $evoW->instanceFor($ch);
+                if ($inst === '') {
+                    $flash = ['ok' => false, 'msg' => 'Assign an instance to that number first.'];
+                } else {
+                    $r = $evoW->connect($inst);
+                    if ($r['ok'] && ($r['qr'] !== '' || $r['pairing_code'] !== '')) {
+                        $qrPanel = ['channel' => $ch, 'instance' => $inst,
+                                    'qr' => $r['qr'], 'code' => $r['pairing_code']];
+                    } else {
+                        $flash = ['ok' => false, 'msg' => $r['ok']
+                            ? 'Evolution returned no QR — this number may already be connected.'
+                            : ('Evolution refused: ' . $r['error'])];
+                    }
+                }
+                break;
+
+            case 'logout_instance':
+                $ch   = (string)($_POST['channel'] ?? '');
+                $inst = $evoW->instanceFor($ch);
+                if ($inst === '') {
+                    $flash = ['ok' => false, 'msg' => 'No instance assigned to that number.'];
+                } else {
+                    $r = $evoW->logoutInstance($inst);
+                    $flash = ['ok' => $r['ok'], 'msg' => $r['ok']
+                        ? "Signed {$inst} out of WhatsApp."
                         : ('Evolution refused: ' . $r['error'])];
                 }
                 break;
@@ -195,8 +243,14 @@ try {
 // Live instance list — only when unlocked, and only on the Setup tab.
 $liveInstances = null;
 $health        = null;
+$evoError      = '';
 if ($unlocked && $tab === 'setup' && $evo->isConfigured()) {
     $r = $evo->fetchInstances();
+    if (!$r['ok']) {
+        $e = $evo->getLastError();
+        $evoError = trim((string)($e['message'] ?? $r['error'] ?? ''));
+        if (!empty($e['http'])) $evoError .= ' (HTTP ' . $e['http'] . ')';
+    }
     if ($r['ok'] && is_array($r['data'])) {
         $liveInstances = [];
         foreach ($r['data'] as $i) {
@@ -437,14 +491,85 @@ function h($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'
       <div class="actions">
         <button class="primary" type="submit">Save numbers</button>
         <?php if ($liveInstances === null): ?>
-          <span class="note" style="margin:0">Could not read the instance list from Evolution — type the
-          names by hand. Check the API URL and key on the Configuration screen.</span>
+          <span class="note" style="margin:0">
+            Could not read the instance list from Evolution — type the names by hand.
+            <?php if ($evoError !== ''): ?>
+              <br><b>Evolution said:</b> <?= h($evoError) ?>
+              <?php if (stripos($evoError, 'certificate') !== false || stripos($evoError, 'SSL') !== false): ?>
+                <br>That is a certificate problem, not a wrong key.
+              <?php elseif (stripos($evoError, 'resolve') !== false || stripos($evoError, 'Connection') !== false): ?>
+                <br>uCRM cannot reach that address at all — check the URL, and that this server can resolve it.
+              <?php elseif (stripos($evoError, '401') !== false || stripos($evoError, 'unauthor') !== false): ?>
+                <br>The API key was rejected.
+              <?php endif; ?>
+            <?php endif; ?>
+          </span>
         <?php else: ?>
           <span class="note" style="margin:0"><?= count($liveInstances) ?> instance<?= count($liveInstances) === 1 ? '' : 's' ?>
           found in Evolution.</span>
         <?php endif; ?>
       </div>
     </form>
+
+    <h2>Connect WhatsApp</h2>
+    <?php if ($qrPanel): ?>
+      <div class="card"><div class="row" style="display:block;text-align:center">
+        <div style="font-weight:600;margin-bottom:4px">
+          Scan with the <?= h(ucfirst($qrPanel['channel'])) ?> phone
+        </div>
+        <div class="note" style="margin:0 0 12px">
+          WhatsApp → Settings → Linked devices → Link a device.
+          Instance <b><?= h($qrPanel['instance']) ?></b>.
+        </div>
+        <?php if ($qrPanel['qr'] !== ''): ?>
+          <img src="<?= h($qrPanel['qr']) ?>" alt="WhatsApp pairing QR code"
+               style="width:264px;height:264px;image-rendering:pixelated;border:1px solid var(--rule);border-radius:4px;background:#fff">
+        <?php endif; ?>
+        <?php if ($qrPanel['code'] !== ''): ?>
+          <div style="margin-top:10px">Or enter this code on the phone:
+            <code style="font-size:16px;letter-spacing:.12em"><?= h($qrPanel['code']) ?></code></div>
+        <?php endif; ?>
+        <div class="note">The code expires after about a minute. If it stops working, press
+        <b>Show QR code</b> again for a fresh one.</div>
+      </div></div>
+    <?php endif; ?>
+
+    <div class="card">
+      <?php $anyAssigned = false;
+            foreach (EvolutionApiService::CHANNELS as $ch):
+              $inst = $evo->instanceFor($ch); if ($inst === '') continue; $anyAssigned = true;
+              $state = $health[$ch]['state'] ?? null;
+              $connected = ($state === 'open'); ?>
+        <div class="row">
+          <span class="l"><?= h(ucfirst($ch)) ?></span>
+          <span class="d"><?= h($inst) ?><?= $state ? ' — ' . h($state) : '' ?></span>
+          <form method="post" style="margin-left:auto;display:flex;gap:8px">
+            <?= $gate->csrfField() ?>
+            <input type="hidden" name="channel" value="<?= h($ch) ?>">
+            <?php if ($connected): ?>
+              <button type="submit" name="action" value="logout_instance" class="danger">Disconnect</button>
+            <?php else: ?>
+              <button type="submit" name="action" value="show_qr" class="primary">Show QR code</button>
+            <?php endif; ?>
+          </form>
+        </div>
+      <?php endforeach; ?>
+      <?php if (!$anyAssigned): ?>
+        <div class="row"><span class="d">Assign an instance to a number above first.</span></div>
+      <?php endif; ?>
+
+      <div class="row" style="display:block">
+        <form method="post" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <?= $gate->csrfField() ?>
+          <input type="hidden" name="action" value="create_instance">
+          <span style="font-weight:500">No instance yet?</span>
+          <input type="text" name="instance_name" placeholder="dishnet_sales" pattern="[A-Za-z0-9_-]{3,40}">
+          <button type="submit">Create it in Evolution</button>
+        </form>
+        <div class="note">Creates a new WhatsApp connection. Assign it to a number above, then
+        scan its QR code with the phone that owns that number.</div>
+      </div>
+    </div>
 
     <h2>Webhook</h2>
     <div class="card">
