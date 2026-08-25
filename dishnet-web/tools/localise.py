@@ -30,16 +30,11 @@ FILES = [f for f in glob.glob(os.path.join(SITE, '**', '*.html'), recursive=True
 
 # ── 1. Sentences that must keep "South Sudan": real company history ──────────
 PROTECT = [
-    "South Sudan's first Fiber-to-the-Home (FTTH) broadband service",
-    "South Sudan's first Fiber-to-the-Home broadband",
-    "Expanded operations to all 10 states of South Sudan",
-    "in South Sudan, starting with VSAT satellite internet services",
     "South Sudan has some of the lowest internet penetration rates in the world",
     # The registered address is real and must stay real. "Juba, Sudan" is not a
     # place, and this text sits in the privacy policy and the terms.
     "Airport Road, Kololo Area, Tomping, Juba, South Sudan",
     "Airport Road, Kololo, Juba, South Sudan",
-    "Juba, Central Equatoria — South Sudan",
     "courts of Juba, Central Equatoria State",
     "South Sudan's First FTTH",
     "South Sudan's first FTTH",
@@ -100,6 +95,26 @@ CLAIMS = [
     (r"8 AM to 8 PM Juba time", "8 AM to 8 PM local time", "city-bound"),
     (r"\(Juba load-shedding\)", "(load-shedding)", "city-bound"),
     (r"across Juba\.", "across Sudan.", "city-bound"),
+    # Experience wording: East Africa, as on the Uganda site. The history is
+    # true, but presenting it to Sudanese customers as South Sudan credentials
+    # is a commercial problem -- and two lines cannot survive a relabel:
+    # "South Sudan's first FTTH" and "all 10 states" are false under any other
+    # country name, so the superlative and the specifics go, not just the name.
+    (r"Established as a licensed ISP in South Sudan, starting with VSAT satellite internet services for businesses and NGOs in Juba\.",
+     "Established as a licensed ISP in East Africa, starting with VSAT satellite internet services for businesses and NGOs.",
+     "experience wording: East Africa"),
+    (r"Expanded operations to all 10 states of South Sudan\. ",
+     "Expanded to nationwide operations in our first East African market. ",
+     "experience wording: East Africa"),
+    (r"Began deploying fiber-optic infrastructure in Juba\. Launched South Sudan's first Fiber-to-the-Home \(FTTH\) broadband service",
+     "Began deploying fiber-optic infrastructure and launched a Fiber-to-the-Home (FTTH) broadband service",
+     "experience wording: first-claim removed"),
+    (r"Juba, Central Equatoria — South Sudan",
+     "Regional head office — Juba, East Africa",
+     "head office labelled as regional"),
+    (r"Head office: Airport Road, Kololo, Juba, South Sudan\.",
+     "Regional head office: Airport Road, Kololo, Juba.",
+     "head office labelled as regional"),
     # Indexed pages: remove the city, keep the meaning. No Sudanese city is
     # substituted -- which one DishNet can install in is not established.
     (r"and install to all major towns in South Sudan including Bor, Wau, Malakal, Bentiu, Rumbek, and Aweil\. Delivery times outside Juba may vary\. ",
