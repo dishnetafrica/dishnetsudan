@@ -121,5 +121,19 @@ t('top-level price still honoured', $top['price'], 112.0);
 $none = DishNetTools::mapServicePlan(['name' => 'X']);
 t('no price anywhere stays null (AI says it will confirm)', $none['price'], null);
 
+// ── 7. Hardware: same discipline as plans ───────────────────────────────
+$kit = DishNetTools::mapHardwareItem(['id' => 3, 'name' => 'Starlink Standard Kit', 'price' => 350]);
+t('hardware price mapped', $kit['price'], 350.0);
+$nokit = DishNetTools::mapHardwareItem(['name' => 'Starlink Mini Kit']);
+t('hardware without price stays null', $nokit['price'], null);
+
+$p = $brain->promptPreview($sales + ['products' => $catalogue + [
+    'hardware' => [['name' => 'Starlink Standard Kit', 'price' => 350.0]]]]);
+has('hardware block rendered', $p, 'HARDWARE (one-time items, live from our system');
+has('kit and price in prompt', $p, 'Starlink Standard Kit — price 350 one-time');
+
+$p = $brain->promptPreview($sales + ['products' => $catalogue]);
+has('no hardware in uCRM => AI told to confirm, not guess', $p, 'HARDWARE: no kit or installation prices');
+
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail === 0 ? 0 : 1);

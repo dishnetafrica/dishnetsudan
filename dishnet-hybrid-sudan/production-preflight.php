@@ -128,7 +128,8 @@ echo "\n== queue ==\n";
 try {
     $pdo = $store->getPdo();
     $pending = (int)$pdo->query("SELECT COUNT(*) FROM events WHERE event_type='ai.reply' AND status IN ('pending','failed')")->fetchColumn();
-    $dead    = (int)$pdo->query("SELECT COUNT(*) FROM events WHERE event_type='ai.reply' AND status='dead'")->fetchColumn();
+    $dead    = (int)$pdo->query("SELECT COUNT(*) FROM events WHERE event_type='ai.reply' AND status='dead'
+                                  AND (error IS NULL OR error NOT LIKE 'flushed by preflight%')")->fetchColumn();
     $oldest  = (string)$pdo->query("SELECT MIN(created_at) FROM events WHERE event_type='ai.reply' AND status IN ('pending','failed')")->fetchColumn();
     if ($pending === 0) {
         ok('reply queue empty');
@@ -181,6 +182,20 @@ if (!($prod['ok'] ?? false)) {
         abs($got - $price) < 0.005
             ? ok("{$name} = \${$price}")
             : bad("{$name}: uCRM says \${$got}, website says \${$price} — CUSTOMERS SEE TWO PRICES");
+    }
+    $hw = $prod['data']['hardware'] ?? [];
+    if ($hw) {
+        ok('Products endpoint answered, ' . count($hw) . ' hardware item(s)');
+        foreach ($hw as $h) {
+            printf("    %-28s price=%s one-time\n", (string)($h['name'] ?? '?'),
+                $h['price'] === null ? 'NULL (AI will say it will confirm)' : number_format((float)$h['price'], 2));
+        }
+    } else {
+        warn('no items in uCRM Products — the AI cannot quote kit or installation prices '
+           . '(CRM → Service plans & Products → Products)');
+    }
+    if (!empty($prod['data']['hardware_error'])) {
+        warn('hardware lookup error: ' . (string)$prod['data']['hardware_error']);
     }
     foreach ($byName as $name => $p) {
         if (isset($EXPECTED[$name])) continue;
@@ -265,7 +280,8 @@ if ($MODE === 'suite') {
     ];
     // Rules the transcript is judged against, mechanically:
     $ucrmPrices = [];
-    foreach ($plans as $p) if ($p['price'] !== null) $ucrmPrices[] = rtrim(rtrim(number_format((float)$p['price'], 2, '.', ''), '0'), '.');
+    foreach (array_merge($plans, $prod['ok'] ? ($prod['data']['hardware'] ?? []) : []) as $p)
+        if (($p['price'] ?? null) !== null) $ucrmPrices[] = rtrim(rtrim(number_format((float)$p['price'], 2, '.', ''), '0'), '.');
     $forbidden  = ['142', '218', '366', '513', '814', '$80', '$65', '$50', '$299', '$550', '$650', '$2,600', '$2600'];
     foreach ($SUITE as $i => $q) {
         $r = $runOne($q, $ctx);

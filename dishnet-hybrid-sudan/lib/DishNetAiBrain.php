@@ -288,6 +288,21 @@ class DishNetAiBrain
                 . "requirements and hand over.\n";
         }
 
+        $hardware = $ctx['products']['hardware'] ?? null;
+        if (is_array($hardware) && $hardware) {
+            $d .= "\nHARDWARE (one-time items, live from our system — quote these exactly):\n";
+            foreach ($hardware as $h) {
+                $d .= '- ' . ($h['name'] ?? 'Unnamed');
+                $d .= isset($h['price']) && $h['price'] !== null
+                    ? ' — price ' . rtrim(rtrim(number_format((float)$h['price'], 2, '.', ''), '0'), '.')
+                    : ' — price not listed (say you will confirm)';
+                $d .= " one-time\n";
+            }
+        } elseif (($ctx['channel'] ?? '') === 'sales') {
+            $d .= "\nHARDWARE: no kit or installation prices are in your data. If asked what "
+                . "equipment costs, say you will confirm and take their details.\n";
+        }
+
         // Support
         $services = $ctx['services'] ?? null;
         if (is_array($services) && $services) {

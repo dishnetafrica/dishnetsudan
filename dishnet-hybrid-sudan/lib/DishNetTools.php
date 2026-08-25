@@ -341,6 +341,22 @@ class DishNetTools
         ];
     }
 
+    /**
+     * Map one UCRM one-time product (Products tab) for the AI context.
+     * Products carry a plain top-level price; anything absent stays null and
+     * the AI is told to confirm rather than guess.
+     */
+    public static function mapHardwareItem(array $it): array
+    {
+        return [
+            'id'    => isset($it['id']) ? (int)$it['id'] : null,
+            'name'  => $it['name'] ?? null,
+            'price' => isset($it['price']) && $it['price'] !== null ? (float)$it['price'] : null,
+            'unit'  => $it['unit'] ?? null,
+            '_raw'  => $it,
+        ];
+    }
+
     public function getProducts(int $limit = 200): array
     {
         $crm = $this->crm();
@@ -353,9 +369,29 @@ class DishNetTools
                 if (isset($p['isActive']) && !$p['isActive']) continue;
                 $out[] = self::mapServicePlan($p);
             }
+
+            // One-time items — Starlink kits, installation — live in UCRM's
+            // Products tab, a separate endpoint from service plans. Fetched on
+            // a best-effort basis: a failure here must not cost the AI its
+            // monthly plans, so it degrades to an empty hardware list plus an
+            // error string the worker logs.
+            $hardware = [];
+            $hardwareError = null;
+            try {
+                $items = $crm->get('products?limit=' . $limit) ?? [];
+                foreach ($items as $it) {
+                    if (!is_array($it)) continue;
+                    $hardware[] = self::mapHardwareItem($it);
+                }
+            } catch (\Throwable $e) {
+                $hardwareError = $e->getMessage();
+            }
             return $this->ok([
                 'products'         => $out,
                 'count'            => count($out),
+                'hardware'         => $hardware,
+                'hardware_count'   => count($hardware),
+                'hardware_error'   => $hardwareError,
                 '_schema_verified' => false,
                 '_note'            => 'Fields absent from UCRM are null. Never present a null field as a fact.',
             ]);

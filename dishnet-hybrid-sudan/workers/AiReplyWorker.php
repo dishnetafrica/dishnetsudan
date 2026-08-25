@@ -164,8 +164,13 @@ class AiReplyWorker extends WorkerBase
                 $products = $this->tools->getProducts();
                 if ($products['ok']) {
                     $ctx['products'] = $products['data'];
-                    $this->log('info', sprintf('conv %d: catalogue loaded, %d plan(s)',
-                        $convId, (int)($products['data']['count'] ?? 0)));
+                    $this->log('info', sprintf('conv %d: catalogue loaded, %d plan(s), %d hardware item(s)',
+                        $convId, (int)($products['data']['count'] ?? 0),
+                        (int)($products['data']['hardware_count'] ?? 0)));
+                    if (!empty($products['data']['hardware_error'])) {
+                        $this->log('warn', 'conv ' . $convId . ': hardware lookup failed — '
+                            . (string)$products['data']['hardware_error']);
+                    }
                 } else {
                     // The brain falls back to "PLANS unavailable" and hands
                     // over — safe, but it must never be invisible in the log.
