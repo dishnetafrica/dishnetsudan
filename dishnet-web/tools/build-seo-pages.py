@@ -541,6 +541,151 @@ for fname, a in AUD.items():
     body += f'<section class="section-sm"><div class="container">\n{mids}\n</div></section>\n' + faq_html
     pages[fname] = (a['title'], a['desc'], crumb_ld + svc_ld + faq_ld, body)
 
+
+
+# ══════════════════════════ PHASE 3: GUIDES ══════════════════════════
+def guide(fname, crumb, title, desc, h1, sub, sections, faqs, cta):
+    crumb_vis, crumb_ld = breadcrumbs([('Home', '/'), ('Guides', 'guides.html'), (crumb, None)])
+    art_ld = ('<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article",'
+              f'"headline":"{h1}","author":{{"@type":"Organization","name":"DishNet Africa Ltd"}},'
+              f'"publisher":{{"@type":"Organization","name":"DishNet Africa Ltd"}},'
+              f'"mainEntityOfPage":"https://{DOMAIN}/{fname}"}}</script>')
+    faq_html, faq_ld = faq_block('Quick answers', faqs)
+    body = hero('Guide', h1, sub, cta[0], cta[1], crumb_vis)
+    mids = '\n'.join(f'<h2 style="margin-top:30px;">{h}</h2>\n<p style="max-width:70ch;">{t}</p>'
+                      for h, t in sections)
+    body += f'<section class="section-sm"><div class="container">\n{mids}\n</div></section>\n' + faq_html
+    pages[fname] = (title, desc, crumb_ld + art_ld + faq_ld, body)
+
+guide('guide-priority-data.html', 'Priority data explained',
+    'What Priority Data Means on Starlink — Explained | DishNet Sudan',
+    'Priority data on Starlink, explained simply: what the allowance does, what happens when it ends, and how to pick the right amount for Sudan.',
+    'Priority data, explained without the jargon',
+    'Every plan we sell carries a priority allowance — 500GB to 5TB. Here is what that number '
+    'actually does, and what happens when you pass it.',
+    [('While you are inside the allowance',
+      'Your traffic carries priority on the network. That is the whole mechanism: the allowance is '
+      'not a cap on existence, it is a claim to precedence.'),
+     ('When the allowance ends',
+      'Nothing switches off. You continue on unlimited standard data until the monthly cycle '
+      'resets. A household that overshoots one busy month keeps working — it just no longer '
+      'carries priority for the remainder.'),
+     ('Choosing the number',
+      'Count daily streamers and video-callers, not devices in a drawer. The honest mapping is on '
+      'the <a href="starlink-plans-sudan.html">plans page</a>, and the WhatsApp assistant applies the same logic in '
+      'two questions. Prices live on <a href="starlink-price-sudan.html">one page</a>, from $112/month.')],
+    [('Is standard data slow?', 'It is the non-priority tier of the same network. We quote no speed figures for it — what changes is precedence, and busy areas feel that more than quiet ones.'),
+     ('Does unused priority data roll over?', 'No — the allowance resets each monthly cycle.'),
+     ('Can I change my allowance later?', 'Yes, message us and we arrange the plan change.')],
+    ('Hello DishNet, help me pick a data allowance.', 'Ask about allowances on WhatsApp'))
+
+guide('guide-how-much-data.html', 'How much data you need',
+    'How Much Data Does Your Home or Office Need? | DishNet Sudan',
+    'Honest data arithmetic for Sudan: what browsing, calls and streaming actually use, and how to size a Starlink plan without guessing.',
+    'How much data you actually need',
+    'Sizing a plan is arithmetic, not mystery. Here are the working numbers — stated as the '
+    'assumptions they are — and how to apply them to your household or office.',
+    [('The working assumptions',
+      'Typical figures, not promises: browsing and messaging are light, well under 1&nbsp;GB per '
+      'hour; video calls run roughly 0.5&ndash;1&nbsp;GB per hour; HD streaming roughly '
+      '3&nbsp;GB per hour. Your habits are the variable that matters.'),
+     ('A worked household',
+      'Two people streaming two hours nightly is roughly 360&nbsp;GB a month on the streaming '
+      'alone — comfortably inside <a href="starlink-priority-1tb-sudan.html">1TB</a> once browsing, calls and updates join '
+      'in, and tight inside <a href="starlink-priority-500gb-sudan.html">500GB</a>. That single comparison decides most homes.'),
+     ('A worked office',
+      'Twenty staff on documents, mail and daily video meetings typically lands around '
+      '<a href="starlink-priority-1tb-sudan.html">1TB</a>&ndash;<a href="starlink-priority-2tb-sudan.html">2TB</a>. Media-heavy work moves you up a tier. '
+      'The <a href="starlink-business-sudan.html">business page</a> maps team sizes to plans honestly.'),
+     ('When the guess is wrong',
+      'Passing the allowance never cuts you off — unlimited standard data continues. If it happens '
+      'monthly, that is the signal to move up a plan, and we will say so rather than let you '
+      'ration.')],
+    [('What uses the most data at home?', 'Video, overwhelmingly — streaming and video calls. Everything else is small next to them.'),
+     ('Do updates and backups matter?', 'Yes — phones, laptops and cloud backups sync quietly in the background. It is part of why we recommend the next tier up when a household sits at a boundary.'),
+     ('Can the WhatsApp assistant do this for me?', 'Yes — it asks about people and habits, then recommends from the same five plans, with live prices.')],
+    ('Hello DishNet, help me size a plan.', 'Get sized on WhatsApp'))
+
+guide('guide-starlink-power-solar.html', 'Starlink on solar and inverters',
+    'Running Starlink on Solar and Inverter Power | DishNet Sudan',
+    'Starlink through Sudan power cuts: real wattage from the spec sheets, and honest arithmetic for running the Mini or Standard kit on solar or inverters.',
+    'Starlink when the power goes out',
+    'The dish does not care about the grid — only about its watts. Spec-sheet numbers and honest '
+    'sizing arithmetic for keeping Starlink alive on solar and battery power.',
+    [('The two numbers that matter',
+      'From Starlink&rsquo;s specification sheets: the <a href="starlink-kits.html">Mini</a> averages 25&ndash;40&nbsp;W on a '
+      '12&ndash;48&nbsp;V DC input; the Standard kit averages 75&ndash;100&nbsp;W on mains power. '
+      'Everything below is arithmetic on those figures.'),
+     ('Sizing, worked honestly',
+      'A 40&nbsp;W average draw is roughly 1&nbsp;kWh per 24 hours — a modest power bank runs a '
+      'Mini for hours, and a small solar-plus-battery setup runs it continuously. The Standard '
+      'kit at ~100&nbsp;W wants the household inverter-and-battery systems many Sudanese homes '
+      'and offices already run. These are sizing estimates from the spec-sheet wattages, not '
+      'guarantees — your installer confirms the final setup.'),
+     ('What we do about it',
+      'Tell us your power situation when you order and we size the backup power with the kit — '
+      'it is part of the <a href="starlink-installation-sudan.html">installation</a> conversation, not an afterthought.')],
+    [('Can the Mini really run from a power bank?', 'Yes — with the right cable for its 12–48 V DC input, a capable power bank runs it for hours. Ask us for the cable details for your power bank.'),
+     ('Does a power cut break the connection?', 'Only if the dish loses power. Keep the dish and router fed and the link stays up — the satellite side never went anywhere.'),
+     ('Which kit for a solar-only site?', 'The Mini, almost always — 25–40 W is the difference between a small panel and a serious array. The remote-sites page covers this world.')],
+    ('Hello DishNet, I need Starlink on solar power.', 'Ask about power setups on WhatsApp'))
+
+guide('guide-how-to-order.html', 'How ordering works',
+    'How to Order Starlink in Sudan — Start to Online | DishNet Sudan',
+    'Ordering Starlink in Sudan, step by step: WhatsApp, a plan recommendation with live prices, the kit, installation, and going online.',
+    'From first message to first megabit',
+    'The whole journey runs on WhatsApp, and the prices you are quoted come live from our billing '
+    'system. Here is each step, exactly as it happens.',
+    [('1 — Say hello',
+      'Message <a href="https://wa.me/249900083481">+249&nbsp;900&nbsp;083&nbsp;481</a>. Our assistant answers immediately, '
+      'asks what the connection is for — home or business, roughly how many people — and '
+      'recommends from the <a href="starlink-plans-sudan.html">five plans</a> with the current price. A human joins the '
+      'conversation whenever it needs one.'),
+     ('2 — The honest quote',
+      'One-time and monthly, always separate: the <a href="starlink-kits.html">kit</a> ($350 Mini or $600 Standard) plus '
+      '$50 <a href="starlink-installation-sudan.html">installation</a>, then the plan from $112/month. Every figure is on '
+      'the <a href="starlink-price-sudan.html">prices page</a>, and nothing is added that is not listed there.'),
+     ('3 — Kit and installation',
+      'We confirm delivery arrangements for your location per order — honestly, before you '
+      'commit. Installation covers mounting, alignment, cabling, WiFi setup and the app on your '
+      'phone.'),
+     ('4 — Online, with an account that knows you',
+      'Your service lives in our billing system: proper invoices, and support that sees your '
+      'history when you message. The <a href="tutorials/index.html">app tutorials</a> cover everyday management.')],
+    [('How long does the whole process take?', 'It depends on kit availability and your location, and we tell you honestly when you order rather than promising a number here.'),
+     ('Do I pay before I understand the costs?', 'No. The full quote — one-time and monthly, separated — comes first. There are no charges beyond the listed ones.'),
+     ('Can I do the whole thing in Arabic?', 'Yes — message in Arabic and the assistant answers in Arabic. Arabic pages: see /ar/.')],
+    ('Hello DishNet, I want to order Starlink.', 'Start your order on WhatsApp'))
+
+guide('guide-satellite-vs-mobile.html', 'Satellite vs mobile data',
+    'Satellite vs Mobile Data in Sudan — An Architecture Comparison | DishNet',
+    'Starlink satellite versus mobile data in Sudan, compared by architecture: what each depends on, where each fits, without vendor claims.',
+    'Satellite and mobile data: what each depends on',
+    'Not a takedown — an architecture comparison. Each technology has a dependency chain, and '
+    'knowing it tells you where each fits.',
+    [('The dependency chains',
+      'Mobile data depends on a tower near you, the power feeding it, and the backhaul connecting '
+      'it onward. A satellite dish depends on a clear view of the sky and its own power. Neither '
+      'chain is better everywhere; they fail differently, and that difference is the whole '
+      'decision.'),
+     ('Where mobile data fits',
+      'Phones move; SIM data follows them. In well-served towns, mobile data is the natural '
+      'companion in your pocket — we sell fixed connectivity, not a story that phones are '
+      'obsolete.'),
+     ('Where satellite fits',
+      'Fixed places that need capacity and independence: homes, offices, sites beyond tower '
+      'range, and anywhere that cannot inherit the failures of local infrastructure. That '
+      'independence is an architectural property, not a performance claim — and it is why '
+      '<a href="starlink-rural-sudan.html">rural</a> and <a href="starlink-remote-sites-sudan.html">remote</a> Sudan is where satellite stops '
+      'being an alternative and becomes the option.'),
+     ('The practical pairing',
+      'Many customers run both: Starlink as the fixed line for the household or office, mobile '
+      'data on the move. Sizing the fixed side is the <a href="guide-how-much-data.html">data guide</a>&rsquo;s job.')],
+    [('Is Starlink faster than mobile data?', 'We publish no comparative speed claims — networks vary by place and hour. The kits page carries Starlink&rsquo;s own typical ranges from its spec sheets; judge your local mobile experience yourself.'),
+     ('Does weather affect satellite?', 'Heavy rain can attenuate any satellite link while it passes. The dish is built for outdoor conditions — IP67, wind-rated — per the spec sheets.'),
+     ('Do I still need a SIM if I have Starlink?', 'For your phone away from home, yes. The two solve different problems.')],
+    ('Hello DishNet, which option fits my situation?', 'Talk it through on WhatsApp'))
+
 # ══════════════════════════ WRITE ══════════════════════════
 for fname, (title, desc, schema, body) in pages.items():
     doc = head(fname, title, desc, schema) + body + BOTTOM

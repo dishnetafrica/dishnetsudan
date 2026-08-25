@@ -94,6 +94,8 @@ for f in glob.glob(os.path.join(root,'site','**','*.html'),recursive=True):
         r=m.split('?')[0].split('#')[0]
         if not r or skip.match(r): continue
         u=r if r.startswith('/') else '/'+os.path.relpath(os.path.normpath(os.path.join(d,r)),os.path.join(root,'site'))
+        if u.endswith('/'): u += 'index.html'   # a directory link means its index
+        elif not u.rsplit('/',1)[-1].count('.'): u += '/index.html'
         if u not in seen: seen.add(u); print(u)
 PY
 bad=0
@@ -223,7 +225,16 @@ for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True):
         seen.add(v)
         if v not in ALLOWED:
             print(f'  {os.path.relpath(f, root)}: ${v} one-time is not a uCRM hardware price'); bad = 1
-REQUIRED = {'350', '600', '50'}   # the base items must appear; sums are merely permitted
+REQUIRED = {'350', '600', '50'}
+# Arabic pages: every $ figure must be an approved monthly price, hardware
+# price, or hardware sum — same law, second language.
+import glob as _g
+AR_OK = {'112','189','336','483','784'} | ALLOWED
+for f in _g.glob(os.path.join(root, 'ar', '*.html')):
+    t = open(f, encoding='utf-8', errors='ignore').read()
+    for m in re.findall(r'\$([0-9,]+)', t):
+        if m.replace(',', '') not in AR_OK:
+            print(f'  ar/{os.path.basename(f)}: ${m} is not an approved figure'); bad = 1   # the base items must appear; sums are merely permitted
 missing = REQUIRED - seen
 if missing:
     print(f'  uCRM hardware prices missing from the site: {sorted(missing)}'); bad = 1
