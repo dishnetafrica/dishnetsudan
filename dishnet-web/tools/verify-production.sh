@@ -61,6 +61,9 @@ allbodies=$(for p in $pages; do curl -sS -m 20 "$BASE$p"; done)
 echo "$allbodies" | grep -q 'UGANDA' && bad "UGANDA branding still live" || ok "no UGANDA branding"
 echo "$allbodies" | grep -qE '\bSSP\b' && bad "SSP still live" || ok "no SSP references"
 echo "$allbodies" | grep -qE '\$(112|189|336|483|784)\b' && ok "uCRM prices live" || bad "uCRM prices not found — old build still deployed?"
+kits=$(curl -sS -m 20 "$BASE/starlink-kits.html")
+echo "$kits" | grep -q '\$350' && echo "$kits" | grep -q '\$600' && ok "hardware prices live (350/600)" || bad "hardware prices missing from kits page"
+echo "$kits$allbodies" | grep -qE '\$(299|549|550|2,600|2600)\b' && bad "old South Sudan hardware price still live" || ok "no old hardware prices"
 echo "$allbodies" | grep -qE '\$(142|218|366|513|814)\b' && bad "sheet prices still live" || ok "no internal sheet prices"
 echo "$allbodies" | grep -qE '\$(80|65) ?<small>' && bad "South Sudan plan prices still live" || ok "no South Sudan plan prices"
 echo "$allbodies" | grep -q 'dishnet-hybrid-telecom' && bad "old plugin login URL still live" || ok "CRM login link correct"

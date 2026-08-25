@@ -187,7 +187,26 @@ if missing:
     err(f'uCRM prices missing from the site: {sorted(missing)}')
 sys.exit(bad)
 PYCOM
-[ $fail -eq 0 ] && echo "  WhatsApp number, login URL, branding, currency, and all five uCRM prices consistent"
+# One-time hardware prices: every "$N one-time" on the site must be a uCRM
+# Products price, and all three must appear somewhere. Same law as the plans.
+python3 - "$HERE/site" <<'PYHW' || fail=1
+import sys, re, glob, os
+root = sys.argv[1]
+ALLOWED = {'350', '600', '50'}
+seen, bad = set(), 0
+for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True):
+    t = open(f, encoding='utf-8', errors='ignore').read()
+    for m in re.findall(r'\$([0-9,]+)\s*(?:<[^>]*>\s*)*one-time', t):
+        v = m.replace(',', '')
+        seen.add(v)
+        if v not in ALLOWED:
+            print(f'  {os.path.relpath(f, root)}: ${v} one-time is not a uCRM hardware price'); bad = 1
+missing = ALLOWED - seen
+if missing:
+    print(f'  uCRM hardware prices missing from the site: {sorted(missing)}'); bad = 1
+sys.exit(bad)
+PYHW
+[ $fail -eq 0 ] && echo "  WhatsApp number, login URL, branding, currency, five plan prices and three hardware prices consistent"
 
 echo
 [ $fail -eq 0 ] && echo "PASS" || echo "FAIL"
