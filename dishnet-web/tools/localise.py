@@ -34,7 +34,6 @@ PROTECT = [
     # The registered address is real and must stay real. "Juba, Sudan" is not a
     # place, and this text sits in the privacy policy and the terms.
     "Airport Road, Kololo Area, Tomping, Juba, South Sudan",
-    "Airport Road, Kololo, Juba, South Sudan",
     "courts of Juba, Central Equatoria State",
     "South Sudan's First FTTH",
     "South Sudan's first FTTH",
