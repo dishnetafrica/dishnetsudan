@@ -287,6 +287,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     .cta-band { padding: 40px 28px; }
 }
 
-/* Text logo - the site depends on no remote image for its own name */
-.logo-text{font-family:var(--font-display),sans-serif;font-weight:800;font-size:24px;color:var(--accent);letter-spacing:-.5px;line-height:1;}
-.logo-text small{font-size:10px;letter-spacing:.14em;font-weight:600;color:var(--text-secondary);margin-left:6px;vertical-align:2px;}
+/* Text logo - interim until the brand PNG lands in assets/img */
+.logo-text{font-family:var(--font-display),'Outfit',sans-serif;font-weight:800;
+font-size:26px;color:#C8102E;letter-spacing:-1px;line-height:1;display:inline-flex;align-items:baseline;}
+.logo-text small{font-size:10px;letter-spacing:.22em;font-weight:700;
+color:var(--text-secondary);margin-left:8px;}

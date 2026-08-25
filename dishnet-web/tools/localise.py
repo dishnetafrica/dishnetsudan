@@ -338,6 +338,27 @@ SEO_HEAD = """<meta name="robots" content="index,follow,max-image-preview:large"
 <link rel="alternate" hreflang="x-default" href="https://{d}{p}">
 """
 
+import hashlib as _hl
+def _bust(path):
+    try:
+        return _hl.md5(open(path, "rb").read()).hexdigest()[:8]
+    except OSError:
+        return "0"
+_VERS = None
+def cache_bust(text):
+    """cache-bust stylesheets: 30-day asset caching plus changed CSS under an
+    unchanged filename served stale styles to returning visitors (25 Aug).
+    Content-hash query strings end that class of bug permanently."""
+    global _VERS
+    if _VERS is None:
+        _VERS = {"styles.css": _bust("site/styles.css"),
+                 "tutorial-shared.css": _bust("site/tutorials/tutorial-shared.css"),
+                 "fonts.css": _bust("site/assets/fonts/fonts.css")}
+    for name, v in _VERS.items():
+        text = re.sub(r'href="([^"]*' + re.escape(name) + r')(\?v=[0-9a-f]*)?"',
+                      r'href="\1?v=' + v + '"', text)
+    return text
+
 def rebuild_faq_schema(text):
     items = re.findall(
         r'<div class="faq-item"><button[^>]*>(.*?)</button><div class="faq-a"><div class="faq-a-inner">(.*?)</div></div></div>',
@@ -492,6 +513,20 @@ function toggleFaq(btn) {
         "Starlink satellite internet for homes, businesses and organisations across Sudan.")
     if 'LocalBusiness' not in text and '/tutorials/' not in path:
         text = text.replace('</head>', LOCALBUSINESS.replace('{d}', DOMAIN) + '</head>', 1)
+
+    text = cache_bust(text)
+    # logo-text into inline styles: index and the other original pages carry
+    # their whole stylesheet inline and never link styles.css, so a rule added
+    # only to the external file never reaches them -- which is exactly how the
+    # brand wordmark rendered as plain dark text on the live homepage.
+    if '.logo-text' not in text and 'logo-text' in text and '</style>' in text:
+        text = text.replace('</style>',
+            '.logo-text{font-family:var(--font-display),sans-serif;font-weight:800;'
+            'font-size:26px;color:#C8102E;letter-spacing:-1px;line-height:1;'
+            'display:inline-flex;align-items:baseline;}'
+            '.logo-text small{font-size:10px;letter-spacing:.22em;font-weight:700;'
+            'color:var(--text-secondary);margin-left:8px;}\n</style>', 1)
+
 
     if os.path.basename(path) == 'faq.html':
         text, did = rebuild_faq_schema(text)
