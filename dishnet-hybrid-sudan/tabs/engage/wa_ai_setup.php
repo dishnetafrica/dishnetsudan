@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
 }
 
 $_wLive = null; $_wErr = '';
-if ($_wEvo->isConfigured()) {
+if ($_wEvo->canReachApi()) {
     $r = $_wEvo->fetchInstances();
     if (!empty($r['ok']) && is_array($r['data'])) {
         $_wLive = [];
@@ -115,6 +115,7 @@ if ($_wEvo->isConfigured()) {
     }
 }
 $_wHealth = $_wEvo->isConfigured() ? $_wEvo->channelHealth() : [];
+$_wNoCreds = !$_wEvo->canReachApi();
 $_wOn     = PluginConfig::toBool($_wCfg['ai_enabled'] ?? false);
 $_csrf    = function_exists('csrfField') ? csrfField() : '';
 ?>
@@ -204,7 +205,11 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
   </div>
   <?php endforeach; ?>
   <div class="wa-row"><button class="wa-btn p" type="submit">Save numbers</button></div>
-  <?php if ($_wLive === null && $_wErr !== ''): ?>
+  <?php if ($_wNoCreds): ?>
+    <div class="wa-note"><b>Evolution API URL and key are not set.</b>
+    Add them in UISP &rarr; Plugins &rarr; DishNet Sudan &rarr; the gear icon (Configuration),
+    then reload this page and the instance list will appear here as a dropdown.</div>
+  <?php elseif ($_wLive === null && $_wErr !== ''): ?>
     <div class="wa-note"><b>Evolution said:</b> <?= h($_wErr) ?>
       <?php if (stripos($_wErr,'certificate')!==false || stripos($_wErr,'SSL')!==false): ?>
         <br>That is a certificate problem, not a wrong key.

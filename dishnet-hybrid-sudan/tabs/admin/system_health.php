@@ -83,8 +83,9 @@ $row('AI', 'Reply queue', ($_hQ['dead'] > 0 ? 'warn' : 'ok'),
      "{$_hQ['pending']} waiting · {$_hQ['failed']} retrying · {$_hQ['dead']} gave up · {$_hQ['done']} answered");
 
 // ── Evolution ────────────────────────────────────────────────────────────────
-if (!$_hEvo->isConfigured()) {
-    $row('WhatsApp', 'Evolution API', 'bad', 'not configured — set the URL, key and at least one instance');
+if (!$_hEvo->canReachApi()) {
+    $row('WhatsApp', 'Evolution API', 'bad',
+         'URL or key not set — add them on the plugin Configuration screen');
 } else {
     $r = $_hEvo->fetchInstances();
     if (!empty($r['ok'])) {

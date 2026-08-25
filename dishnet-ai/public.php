@@ -244,7 +244,7 @@ try {
 $liveInstances = null;
 $health        = null;
 $evoError      = '';
-if ($unlocked && $tab === 'setup' && $evo->isConfigured()) {
+if ($unlocked && $tab === 'setup' && $evo->canReachApi()) {
     $r = $evo->fetchInstances();
     if (!$r['ok']) {
         $e = $evo->getLastError();

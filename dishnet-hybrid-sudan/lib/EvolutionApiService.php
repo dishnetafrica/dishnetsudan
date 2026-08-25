@@ -81,9 +81,22 @@ class EvolutionApiService
 
     // ── Configuration ────────────────────────────────────────────────────────
 
+    /**
+     * Enough to call Evolution at all: a URL and a key.
+     *
+     * Deliberately separate from isConfigured(). Listing and creating instances
+     * must work BEFORE any channel is mapped -- otherwise you would need an
+     * instance assigned in order to see the list you assign instances from.
+     */
+    public function canReachApi(): bool
+    {
+        return $this->baseUrl !== '' && $this->apiKey !== '';
+    }
+
+    /** Fully set up: reachable AND at least one number mapped to an instance. */
     public function isConfigured(): bool
     {
-        return $this->baseUrl !== '' && $this->apiKey !== '' && $this->channelToInstance !== [];
+        return $this->canReachApi() && $this->channelToInstance !== [];
     }
 
     /** Which instance serves this channel? Empty string when unmapped. */

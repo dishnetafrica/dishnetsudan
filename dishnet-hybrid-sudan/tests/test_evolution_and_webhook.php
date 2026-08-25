@@ -25,6 +25,19 @@ t('instance lookup is case-insensitive', $evo->channelFor('DishNet_Support'), 's
 t('unknown instance rejected (not defaulted)', $evo->channelFor('some_other_instance'), '');
 t('all three channels mapped', $evo->configuredChannels(), ['sales','support','account']);
 
+echo "\nReachable vs fully-configured (the chicken-and-egg)\n";
+// Listing instances must work on URL+key alone. Requiring a channel mapping
+// first made the dropdown impossible on a fresh install: you needed an
+// instance assigned in order to see the list you assign instances from.
+$bare = new EvolutionApiService(['evo_api_url' => 'https://evo.example', 'evo_api_key' => 'k']);
+t('URL+key alone -> can reach the API', $bare->canReachApi(), true);
+t('URL+key alone -> NOT fully configured', $bare->isConfigured(), false);
+t('no channels mapped yet', $bare->configuredChannels(), []);
+$noKey = new EvolutionApiService(['evo_api_url' => 'https://evo.example']);
+t('missing key -> cannot reach', $noKey->canReachApi(), false);
+$full = new EvolutionApiService(['evo_api_url'=>'https://e','evo_api_key'=>'k','evo_instance_sales'=>'s']);
+t('one channel mapped -> fully configured', $full->isConfigured(), true);
+
 echo "\nEvolutionApiService — legacy config fallback\n";
 $legacy = new EvolutionApiService([
   'evo_api_url'=>'https://e/','evo_api_key'=>'k',
