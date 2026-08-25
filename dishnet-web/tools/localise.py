@@ -188,6 +188,11 @@ WIRING = [
     (r'href="https://wa\.me/"', f'href="https://wa.me/{SALES_WA}"', "empty wa.me link"),
     (r'wa\.me/\?text=', f'wa.me/{SALES_WA}?text=', "empty wa.me link"),
     (r'wa\.me/211923400000', f'wa.me/{SALES_WA}', "wa.me to South Sudan office"),
+    # A third number, found by the commercial regression check: the South
+    # Sudan support line, on the app page and one tutorial.
+    (r'wa\.me/211921443002', f'wa.me/{SALES_WA}', "wa.me to South Sudan support line"),
+    (r'\+211 921 443 002', '+211 924 332 000', "displayed support number"),
+    (r'211921443002', SALES_WA, "remaining support-number references"),
     (r'phone=\+?211923400000', f'phone={SALES_WA}', "form JS to South Sudan office"),
     (r'\+211 923 400 000', '+211 924 332 000', "displayed number matches the link"),
     (r'211923400000', SALES_WA, "remaining old-number references"),

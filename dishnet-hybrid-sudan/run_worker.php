@@ -36,17 +36,25 @@ if (!PluginConfig::toBool($config['ai_enabled'] ?? false)) {
     exit(0);
 }
 
+// WorkerBase::log() writes to stdout, which the spawn discards
+// (> /dev/null). Capture it so the per-stage trace — webhook, queue, product
+// lookup, AI call, send, handoff — survives in ai_platform.log where the
+// scheduled cron run already sends its copy.
+ob_start();
 try {
     $result = (new AiReplyWorker($store, $config, 45, 10))->run();
-    if (!empty($result['processed']) || !empty($result['failed'])) {
+    $trace = ob_get_clean();
+    if ($trace !== '' || !empty($result['processed']) || !empty($result['failed'])) {
         @file_put_contents(
             $dataDir . '/ai_platform.log',
-            sprintf("[%s] spawned worker: processed=%d failed=%d\n",
+            $trace . sprintf("[%s] spawned worker: processed=%d failed=%d\n",
                 gmdate('Y-m-d H:i:s'), $result['processed'] ?? 0, $result['failed'] ?? 0),
             FILE_APPEND
         );
     }
 } catch (\Throwable $e) {
+    $trace = ob_get_clean();
+    if ($trace !== '') @file_put_contents($dataDir . '/ai_platform.log', $trace, FILE_APPEND);
     @file_put_contents(
         $dataDir . '/ai_platform.log',
         '[' . gmdate('Y-m-d H:i:s') . '] spawned worker crashed: ' . $e->getMessage() . PHP_EOL,

@@ -142,6 +142,53 @@ selfabs=$(grep -rhoE 'src="https://dishnetsudan\.com/[^"]+"' "$HERE/site" --incl
 [ -n "$selfabs" ] && { echo "  absolute self-URL will 404: $selfabs"; fail=1; }
 [ $fail -eq 0 ] && echo "  no South-Sudan-only claims, sitemap well-formed, no self-404 images"
 
+echo "== commercial rules =="
+# These are the rules a silent regression would cost money on. All published
+# pages, held pages excluded from the branding/price rules where noted.
+python3 - "$HERE/site" <<'PYCOM' || fail=1
+import sys, re, glob, os, json
+root = sys.argv[1]
+HELD = {'fiber.html','coverage-old.html','testimonials.html','gallery.html',
+        'blog-starlink-south-sudan.html','pay.html','hotspot.html',
+        'security.html','reseller.html'}
+PRICES = {'112','189','336','483','784'}          # uCRM, the source of truth
+NUMBER = '211924332000'                            # the number the AI answers
+bad = 0
+def err(m):
+    global bad; bad = 1; print('  ' + m)
+
+seen_prices = {}
+for f in glob.glob(os.path.join(root,'**','*.html'), recursive=True):
+    rel = os.path.relpath(f, root); base = os.path.basename(f)
+    t = open(f, encoding='utf-8', errors='ignore').read()
+    # 1. Every WhatsApp link reaches the AI-answered number.
+    for m in re.findall(r'wa\.me/(\d*)', t) + re.findall(r'api\.whatsapp\.com/send/\?phone=\+?(\d+)', t):
+        if m != NUMBER:
+            err(f'{rel}: WhatsApp link to {m or "<empty>"} (want {NUMBER})')
+    # 2. No login link to the South Sudan plugin path.
+    if 'dishnet-hybrid-telecom' in t:
+        err(f'{rel}: links the South Sudan plugin URL')
+    if base in HELD:
+        continue
+    # 3. Branding and currency on published pages.
+    if 'UGANDA' in t:
+        err(f'{rel}: uppercase UGANDA strap')
+    if re.search(r'\bSSP\b', t) and not rel.startswith('tutorials/'):
+        err(f'{rel}: SSP reference')
+    # 4. Plan prices only ever the uCRM five (plan contexts on the money pages).
+    if base in ('index.html','faq.html','services.html'):
+        for p in re.findall(r'\$([0-9][0-9,]*)(?=\s*(?:<small>)?\s*/mo)', t):
+            seen_prices.setdefault(p.replace(',',''), set()).add(base)
+for p, where in sorted(seen_prices.items()):
+    if p not in PRICES:
+        err(f'monthly price ${p} on {sorted(where)} is not a uCRM price')
+missing = PRICES - set(seen_prices)
+if missing:
+    err(f'uCRM prices missing from the site: {sorted(missing)}')
+sys.exit(bad)
+PYCOM
+[ $fail -eq 0 ] && echo "  WhatsApp number, login URL, branding, currency, and all five uCRM prices consistent"
+
 echo
 [ $fail -eq 0 ] && echo "PASS" || echo "FAIL"
 exit $fail

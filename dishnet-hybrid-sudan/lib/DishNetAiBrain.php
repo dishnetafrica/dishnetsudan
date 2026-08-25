@@ -55,6 +55,17 @@ class DishNetAiBrain
     }
 
     public function isConfigured(): bool { return $this->apiKey !== ''; }
+
+    /**
+     * The exact system prompt the provider would receive for this context —
+     * built by the same code path as reply(), with no provider call. This is
+     * the proof seam production-preflight uses to show the live catalogue
+     * actually reaches the model.
+     */
+    public function promptPreview(array $context): string
+    {
+        return $this->buildSystemPrompt($context);
+    }
     public function getLastUsage(): array { return $this->lastUsage; }
 
     /**

@@ -68,6 +68,9 @@ class AiReplyWorker extends WorkerBase
             return;
         }
 
+        // One line per message: enough to trace the pipeline, no content.
+        $this->log('info', sprintf('conv %d: in channel=%s len=%d', $convId, $channel, mb_strlen($message)));
+
         // Let the customer see something is happening while the model thinks.
         $this->evo->sendTyping($channel, $phone);
 
@@ -135,6 +138,10 @@ class AiReplyWorker extends WorkerBase
 
         // Identity is shared across all three numbers.
         $id = $this->tools->identifyCustomerByPhone($phone);
+        if (!$id['ok']) {
+            $this->log('warn', 'conv ' . $convId . ': identity lookup failed — '
+                . (string)($id['error'] ?? 'unknown'));
+        }
         $identified = false;
         $clientId   = 0;
         if ($id['ok'] && !empty($id['data']['found'])) {
@@ -155,7 +162,16 @@ class AiReplyWorker extends WorkerBase
         switch ($channel) {
             case EvolutionApiService::CHANNEL_SALES:
                 $products = $this->tools->getProducts();
-                if ($products['ok']) $ctx['products'] = $products['data'];
+                if ($products['ok']) {
+                    $ctx['products'] = $products['data'];
+                    $this->log('info', sprintf('conv %d: catalogue loaded, %d plan(s)',
+                        $convId, (int)($products['data']['count'] ?? 0)));
+                } else {
+                    // The brain falls back to "PLANS unavailable" and hands
+                    // over — safe, but it must never be invisible in the log.
+                    $this->log('error', 'conv ' . $convId . ': product lookup FAILED — '
+                        . (string)($products['error'] ?? 'unknown') . ' (AI will not quote prices)');
+                }
                 break;
 
             case EvolutionApiService::CHANNEL_SUPPORT:
@@ -287,6 +303,7 @@ class AiReplyWorker extends WorkerBase
 
     private function escalate(int $convId, string $channel, string $phone, string $reason): void
     {
+        $this->log('info', "conv {$convId}: HANDOFF to human — {$reason}");
         try {
             if ($convId > 0) {
                 $this->pdo->prepare(
