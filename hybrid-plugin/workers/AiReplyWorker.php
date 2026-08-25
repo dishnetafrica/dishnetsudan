@@ -23,6 +23,7 @@ class AiReplyWorker extends WorkerBase
 {
     private EvolutionApiService $evo;
     private DishNetTools $tools;
+    private DishNetAiBrain $brain;
     private $convSvc;
 
     public function __construct($store, array $config, int $maxRun = 55, int $batch = 10)
@@ -33,9 +34,11 @@ class AiReplyWorker extends WorkerBase
         require_once $root . '/lib/EvolutionApiService.php';
         require_once $root . '/lib/DishNetTools.php';
         require_once $root . '/lib/ConversationService.php';
+        require_once $root . '/lib/DishNetAiBrain.php';
 
         $this->evo   = new EvolutionApiService($config);
         $this->tools = new DishNetTools($store, $config, $root);
+        $this->brain = new DishNetAiBrain($config);
 
         $dataDir = getDataDir($root);
         $this->convSvc = new ConversationService($dataDir, $this->pdo);
@@ -70,16 +73,16 @@ class AiReplyWorker extends WorkerBase
 
         $context = $this->buildContext($channel, $phone, $message, $p, $convId);
 
-        $ai = $this->askShopBot($context);
+        $ai = $this->askBrain($context);
         if ($ai === null) {
             // Throw: EventBus retries with backoff. The customer has not been
             // messaged yet, so a retry is safe.
-            throw new \RuntimeException('ShopBot AI did not return a reply');
+            throw new \RuntimeException('AI brain did not return a reply');
         }
 
         $reply = trim((string)($ai['reply'] ?? ''));
         if ($reply === '') {
-            $this->log('warn', 'ShopBot returned an empty reply — escalating instead');
+            $this->log('warn', 'AI returned an empty reply — escalating instead');
             $this->escalate($convId, $channel, $phone, 'AI produced no reply');
             return;
         }
@@ -191,10 +194,39 @@ class AiReplyWorker extends WorkerBase
     }
 
     /**
-     * Call ShopBot.
+     * Ask the AI for a reply.
      *
-     * Contract (to be implemented on the ShopBot side as a thin controller
-     * around AiBrain — see README-DEPLOY.md):
+     * Two implementations behind ONE contract. In-process is the default
+     * (Option A); setting shopbot_ai_url switches to an external brain
+     * (Option B) with no other change anywhere in the system. This is the
+     * seam that keeps the architecture decision reversible.
+     */
+    private function askBrain(array $context): ?array
+    {
+        if (trim((string)($this->config['shopbot_ai_url'] ?? '')) !== '') {
+            return $this->askShopBot($context);
+        }
+        if (!$this->brain->isConfigured()) {
+            $this->log('error', 'No AI provider key configured');
+            return null;
+        }
+        $result = $this->brain->reply($context);
+
+        $usage = $this->brain->getLastUsage();
+        if ($usage) {
+            $this->log('info', sprintf(
+                'ai tokens in=%d out=%d model=%s',
+                $usage['input_tokens'] ?? 0, $usage['output_tokens'] ?? 0, $usage['model'] ?? '?'
+            ));
+        }
+        return $result;
+    }
+
+    /**
+     * Call an external ShopBot service (Option B only).
+     *
+     * Contract — deliberately identical to DishNetAiBrain::reply(), so the two
+     * are interchangeable:
      *
      *   POST {shopbot_ai_url}
      *   Authorization: Bearer {shopbot_ai_token}
