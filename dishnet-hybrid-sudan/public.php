@@ -1653,6 +1653,14 @@ elseif ($page === 'first_run'):
   Create the first administrator to begin.</p>
 
   <?php if (!empty($_setupError)): ?><div class="err"><?= h($_setupError) ?></div><?php endif; ?>
+  <?php
+    // The global CSRF gate in post_handlers.php redirects with a flash before
+    // this page's own handler runs. Without rendering it, a rejected submit
+    // looked like the button simply did nothing.
+    if (!empty($flash) && is_array($flash) && !empty($flash['msg'])):
+  ?>
+    <div class="err"><?= h($flash['msg']) ?></div>
+  <?php endif; ?>
 
   <?php if (empty($_setupWho['is_admin'])): ?>
     <div class="blocked">
@@ -1663,6 +1671,7 @@ elseif ($page === 'first_run'):
     </div>
   <?php else: ?>
     <form method="post">
+      <?= csrfField() ?>
       <input type="hidden" name="action" value="first_run_admin">
       <label>Full name</label>
       <input type="text" name="name" required autofocus value="<?= h($_POST['name'] ?? '') ?>">
