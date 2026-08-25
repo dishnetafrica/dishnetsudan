@@ -40,11 +40,58 @@ class EvoWebhookGuard
     private \PDO   $pdo;
     private string $secret;
 
-    public function __construct(\PDO $pdo, array $config)
+    public function __construct(\PDO $pdo, array $config, string $dataDir = '')
     {
         $this->pdo    = $pdo;
         $this->secret = trim((string)($config['evo_webhook_secret'] ?? ''));
+        if ($this->secret === '' && $dataDir !== '') {
+            $this->secret = self::autoSecret($dataDir);
+        }
         $this->ensureTable();
+    }
+
+    /**
+     * The shared secret, generating and persisting one if nobody configured it.
+     *
+     * Asking an operator to run `openssl rand -hex 32` and paste the result is
+     * a step that adds nothing: the value only needs to be unguessable and known
+     * to both sides, and the plugin puts it into the webhook URL itself when it
+     * registers with Evolution. So it makes its own.
+     *
+     * Stored outside the plugin tree, readable only by the plugin's own user,
+     * and never rendered. An explicitly configured secret always wins, so an
+     * operator who wants to control it still can.
+     */
+    public static function autoSecret(string $dataDir): string
+    {
+        $path = $dataDir . '/webhook_secret';
+
+        if (is_file($path)) {
+            $existing = trim((string)@file_get_contents($path));
+            if (strlen($existing) >= 32) return $existing;
+        }
+
+        try {
+            $secret = bin2hex(random_bytes(32));
+        } catch (\Throwable $e) {
+            error_log('[EvoWebhookGuard] no secure randomness available: ' . $e->getMessage());
+            return '';
+        }
+
+        // Write-then-rename, so a concurrent reader never sees a partial secret.
+        $tmp = $path . '.tmp.' . getmypid();
+        if (@file_put_contents($tmp, $secret, LOCK_EX) === false) {
+            error_log('[EvoWebhookGuard] could not persist the webhook secret');
+            return '';
+        }
+        @chmod($tmp, 0600);
+        if (!@rename($tmp, $path)) {
+            @unlink($tmp);
+            // Another process may have won the race — take theirs.
+            $existing = trim((string)@file_get_contents($path));
+            return strlen($existing) >= 32 ? $existing : '';
+        }
+        return $secret;
     }
 
     /**

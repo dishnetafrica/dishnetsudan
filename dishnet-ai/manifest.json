@@ -34,8 +34,8 @@
         },
         {
             "key": "admin_token",
-            "label": "Setup tab unlock token",
-            "description": "SECRET. Generate with: openssl rand -hex 24. The plugin page is NOT protected by uCRM login, so this token is what unlocks the Setup tab there. Leave blank to keep the plugin page read-only.",
+            "label": "Setup tab fallback token",
+            "description": "OPTIONAL \u2014 leave blank. The plugin page recognises you from your UISP login automatically. Set a token here only as a way back in if that stops working.",
             "required": 0,
             "type": "text"
         },
@@ -50,13 +50,6 @@
             "key": "evo_api_key",
             "label": "Evolution API key",
             "description": "SECRET. Stored in the plugin data directory. Never shown on the plugin page and never written to logs.",
-            "required": 1,
-            "type": "text"
-        },
-        {
-            "key": "evo_webhook_secret",
-            "label": "Webhook secret",
-            "description": "SECRET. Generate with: openssl rand -hex 32. Evolution API does not sign its webhooks, so this token is what proves a request came from Evolution. Until it is set, the webhook rejects everything.",
             "required": 1,
             "type": "text"
         },

@@ -6,13 +6,19 @@ require_once __DIR__ . '/lib/error_handler.php';
 /**
  * public.php — the plugin's page inside UISP.
  *
- * IMPORTANT: uCRM does not authenticate this file. Its own documentation says
- * a plugin's public URL is reachable "without any authentication". So:
+ * uCRM does not authenticate this file — its documentation says a plugin's
+ * public URL is reachable "without any authentication". So the page asks uCRM
+ * who the visitor is: the browser sends uCRM's session cookies, and
+ * /current-user turns those into an identity. No login, no password, nothing to
+ * configure. An admin already signed into UISP just opens the page.
  *
- *   - The Status tab is read-only and never renders a secret. Safe to be open.
- *   - The Setup tab changes configuration and calls Evolution, so it is behind
- *     AdminGate — a token set on the uCRM Configuration screen, which IS
- *     protected by uCRM's admin login.
+ *   - Status tab: read-only, renders no secret, safe for anyone to reach.
+ *   - Setup tab:  changes configuration and calls Evolution, so it requires a
+ *                 signed-in uCRM staff user.
+ *
+ * If uCRM cannot be reached to answer that question, an optional token set on
+ * the Configuration screen unlocks Setup as a fallback, so a network problem
+ * cannot lock an operator out of their own plugin.
  *
  * Secrets are never editable here. They stay where uCRM protects them.
  */
@@ -25,6 +31,8 @@ require_once __DIR__ . '/lib/StoreInterface.php';
 require_once __DIR__ . '/lib/SqliteStore.php';
 require_once __DIR__ . '/lib/PluginConfig.php';
 require_once __DIR__ . '/lib/AdminGate.php';
+require_once __DIR__ . '/lib/EvoWebhookGuard.php';
+require_once __DIR__ . '/lib/UcrmUser.php';
 require_once __DIR__ . '/lib/EvolutionApiService.php';
 require_once __DIR__ . '/lib/DishNetTools.php';
 
@@ -47,8 +55,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $gate->lock();
         $flash = ['ok' => true, 'msg' => 'Locked.'];
 
-    } elseif (!$gate->isUnlocked()) {
-        $flash = ['ok' => false, 'msg' => 'Unlock the Setup tab first.'];
+    } elseif (!UcrmUser::isAdmin(__DIR__) && !$gate->isUnlocked()) {
+        $flash = ['ok' => false, 'msg' => 'Sign in to UISP as staff to change settings.'];
 
     } elseif (!$gate->checkCsrf((string)($_POST['_csrf'] ?? ''))) {
         // A stale form after a session expiry lands here.
@@ -79,10 +87,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $ch  = (string)($_POST['channel'] ?? '');
                 $inst = $evoW->instanceFor($ch);
                 $secret = trim((string)($config['evo_webhook_secret'] ?? ''));
+                if ($secret === '') $secret = EvoWebhookGuard::autoSecret($dataDir);
                 if ($inst === '') {
                     $flash = ['ok' => false, 'msg' => 'No instance is assigned to that number yet.'];
                 } elseif ($secret === '') {
-                    $flash = ['ok' => false, 'msg' => 'Set a webhook secret on the uCRM Configuration screen first.'];
+                    $flash = ['ok' => false, 'msg' => 'Could not create a webhook secret — the plugin data directory is not writable.'];
                 } else {
                     $url = webhookUrl($secret);
                     $r   = $evoW->setWebhook($inst, $url);
@@ -107,7 +116,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 }
 
-$unlocked = $gate->isUnlocked();
+// Who is this? uCRM is the authority; the token is only a fallback for when
+// uCRM cannot be asked.
+$who          = UcrmUser::current(__DIR__);
+$viaUcrm      = !empty($who['is_admin']);
+$canUseToken  = empty($who['ok']) && $gate->isConfigured();
+$unlocked     = $viaUcrm || ($canUseToken && $gate->isUnlocked());
+
 $evo      = new EvolutionApiService($config);
 $tools    = new DishNetTools($store, $config, __DIR__);
 $tab      = ($_GET['tab'] ?? '') === 'setup' ? 'setup' : 'status';
@@ -135,9 +150,13 @@ $add('Evolution API URL', PluginConfig::isSet_($config, 'evo_api_url'),
         ? (string)parse_url((string)$config['evo_api_url'], PHP_URL_HOST) : 'not set');
 $add('Evolution API key', PluginConfig::isSet_($config, 'evo_api_key'),
      PluginConfig::isSet_($config, 'evo_api_key') ? 'set' : 'not set');
-$add('Webhook secret', PluginConfig::isSet_($config, 'evo_webhook_secret'),
-     PluginConfig::isSet_($config, 'evo_webhook_secret')
-        ? 'set' : 'NOT SET — the webhook rejects everything until this is filled in');
+$whSecret = PluginConfig::isSet_($config, 'evo_webhook_secret')
+    ? (string)$config['evo_webhook_secret']
+    : EvoWebhookGuard::autoSecret($dataDir);
+$add('Webhook secret', $whSecret !== '',
+     $whSecret !== ''
+        ? (PluginConfig::isSet_($config, 'evo_webhook_secret') ? 'set manually' : 'generated automatically')
+        : 'could not be created — is the data directory writable?');
 
 $provider = ($config['ai_provider'] ?? 'claude') === 'openai' ? 'openai' : 'claude';
 $keyField = $provider === 'openai' ? 'openai_api_key' : 'claude_api_key';
@@ -323,27 +342,48 @@ function h($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'
 
 <?php else: /* ── SETUP ─────────────────────────────────────────────────── */ ?>
 
-  <?php if (!$gate->isConfigured()): ?>
-    <div class="banner stop">
-      <b>Setup is locked.</b> This page is not protected by your UISP login — uCRM serves it
-      without authentication — so it will not change settings until you give it a token of its own.
-      <div class="note" style="color:inherit">
-        Generate one with <code>openssl rand -hex 24</code>, then paste it into
-        <b>Setup tab unlock token</b> on the plugin's Configuration screen in UISP.
-      </div>
-    </div>
+  <?php if (!$unlocked): ?>
 
-  <?php elseif (!$unlocked): ?>
-    <div class="card lockbox"><div class="row" style="display:block">
-      <form method="post">
-        <input type="hidden" name="action" value="unlock">
-        <div style="font-weight:500;margin-bottom:8px">Unlock setup</div>
-        <input type="password" name="token" placeholder="Unlock token" autocomplete="off" autofocus>
-        <button class="primary" type="submit">Unlock</button>
-        <div class="note">From <b>Setup tab unlock token</b> on the Configuration screen.
-        Five wrong attempts locks this for 15 minutes.</div>
-      </form>
-    </div></div>
+    <?php if (!empty($who['ok']) && empty($who['authenticated'])): ?>
+      <div class="banner stop">
+        <b>Sign in to UISP first.</b>
+        This page does not have its own login — it asks UISP who you are. Open it from the
+        UISP menu while signed in as staff and Setup will be available.
+      </div>
+
+    <?php elseif (!empty($who['authenticated']) && empty($who['is_admin'])): ?>
+      <div class="banner stop">
+        <b>Staff access required.</b>
+        You are signed in as a client. Setup is limited to UISP staff accounts.
+      </div>
+
+    <?php elseif ($canUseToken): ?>
+      <div class="banner">
+        <b>Could not reach UISP to confirm who you are.</b>
+        <?= h($who['reason'] ?? '') ?> Use the fallback token instead.
+      </div>
+      <div class="card lockbox"><div class="row" style="display:block">
+        <form method="post">
+          <input type="hidden" name="action" value="unlock">
+          <div style="font-weight:500;margin-bottom:8px">Unlock setup</div>
+          <input type="password" name="token" placeholder="Fallback token" autocomplete="off" autofocus>
+          <button class="primary" type="submit">Unlock</button>
+          <div class="note">From <b>Setup tab fallback token</b> on the Configuration screen.
+          Five wrong attempts locks this for 15 minutes.</div>
+        </form>
+      </div></div>
+
+    <?php else: ?>
+      <div class="banner stop">
+        <b>Could not reach UISP to confirm who you are.</b>
+        <?= h($who['reason'] ?? '') ?>
+        <div class="note" style="color:inherit">
+          Normally this page identifies you from your UISP session automatically. If that keeps
+          failing, set a <b>Setup tab fallback token</b> on the plugin's Configuration screen
+          and you can unlock it here instead.
+        </div>
+      </div>
+    <?php endif; ?>
 
   <?php else: ?>
 
@@ -460,12 +500,20 @@ function h($v): string { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'
     </div></div>
 
     <div class="actions" style="margin-top:24px">
-      <form method="post">
-        <input type="hidden" name="action" value="lock">
-        <button type="submit">Lock setup</button>
-      </form>
-      <span class="note" style="margin:0">Secrets — API keys and the webhook secret — are only
-      editable on the Configuration screen, behind your UISP login.</span>
+      <?php if ($viaUcrm): ?>
+        <span class="note" style="margin:0">
+          Signed in as <b><?= h($who['username'] ?: 'UISP staff') ?></b> via UISP.
+          Secrets — API keys and the webhook secret — are only editable on the Configuration
+          screen, behind your UISP login.
+        </span>
+      <?php else: ?>
+        <form method="post">
+          <input type="hidden" name="action" value="lock">
+          <button type="submit">Lock setup</button>
+        </form>
+        <span class="note" style="margin:0">Unlocked with the fallback token. Secrets are only
+        editable on the Configuration screen.</span>
+      <?php endif; ?>
     </div>
 
   <?php endif; ?>

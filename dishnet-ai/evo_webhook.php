@@ -60,7 +60,7 @@ $store  = SqliteStore::create($dataDir);
 $config = PluginConfig::load(__DIR__, $dataDir);
 $pdo    = $store->getPdo();
 
-$guard = new EvoWebhookGuard($pdo, $config);
+$guard = new EvoWebhookGuard($pdo, $config, $dataDir);
 
 // ── 1. Authenticate ──────────────────────────────────────────────────────────
 list($authOk, $authErr) = $guard->authenticate();

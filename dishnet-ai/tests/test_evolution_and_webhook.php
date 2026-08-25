@@ -81,5 +81,21 @@ echo "\nEvoWebhookGuard — log safety\n";
 $line = EvoWebhookGuard::safeLogLine('messages.upsert', 'dishnet_sales', 'queued=1');
 t('log line carries no secret', strpos($line, 'sekret'), false);
 
+echo "\nWebhook secret generates itself\n";
+$sdir = sys_get_temp_dir() . '/dishnet_ws_' . getmypid();
+@mkdir($sdir, 0700, true);
+$s1 = EvoWebhookGuard::autoSecret($sdir);
+t('a secret is produced', strlen($s1) >= 64, true);
+t('it is hex', (bool)preg_match('/^[0-9a-f]+$/', $s1), true);
+t('stable across calls', EvoWebhookGuard::autoSecret($sdir), $s1);
+t('stored file is owner-only', substr(sprintf('%o', fileperms("$sdir/webhook_secret")), -3), '600');
+$sdir2 = $sdir . '_b'; @mkdir($sdir2, 0700, true);
+t('a different install gets a different secret', EvoWebhookGuard::autoSecret($sdir2) === $s1, false);
+$cfgGuard = new EvoWebhookGuard($pdo, ['evo_webhook_secret' => 'operator-chosen-value-that-is-long'], $sdir);
+$_GET = ['token' => 'operator-chosen-value-that-is-long']; $_SERVER = [];
+t('an explicitly configured secret still wins', $cfgGuard->authenticate()[0], true);
+array_map('unlink', glob("$sdir/*") ?: []); @rmdir($sdir);
+array_map('unlink', glob("$sdir2/*") ?: []); @rmdir($sdir2);
+
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail === 0 ? 0 : 1);
