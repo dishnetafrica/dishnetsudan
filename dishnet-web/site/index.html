@@ -335,7 +335,7 @@
         .products-header .section-subtitle { margin: 0 auto; }
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 24px;
         }
         .product-card {
@@ -886,7 +886,7 @@
 <header class="header" id="header">
     <div class="container">
         <div class="header-inner">
-            <a href="#" class="logo">
+            <a href="index.html" class="logo">
                 <span class="logo-text">DishNet<small>SUDAN</small></span>
             </a>
             <nav class="nav"><a href="index.html#products">Products</a><a href="services.html">Services</a><a href="coverage.html">Coverage</a><a href="about.html">About</a><a href="tutorials/index.html">Tutorials</a><a href="get-the-app.html">App</a><a href="contact.html">Contact</a></nav>
@@ -963,7 +963,7 @@
                     </div>
                     <div class="hero-float-text">
                         <span>Fast Setup</span>
-                        <small>Online in under 30 minutes</small>
+                        <small>Mounted, aligned and tested</small>
                     </div>
                 </div>
             </div>
@@ -1093,9 +1093,7 @@
 
 
 <style>
-@media (max-width: 900px) {
-    .portal-demo-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
-}
+
 </style>
 
 <!-- Why DishNet -->
@@ -1104,15 +1102,15 @@
         <div class="why-header">
             <span class="badge-label">Why Us</span>
             <h2 class="section-title">Why Choose DishNet Africa</h2>
-            <p class="section-subtitle">Sudan's most trusted connectivity partner since 2013.</p>
+            <p class="section-subtitle">Starlink supply and professional installation, backed by over a decade of connectivity experience in East Africa.</p>
         </div>
         <div class="why-grid">
             <div class="why-card">
                 <div class="why-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
                 </div>
-                <h3>Official Reseller</h3>
-                <p>Authorized Starlink hardware with genuine warranties and direct support from SpaceX's network.</p>
+                <h3>Supplier &amp; Installer</h3>
+                <p>Genuine Starlink hardware, supplied and professionally installed, with local support.</p>
             </div>
             <div class="why-card">
                 <div class="why-icon">
@@ -1133,7 +1131,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 </div>
                 <h3>Flexible Payments</h3>
-                <p>Plans are priced in USD. Ask us on WhatsApp about local payment options. Financing options available.</p>
+                <p>Plans are priced in USD. Ask us on WhatsApp about local payment options.</p>
             </div>
             <div class="why-card">
                 <div class="why-icon">
@@ -1170,7 +1168,7 @@
             <div class="order-step">
                 <div class="step-num">2</div>
                 <h3>Place Your Order</h3>
-                <p>Order online or contact us on WhatsApp. Pay via cash, bank transfer, or mobile money.</p>
+                <p>Message us on WhatsApp and we confirm your order and the payment details with you.</p>
             </div>
             <div class="order-step">
                 <div class="step-num">3</div>
@@ -1197,11 +1195,11 @@
         <div class="faq-list">
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">What is Starlink and how does it work?</button>
-                <div class="faq-a"><div class="faq-a-inner">Starlink is a satellite internet constellation operated by SpaceX. It uses thousands of low-orbit satellites to deliver high-speed, low-latency internet anywhere with a clear view of the sky. DishNet is the official reseller and installer for Sudan.</div></div>
+                <div class="faq-a"><div class="faq-a-inner">Starlink is a satellite internet constellation operated by SpaceX. It uses thousands of low-orbit satellites to deliver high-speed, low-latency internet anywhere with a clear view of the sky. DishNet supplies and professionally installs Starlink in Sudan.</div></div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">What speeds can I expect?</button>
-                <div class="faq-a"><div class="faq-a-inner">Typical download speeds range from 100 to 250 Mbps per Starlink&rsquo;s specification sheets, with lower speeds possible in busy periods. Latency is usually 25–60ms, which is suitable for video calls, streaming, and online gaming.</div></div>
+                <div class="faq-a"><div class="faq-a-inner">Typical download speeds range from 100 to 250 Mbps per Starlink&rsquo;s specification sheets, with lower speeds possible in busy periods. Latency is typically well under 100&nbsp;ms, which is suitable for video calls, streaming, and online gaming.</div></div>
             </div>
             <div class="faq-item">
                 <button class="faq-q" onclick="toggleFaq(this)">Do I need professional installation?</button>
@@ -1230,7 +1228,7 @@
             <div class="contact-info">
                 <span class="badge-label">Get In Touch</span>
                 <h2>Let's Connect<br>Your World</h2>
-                <p>Whether you're looking for a home internet solution or an enterprise fiber link, our team is ready to help.</p>
+                <p>Whether you need Starlink for your home or for a business site, our team is ready to help.</p>
                 <div class="contact-detail">
                     <div class="contact-detail-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -1254,8 +1252,8 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                     </div>
                     <div class="contact-detail-text">
-                        <span>Head Office</span>
-                        <strong>Sudan</strong>
+                        <span>Service area</span>
+<strong>All of Sudan</strong>
                     </div>
                 </div>
             </div>
@@ -1313,12 +1311,6 @@
             <a href="coverage.html" style="display:flex;align-items:center;gap:12px;padding:18px 20px;background:var(--bg);border:1px solid var(--border);border-radius:14px;transition:all 0.3s;font-family:var(--font-display);font-size:14px;font-weight:600;">
                 <span style="font-size:22px;">📍</span> Coverage Map
             </a>
-            <a href="gallery.html" style="display:flex;align-items:center;gap:12px;padding:18px 20px;background:var(--bg);border:1px solid var(--border);border-radius:14px;transition:all 0.3s;font-family:var(--font-display);font-size:14px;font-weight:600;">
-                <span style="font-size:22px;">📸</span> Installation Gallery
-            </a>
-            <a href="testimonials.html" style="display:flex;align-items:center;gap:12px;padding:18px 20px;background:var(--bg);border:1px solid var(--border);border-radius:14px;transition:all 0.3s;font-family:var(--font-display);font-size:14px;font-weight:600;">
-                <span style="font-size:22px;">⭐</span> Customer Reviews
-            </a>
             <a href="blog.html" style="display:flex;align-items:center;gap:12px;padding:18px 20px;background:var(--bg);border:1px solid var(--border);border-radius:14px;transition:all 0.3s;font-family:var(--font-display);font-size:14px;font-weight:600;">
                 <span style="font-size:22px;">📰</span> Blog &amp; News
             </a>
@@ -1350,7 +1342,7 @@
     <a href="ar/" lang="ar">النسخة العربية</a> &middot;
     <a href="faq.html">frequently asked questions</a></p>
 </div></section>
-<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><span class="logo-text">DishNet<small>SUDAN</small></span><p>Connecting Sudan since 2013. Starlink satellite internet across all major cities.</p></div><div><h4>Services</h4><ul class="footer-links"><li><a href="index.html#products">Starlink Kits</a></li><li><a href="services.html">All Services</a></li><li><a href="coverage.html">Coverage Map</a></li></ul></div><div><h4>Company</h4><ul class="footer-links"><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact</a></li><li><a href="faq.html">FAQ</a></li><li><a href="blog.html">Blog</a></li><li><a href="testimonials.html">Reviews</a></li><li><a href="gallery.html">Gallery</a></li><li><a href="careers.html">Careers</a></li></ul></div><div><h4>Support & Legal</h4><ul class="footer-links"><li><a href="get-the-app.html">Get the App</a></li><li><a href="tutorials/index.html">App Tutorials</a></li><li><a href="guides.html">Help Guides</a></li><li><a href="https://crm.dishnetsudan.com/">Customer Login</a></li><li><a href="https://wa.me/249900083481">WhatsApp Support</a></li><li><a href="terms.html">Terms of Use</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div></div><div class="footer-bottom"><span>&copy; 2026 DishNet Africa Ltd. All rights reserved.</span></div></div></footer>
+<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><span class="logo-text">DishNet<small>SUDAN</small></span><p>Starlink satellite internet for Sudan &mdash; supply, professional installation and support.</p></div><div><h4>Services</h4><ul class="footer-links"><li><a href="index.html#products">Starlink Kits</a></li><li><a href="services.html">All Services</a></li><li><a href="coverage.html">Coverage Map</a></li></ul></div><div><h4>Company</h4><ul class="footer-links"><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact</a></li><li><a href="faq.html">FAQ</a></li><li><a href="blog.html">Blog</a></li><li><a href="careers.html">Careers</a></li></ul></div><div><h4>Support & Legal</h4><ul class="footer-links"><li><a href="get-the-app.html">Get the App</a></li><li><a href="tutorials/index.html">App Tutorials</a></li><li><a href="guides.html">Help Guides</a></li><li><a href="https://crm.dishnetsudan.com/">Customer Login</a></li><li><a href="https://wa.me/249900083481">WhatsApp Support</a></li><li><a href="terms.html">Terms of Use</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div></div><div class="footer-bottom"><span>&copy; 2026 DishNet Africa Ltd. All rights reserved.</span></div></div></footer>
 
 <!-- WhatsApp Float -->
 <a href="https://wa.me/249900083481" class="wa-float" target="_blank" aria-label="WhatsApp">

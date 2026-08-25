@@ -123,6 +123,9 @@ def neighbours_line(c, cities):
 
 def page(c):
     n, ar, st = c['name'], c['ar'], c['state']
+    # The capital has no 'distance from the capital'; saying so read as a
+    # dangling fragment on its own page.
+    place_clause = '' if not c['km'] else f", {distance(c)}"
     # "Starlink in Khartoum, Khartoum" read as a bug in the tab. When the city
     # names its own state, the state adds nothing.
     place = n if n == st else f"{n}, {st}"
@@ -138,7 +141,7 @@ def page(c):
   <div class="container">
     <span class="badge-label">{st} State · {c['region']}</span>
     <h1>Starlink in {n}<br><span style="font-size:.62em;opacity:.75;font-weight:500;">{ar}</span></h1>
-    <p style="max-width:640px;">{n} is {c['character']}, {distance(c)}. Starlink needs no cable,
+    <p style="max-width:640px;">{n} is {c['character']}{place_clause}. Starlink needs no cable,
        no exchange and no local network — just a clear view of the sky.</p>
     <div style="margin-top:22px;">
       <a href="contact.html" class="btn btn-primary">Get a quote for {n}</a>

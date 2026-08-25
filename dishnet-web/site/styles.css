@@ -202,7 +202,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    ══════════════════════════════════════════════ */
 
 /* Uganda flag accent strip */
-.ug-strip { height: 4px; background: linear-gradient(90deg, #000 0 16.6%, #FCDC04 16.6% 33.3%, #D90000 33.3% 50%, #000 50% 66.6%, #FCDC04 66.6% 83.3%, #D90000 83.3% 100%); }
+.brand-strip { height: 4px; background: linear-gradient(90deg, var(--accent) 0 40%, #A00D24 40% 70%, var(--accent) 70% 100%); }
 
 /* Hero (Uganda) */
 .ug-hero { padding: 150px 0 90px; background: radial-gradient(1100px 500px at 80% -10%, var(--accent-glow), transparent 60%), var(--bg); }
@@ -292,3 +292,19 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 font-size:26px;color:#C8102E;letter-spacing:-1px;line-height:1;display:inline-flex;align-items:baseline;}
 .logo-text small{font-size:10px;letter-spacing:.22em;font-weight:700;
 color:var(--text-secondary);margin-left:8px;}
+
+/* Secondary CTA. Used across the generated pages; was never defined, so
+   the button rendered as bare text next to a styled primary. */
+.btn-ghost { background: transparent; color: var(--accent);
+  border: 2px solid var(--accent); }
+.btn-ghost:hover { background: var(--accent); color: #fff; }
+.btn-ghost-white { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.6); }
+.btn-ghost-white:hover { background: #fff; color: var(--accent); }
+
+/* Body-copy links. The global reset sets a { color: inherit }, so links
+   inside paragraphs were indistinguishable from text. */
+.container p a, .faq-a-inner a, .container li a { color: var(--accent); font-weight: 600; }
+.container p a:hover, .faq-a-inner a:hover { text-decoration: underline; }
+
+/* Slot that holds a kit illustration, and a photograph when one exists. */
+.kit-photo { display:flex; align-items:center; justify-content:center; min-height:140px; }

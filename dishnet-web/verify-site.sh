@@ -160,6 +160,112 @@ selfabs=$(grep -rhoE 'src="https://dishnetsudan\.com/[^"]+"' "$HERE/site" --incl
 [ -n "$selfabs" ] && { echo "  absolute self-URL will 404: $selfabs"; fail=1; }
 [ $fail -eq 0 ] && echo "  no South-Sudan-only claims, sitemap well-formed, no self-404 images"
 
+echo "== content integrity =="
+# A 30-agent audit on 25 Aug found 133 confirmed content errors that every
+# check above passed clean: false market claims, products not sold in Sudan,
+# invented lead times and payment methods, a Ugandan flag stripe on 54 pages.
+# Each class it found is now a rule, because a checker that only knows the
+# last bug is worth very little.
+python3 - "$HERE/site" <<'PYCONTENT' || fail=1
+import sys, re, glob, os
+root = sys.argv[1]
+HELD = {'fiber.html','testimonials.html','gallery.html','blog-starlink-south-sudan.html',
+        'pay.html','hotspot.html','security.html','reseller.html','404.html'}
+bad = 0
+def err(rel, msg):
+    global bad; bad = 1; print(f'  {rel}: {msg}')
+
+# Claims with nothing behind them. Each string was live on the site.
+CLAIMS = [
+    (r'leading ISP', 'market-position claim'),
+    (r'official reseller', 'undocumented reseller status'),
+    (r'authorized reseller', 'undocumented reseller status'),
+    (r'Official Reseller', 'undocumented reseller status'),
+    (r'most trusted', 'unverifiable superlative'),
+    (r'(?:since|in) 2013[^<]{0,40}Sudan|Sudan[^<]{0,40}since 2013', 'years-of-operation-in-Sudan claim'),
+    (r'Connecting Sudan since', 'years-of-operation-in-Sudan claim'),
+    (r'all major cities', 'blanket coverage claim'),
+    (r'every corner of Sudan', 'blanket coverage claim'),
+    (r'\d+\+? towns', 'invented service footprint'),
+    (r'99\.9\s*%', 'uptime guarantee'),
+    (r'[Uu]ptime SLA', 'uptime guarantee'),
+    (r'Head Office</span>\s*<strong>Sudan', 'physical office in Sudan'),
+    (r'in under \d+ minutes', 'invented lead time'),
+    (r'in \d+&ndash;\d+ minutes', 'invented lead time'),
+    (r'within \d+ hours', 'invented lead time'),
+    (r'\bmobile money\b', 'invented payment method'),
+    (r'\bMTN\b|\bAirtel\b', 'payment rail not available in Sudan'),
+    (r'[Ff]inancing options', 'invented credit offering'),
+    (r'merchant codes', 'invented payment method'),
+    (r'Google Analytics', 'analytics claim with no analytics installed'),
+    (r'220\\s*Mbps', 'speed figure in no Starlink datasheet'),
+    (r'\\d+\\s*&ndash;\\s*\\d+\\s*ms|\\d+\\s*–\\s*\\d+\\s*ms', 'specific latency range claim'),
+]
+
+# Fibre and LTE may be COMPARED to, never OFFERED. These are offer-shaped.
+OFFERS = [
+    (r'fiber (?:plan|plans|connection|service|services|broadband|internet|link)', 'fibre offered as a product'),
+    (r'[Pp]rivate LTE', 'LTE offered as a product'),
+    (r'LTE / 4G|LTE/4G', 'LTE offered as a product'),
+    (r'VSAT [Ss]atellite [Ii]nternet', 'VSAT offered as a product'),
+    (r'Managed IT Services', 'IT services offered as a product'),
+    (r'Structured Cabling', 'cabling offered as a product'),
+    (r'Fiber Connection</option>', 'fibre in an enquiry form'),
+    (r'Mbps Fiber', 'fibre speed as a service metric'),
+]
+
+for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True):
+    base = os.path.basename(f); rel = os.path.relpath(f, root)
+    t = open(f, encoding='utf-8', errors='ignore').read()
+
+    # The Uganda flag stripe and Ugandan locale, on every page including held.
+    if 'ug-strip' in t: err(rel, 'Uganda flag stripe (.ug-strip) present')
+    if 'en_UG' in t: err(rel, 'og:locale is en_UG on a Sudan site')
+
+    if base in HELD:
+        continue   # held pages are noindexed; their content is not published
+
+    for pat, why in CLAIMS + OFFERS:
+        m = re.search(pat, t)
+        if m: err(rel, f'{why} -> "{m.group(0)[:52]}"')
+
+    # An indexed page must not link to a held page.
+    for h in HELD - {'404.html'}:
+        if f'href="{h}"' in t:
+            err(rel, f'links held page {h}')
+
+sys.exit(bad)
+PYCONTENT
+
+# Every class used in the HTML must be defined somewhere. .btn-ghost was used
+# on 50 pages and defined nowhere, so a call-to-action rendered as bare text.
+python3 - "$HERE/site" <<'PYCSS' || fail=1
+import sys, re, glob, os
+root = sys.argv[1]
+css = open(os.path.join(root, 'styles.css'), encoding='utf-8').read()
+for f in glob.glob(os.path.join(root, '**', '*.css'), recursive=True):
+    css += open(f, encoding='utf-8', errors='ignore').read()
+inline = ''
+used = {}
+for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True):
+    t = open(f, encoding='utf-8', errors='ignore').read()
+    for st in re.findall(r'<style[^>]*>(.*?)</style>', t, re.S):
+        inline += st
+    for attr in re.findall(r'class="([^"]+)"', t):
+        for c in attr.split():
+            used.setdefault(c, os.path.relpath(f, root))
+defined = set(re.findall(r'\.([A-Za-z][\w-]*)', css + inline))
+UTIL = re.compile(r'^(fade|delay|d\d|col|row|is-|js-|has-|active|open|hidden|show)')
+missing = {c: f for c, f in used.items()
+           if c not in defined and not UTIL.match(c) and len(c) > 3}
+if missing:
+    for c, f in sorted(missing.items())[:8]:
+        print(f'  class .{c} used ({f}) but defined in no stylesheet')
+    sys.exit(1)
+sys.exit(0)
+PYCSS
+[ $fail -eq 0 ] && echo "  no unsupportable claims, no unsold products, no undefined classes"
+
 echo "== commercial rules =="
 # These are the rules a silent regression would cost money on. All published
 # pages, held pages excluded from the branding/price rules where noted.

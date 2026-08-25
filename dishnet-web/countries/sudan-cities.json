@@ -104,8 +104,8 @@
       "why": "The granite hills that make Kassala distinctive also break line-of-sight for terrestrial links, which satellite simply does not care about.",
       "areas": [
         "Khatmiyya",
-        "Kadugli district",
-        "Town centre"
+        "Town centre",
+        "Kassala market"
       ],
       "local_note": "The Taka Mountains rise straight out of the town, which is spectacular and unhelpful for anything that needs line of sight. Satellite is indifferent to the geology."
     },
@@ -210,7 +210,7 @@
       "publish": true,
       "conflict_affected": true,
       "character": "the largest city in Darfur and its commercial centre",
-      "why": "At this distance from the capital, terrestrial capacity is thin and contended. A dish delivers the same speed in Nyala as it does anywhere else.",
+      "why": "Nyala is the commercial heart of Darfur, and everything it needs has always travelled a long way to get there. A satellite link is the exception: it arrives from directly overhead, so the distance that shapes every other supply line does not shape this one.",
       "areas": [
         "Town centre",
         "Al Wadi",
@@ -229,11 +229,11 @@
       "publish": true,
       "conflict_affected": true,
       "character": "the historic capital of Darfur",
-      "why": "Aid organisations and businesses here have long treated satellite as the primary link rather than the backup.",
+      "why": "El Fasher has been Darfur’s administrative centre since long before independence, and the organisations working here have treated satellite as the primary connection rather than the backup for a very long time.",
       "areas": [
         "Town centre"
       ],
-      "local_note": "El Fasher has been the administrative centre of Darfur since long before Sudan's independence, and the aid and government presence here has treated satellite as the primary connection, not the backup, for a very long time."
+      "local_note": "Whatever the terrestrial network is doing in any given month, a dish with a clear view of the sky is unaffected by it — which is why El Fasher’s institutions were early to satellite and stayed."
     },
     {
       "slug": "el-geneina",

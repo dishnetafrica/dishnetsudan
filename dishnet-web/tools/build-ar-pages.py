@@ -56,6 +56,16 @@ def shell(fname, title, desc, body):
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="{url}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DishNet Sudan">
+<meta property="og:locale" content="ar_SD">
+<meta property="og:image" content="https://dishnetsudan.com/assets/img/og-dishnet.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{title}">
+<meta name="twitter:description" content="{desc}">
+<meta name="twitter:image" content="https://dishnetsudan.com/assets/img/og-dishnet.png">
+<link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <meta name="robots" content="index,follow">
 <meta name="geo.region" content="SD">
 <link rel="stylesheet" href="/assets/fonts/fonts.css">
