@@ -86,5 +86,40 @@ foreach (['lib','workers','cron'] as $dir) {
 }
 t('no runtime file hard-codes a plan price', $offenders, []);
 
+// ── 6. UCRM pricing shape — verified against the live API 25 Aug 2026 ───
+// Live UCRM 4.5 puts price inside `periods`, not at top level. Reading the
+// top level returned null for every plan and the AI could quote nothing.
+require_once dirname(__DIR__) . '/lib/StoreInterface.php';
+require_once dirname(__DIR__) . '/lib/DishNetTools.php';
+
+$live = DishNetTools::mapServicePlan([
+    'id' => 7, 'name' => 'Starlink Priority 1TB', 'isActive' => true,
+    'periods' => [
+        ['period' => 1,  'price' => 189.0, 'enabled' => true],
+        ['period' => 3,  'price' => 540.0, 'enabled' => false],
+    ],
+]);
+t('periods shape: price extracted',   $live['price'], 189.0);
+t('periods shape: monthly preferred', $live['period_months'], 1);
+
+$multi = DishNetTools::mapServicePlan([
+    'name' => 'X', 'periods' => [
+        ['period' => 6, 'price' => 900.0, 'enabled' => true],
+        ['period' => 1, 'price' => 189.0, 'enabled' => true],
+    ],
+]);
+t('shortest enabled period wins', $multi['price'], 189.0);
+
+$disabled = DishNetTools::mapServicePlan([
+    'name' => 'X', 'periods' => [['period' => 1, 'price' => 189.0, 'enabled' => false]],
+]);
+t('disabled periods never quoted', $disabled['price'], null);
+
+$top = DishNetTools::mapServicePlan(['name' => 'X', 'price' => 112, 'period' => 1]);
+t('top-level price still honoured', $top['price'], 112.0);
+
+$none = DishNetTools::mapServicePlan(['name' => 'X']);
+t('no price anywhere stays null (AI says it will confirm)', $none['price'], null);
+
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail === 0 ? 0 : 1);

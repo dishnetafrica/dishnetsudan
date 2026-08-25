@@ -41,6 +41,7 @@ foreach (array_slice($argv, 1) as $i => $a) {
     if ($a === '--suite')    $MODE = 'suite';
     if ($a === '--failures') $MODE = 'failures';
     if ($a === '--simulate') { $MODE = 'simulate'; $SIM = (string)($argv[$i + 2] ?? ''); }
+    if ($a === '--flush-stale') $MODE = 'flush';
 }
 
 $fails = 0; $warns = 0;
@@ -77,10 +78,19 @@ $aiKey !== '' ? ok("AI provider '{$provider}', key " . mask($aiKey)) : bad("no k
 $evoUrl = (string)($config['evo_api_url'] ?? '');
 $evoKey = (string)($config['evo_api_key'] ?? '');
 $evoUrl !== '' ? ok('Evolution URL: ' . $evoUrl) : bad('Evolution URL missing');
-strpos($evoUrl, '/manager') === false ? ok('URL has no /manager suffix') : bad('URL still carries /manager — v11 fix not applied');
+strpos($evoUrl, '/manager') === false
+    ? ok('URL has no /manager suffix')
+    : warn('stored URL carries /manager — the runtime strips it, but clean the setting in Configuration');
 $evoKey !== '' ? ok('Evolution key ' . mask($evoKey)) : bad('Evolution key missing');
-$whToken = (string)($config['evo_webhook_secret'] ?? '');
-$whToken !== '' ? ok('webhook token ' . mask($whToken)) : bad('webhook token missing — inbound is unauthenticated');
+// The token is resolved exactly as the webhook guard resolves it: the config
+// key first, then the generated data/webhook_secret file.
+$whToken = trim((string)($config['evo_webhook_secret'] ?? ''));
+$whSrc   = 'config';
+if ($whToken === '' && is_file($dataDir . '/webhook_secret')) {
+    $whToken = trim((string)@file_get_contents($dataDir . '/webhook_secret'));
+    $whSrc   = 'data/webhook_secret';
+}
+$whToken !== '' ? ok("webhook token {$whSrc}: " . mask($whToken)) : bad('webhook token missing — inbound is unauthenticated');
 $crmKey = (string)($config['ucrm_app_key'] ?? ($config['pluginAppKey'] ?? ''));
 
 // ══ 2. Evolution ════════════════════════════════════════════════════════
@@ -90,26 +100,26 @@ if (!$evo->canReachApi()) {
     bad('cannot reach the Evolution API — everything downstream is moot');
 } else {
     ok('Evolution API reachable');
-    $li = $evo->listInstances();
-    if (!($li['ok'] ?? false)) {
-        bad('listInstances failed: ' . (string)($li['error'] ?? '?'));
+    $instances = $evo->listInstances();   // plain array; [] on failure or none
+    if ($instances === []) {
+        bad('no instances visible — none created yet, or the API rejected the key');
     } else {
         $found = false;
-        foreach (($li['data']['instances'] ?? []) as $inst) {
+        foreach ($instances as $inst) {
             $name  = (string)($inst['name'] ?? '');
             $state = (string)($inst['state'] ?? '?');
             $chan  = $evo->channelFor($name);
-            $owner = (string)($inst['number'] ?? ($inst['owner'] ?? ''));
+            $phone = (string)($inst['phone'] ?? '');
             $line  = "instance '{$name}' state={$state}" . ($chan !== '' ? " channel={$chan}" : ' (unmapped)')
-                   . ($owner !== '' ? " number={$owner}" : '');
+                   . ($phone !== '' ? " number={$phone}" : '');
             if ($chan === 'sales') {
                 $found = true;
-                $state === 'open' ? ok($line) : bad($line . ' — sales number is not connected');
+                !empty($inst['connected']) ? ok($line) : bad($line . ' — sales number is not connected');
             } else {
                 echo "  info  {$line}\n";
             }
         }
-        $found || bad("no instance is mapped to the 'sales' channel");
+        $found || bad("no instance is mapped to the 'sales' channel — assign one in Engage → WhatsApp AI");
     }
 }
 
@@ -117,10 +127,24 @@ if (!$evo->canReachApi()) {
 echo "\n== queue ==\n";
 try {
     $pdo = $store->getPdo();
-    $pending = (int)$pdo->query("SELECT COUNT(*) FROM events WHERE event_type='ai.reply' AND status='pending'")->fetchColumn();
+    $pending = (int)$pdo->query("SELECT COUNT(*) FROM events WHERE event_type='ai.reply' AND status IN ('pending','failed')")->fetchColumn();
     $dead    = (int)$pdo->query("SELECT COUNT(*) FROM events WHERE event_type='ai.reply' AND status='dead'")->fetchColumn();
-    $pending <= 5 ? ok("reply queue depth: {$pending}") : warn("reply queue depth {$pending} — worker may not be draining");
+    $oldest  = (string)$pdo->query("SELECT MIN(created_at) FROM events WHERE event_type='ai.reply' AND status IN ('pending','failed')")->fetchColumn();
+    if ($pending === 0) {
+        ok('reply queue empty');
+    } else {
+        warn("reply queue depth {$pending}, oldest {$oldest} UTC");
+        echo "        Draining will SEND replies to everyone still queued — replies to hours-old\n";
+        echo "        messages arrive out of nowhere. To discard the backlog instead:\n";
+        echo "          php production-preflight.php --flush-stale\n";
+    }
     $dead === 0 ? ok('no dead-lettered replies') : warn("{$dead} dead-lettered replies — read ai_platform.log");
+    if ($MODE === 'flush') {
+        $n = $pdo->exec("UPDATE events SET status='dead', error='flushed by preflight --flush-stale'
+                         WHERE event_type='ai.reply' AND status IN ('pending','failed')
+                           AND created_at < datetime('now', '-30 minutes')");
+        echo '  info  flushed ' . (int)$n . " stale queued repl(ies) older than 30 minutes — fresh messages are untouched\n";
+    }
 } catch (\Throwable $e) {
     warn('queue inspection failed: ' . $e->getMessage());
 }

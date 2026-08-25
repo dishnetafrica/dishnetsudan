@@ -300,6 +300,47 @@ class DishNetTools
      * period and installation fee are NOT assumed — if UCRM does not return
      * them they stay null, and the AI is told to ask rather than guess.
      */
+    /**
+     * Map one UCRM service plan to the shape the AI context uses.
+     *
+     * Verified against a live UCRM 4.5 on 25 Aug 2026: pricing is NOT a
+     * top-level `price` field — it lives in `periods`, one entry per enabled
+     * billing period. Reading the top-level field returned null for every
+     * plan, so the AI could name plans but never quote a price. The shortest
+     * enabled period (monthly, for every plan we sell) is the one customers
+     * are quoted. A top-level `price`, where a UCRM version provides one, is
+     * still honoured first.
+     */
+    public static function mapServicePlan(array $p): array
+    {
+        $price  = isset($p['price']) && $p['price'] !== null ? (float)$p['price'] : null;
+        $period = isset($p['period']) ? (int)$p['period'] : null;
+        if ($price === null && !empty($p['periods']) && is_array($p['periods'])) {
+            foreach ($p['periods'] as $pp) {
+                if (!is_array($pp)) continue;
+                if (isset($pp['enabled']) && !$pp['enabled']) continue;
+                if (!isset($pp['price']) || $pp['price'] === null) continue;
+                $len = (int)($pp['period'] ?? 1);
+                if ($period === null || $len < $period) {
+                    $period = $len;
+                    $price  = (float)$pp['price'];
+                }
+            }
+        }
+        return [
+            'id'             => isset($p['id']) ? (int)$p['id'] : null,
+            'name'           => $p['name'] ?? null,
+            'price'          => $price,
+            'period_months'  => $period,
+            'download_speed' => $p['downloadSpeed'] ?? null,   // null when absent
+            'upload_speed'   => $p['uploadSpeed']   ?? null,
+            'data_limit'     => $p['dataUsageLimit'] ?? null,
+            'organization_id'=> isset($p['organizationId']) ? (int)$p['organizationId'] : null,
+            'source'         => 'service-plans',
+            '_raw'           => $p,
+        ];
+    }
+
     public function getProducts(int $limit = 200): array
     {
         $crm = $this->crm();
@@ -310,18 +351,7 @@ class DishNetTools
             $out   = [];
             foreach ($plans as $p) {
                 if (isset($p['isActive']) && !$p['isActive']) continue;
-                $out[] = [
-                    'id'             => isset($p['id']) ? (int)$p['id'] : null,
-                    'name'           => $p['name'] ?? null,
-                    'price'          => isset($p['price']) ? (float)$p['price'] : null,
-                    'period_months'  => isset($p['period']) ? (int)$p['period'] : null,
-                    'download_speed' => $p['downloadSpeed'] ?? null,   // null when absent
-                    'upload_speed'   => $p['uploadSpeed']   ?? null,
-                    'data_limit'     => $p['dataUsageLimit'] ?? null,
-                    'organization_id'=> isset($p['organizationId']) ? (int)$p['organizationId'] : null,
-                    'source'         => 'service-plans',
-                    '_raw'           => $p,
-                ];
+                $out[] = self::mapServicePlan($p);
             }
             return $this->ok([
                 'products'         => $out,
