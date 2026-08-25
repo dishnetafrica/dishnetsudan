@@ -5,7 +5,6 @@
     "that is yours to make - I will not guess at prices, coverage or numbers.",
     "localise.sh reads this file and rewrites the site copy in sites/sudan/."
   ],
-
   "country": {
     "code": "SD",
     "name": "Sudan",
@@ -13,23 +12,23 @@
     "site_domain": "dishnetsudan.com",
     "dialling_code": "+249",
     "timezone": "Africa/Khartoum",
-    "languages": ["en", "ar"],
+    "languages": [
+      "en",
+      "ar"
+    ],
     "_note_languages": "Arabic is the working language for most of Sudan. The site is English-only today - see docs for the RTL question."
   },
-
   "currency": {
-    "code": "NEEDS-CONFIRMATION",
-    "symbol": "NEEDS-CONFIRMATION",
-    "_question": "Are the sales-team prices (142, 218, 366, 513, 814) in USD, or SDG? The site quotes prices in 158 places and must not be ambiguous."
+    "code": "USD",
+    "symbol": "$",
+    "_decided": "25 Aug 2026: prices entered in uCRM in USD; uCRM is the source of truth."
   },
-
   "systems": {
     "crm": "https://crm.dishnetsudan.com",
     "portal": "NEEDS-CONFIRMATION",
     "_note_crm": "Live and holding a valid certificate as of today.",
     "_question_portal": "South Sudan uses portal.dishnetss.com, referenced 127 times. Does Sudan get its own customer portal, share the existing one, or is that section removed for launch?"
   },
-
   "contact": {
     "sales_whatsapp": "211924332000",
     "_note_sales": "The number dishnet_sales is paired to. Confirm this is the number Sudan customers should see - it carries a +211 prefix, which reads as South Sudan.",
@@ -43,24 +42,42 @@
     "office_hours": "NEEDS-CONFIRMATION",
     "_question": "South Sudan shows a Juba office on Airport Road, Kololo, open 8am-8pm daily. What is the Sudan equivalent, and is there a physical office customers can visit?"
   },
-
   "coverage": {
     "primary_city": "NEEDS-CONFIRMATION",
     "cities": [],
     "states": [],
     "_question": "Which Sudanese cities and states does DishNet actually serve? Do not assume Khartoum - the site makes coverage claims in 222 places and a wrong claim generates support tickets and refunds. List only where you can genuinely install."
   },
-
   "products": {
     "starlink": {
-      "_source": "Sales team spreadsheet, 25 Aug 2026. Customer-facing column only.",
+      "_source": "uCRM service plans, confirmed 25 Aug 2026. The sales sheet's higher column (142/218/366/513/814) is internal and must never be published.",
       "_never_publish": "Starlink subscription cost, terminal charge, and DishNet selling price are internal margin data. They must not appear on the site or reach the AI.",
       "plans": [
-        { "name": "Starlink 500 GB", "data": "500 GB", "price": 142 },
-        { "name": "Starlink 1 TB",   "data": "1 TB",   "price": 218 },
-        { "name": "Starlink 2 TB",   "data": "2 TB",   "price": 366 },
-        { "name": "Starlink 3 TB",   "data": "3 TB",   "price": 513 },
-        { "name": "Starlink 5 TB",   "data": "5 TB",   "price": 814 }
+        {
+          "name": "Starlink Priority 500GB",
+          "data": "500GB priority",
+          "price": 112
+        },
+        {
+          "name": "Starlink Priority 1TB",
+          "data": "1TB priority",
+          "price": 189
+        },
+        {
+          "name": "Starlink Priority 2TB",
+          "data": "2TB priority",
+          "price": 336
+        },
+        {
+          "name": "Starlink Priority 3TB",
+          "data": "3TB priority",
+          "price": 483
+        },
+        {
+          "name": "Starlink Priority 5TB",
+          "data": "5TB priority",
+          "price": 784
+        }
       ],
       "terminal_charge": {
         "amount": 20,
@@ -83,7 +100,6 @@
       "_question": "Same question for LTE/SIM. The South Sudan site sells Silver/Gold/Platinum/Diamond SIM plans."
     }
   },
-
   "content": {
     "demo_sites": {
       "keep": "NEEDS-CONFIRMATION",
@@ -100,7 +116,6 @@
       "_note": "Photographs of South Sudan installations."
     }
   },
-
   "performance": {
     "_note": "Sudan connectivity is the design constraint, so these are not cosmetic.",
     "google_fonts_refs": 536,

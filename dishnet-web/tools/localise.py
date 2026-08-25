@@ -203,10 +203,10 @@ WIRING = [
 # the numbers come out and the service stays.
 PRICES = [
     (r"Residential \(\$80/mo unlimited\), Priority plans from \$112&ndash;\$336/mo with faster peak speeds, and Roam \(\$65/mo for 50GB mobile use\)\. All plans include unlimited standard data\.",
-     "Starlink Priority plans: 500GB at $142, 1TB at $218, 2TB at $366, 3TB at $513 and 5TB at $814 per month (USD). Every plan includes unlimited standard data after the priority allowance.",
+     "Starlink Priority plans: 500GB at $112, 1TB at $189, 2TB at $336, 3TB at $483 and 5TB at $784 per month (USD). Every plan includes unlimited standard data after the priority allowance.",
      "old plan lineup in FAQ"),
     (r"Residential \(\$80/mo unlimited\), Priority plans from \$112\S{0,8}\$336/mo with faster peak speeds, and Roam \(\$65/mo for 50GB mobile use\)\. All plans include unlimited standard data\.",
-     "Starlink Priority plans: 500GB at $142, 1TB at $218, 2TB at $366, 3TB at $513 and 5TB at $814 per month (USD). Every plan includes unlimited standard data after the priority allowance.",
+     "Starlink Priority plans: 500GB at $112, 1TB at $189, 2TB at $336, 3TB at $483 and 5TB at $784 per month (USD). Every plan includes unlimited standard data after the priority allowance.",
      "old plan lineup in FAQ"),
     (r"For most homes: the Mini Kit \(\$299\) or V4 Standard \(\$550\)\. For businesses needing maximum performance: the Flat High Performance \(\$2,600\)\. The Standard Actuated \(\$650\) is great for permanent outdoor installations\.",
      "For most homes: the Mini or the V4 Standard. For businesses needing maximum performance: the Flat High Performance. The Standard Actuated suits permanent outdoor installations. Kit pricing changes with supply, so ask us for today's price.",
