@@ -727,7 +727,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'&&($_POST['action']??'')==='save_settings'
     }
     if (array_key_exists('bot_instructions_mode', $_POST)) {
         $mode = trim($_POST['bot_instructions_mode'] ?? 'append');
-        $config['bot_instructions_mode'] = in_array($mode, ['append','override'], true) ? $mode : 'append';
+        if (in_array($mode, ['append','override'], true)) $config['bot_instructions_mode'] = $mode;
     }
     $config['wa_bot_cron_path']       = trim($_POST['wa_bot_cron_path']       ?? $config['wa_bot_cron_path']  ?? (__DIR__.'/cron_wa_bot.php'));
     $store->save('kyc_config.json',$config);flash('Settings saved.','success');

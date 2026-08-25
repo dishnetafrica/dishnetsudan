@@ -12,6 +12,7 @@
 require_once dirname(__DIR__, 2) . '/lib/PluginConfig.php';
 require_once dirname(__DIR__, 2) . '/lib/EvolutionApiService.php';
 require_once dirname(__DIR__, 2) . '/lib/EvoWebhookGuard.php';
+require_once dirname(__DIR__, 2) . '/lib/DishNetAiBrain.php';
 
 /**
  * Where Evolution should send messages.
@@ -59,7 +60,8 @@ $_wData = $GLOBALS['dataDir'] ?? ($_wRoot . '/data');
 $_wCfg  = PluginConfig::load($_wRoot, $_wData);
 $_wEvo  = new EvolutionApiService($_wCfg);
 
-$_wMsg = null;      // ['ok'=>bool,'text'=>string]
+$_wMsg    = null;   // ['ok'=>bool,'text'=>string]
+$_wAiTest = null;   // result of an isolated AI test
 $_wQr  = null;      // ['channel','instance','qr','code']
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '') {
@@ -116,6 +118,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $r = $inst !== '' ? $_wEvo->logoutInstance($inst) : ['ok' => false, 'error' => 'no instance'];
         $_wMsg = ['ok' => !empty($r['ok']), 'text' => !empty($r['ok'])
             ? 'Signed ' . $inst . ' out of WhatsApp.' : 'Evolution refused: ' . ($r['error'] ?? '')];
+
+    } elseif ($act === 'save_ai') {
+        list($ok, $err) = PluginConfig::saveAiSettings(
+            $_wData,
+            (string)($_POST['ai_provider'] ?? 'claude'),
+            (string)($_POST['ai_api_key'] ?? ''),
+            (string)($_POST['bot_custom_instructions'] ?? '')
+        );
+        $_wMsg = ['ok' => $ok, 'text' => $ok ? 'AI settings saved.' : $err];
+        $_wCfg = PluginConfig::load($_wRoot, $_wData);
+
+    } elseif ($act === 'test_ai') {
+        // Isolation test: the brain only, with no WhatsApp involved. If this
+        // works and a real message does not, the fault is in the pipeline
+        // rather than the AI.
+        $brain = new DishNetAiBrain($_wCfg);
+        if (!$brain->isConfigured()) {
+            $_wMsg = ['ok' => false, 'text' => 'No API key set for the selected provider.'];
+        } else {
+            $res = $brain->reply([
+                'channel'         => 'sales',
+                'customer_phone'  => '000000000000',
+                'message'         => 'Hello',
+                'conversation_id' => 0,
+                'history'         => [],
+            ]);
+            $_wAiTest = $res;
+            $usage    = $brain->getLastUsage();
+            $_wMsg = ['ok' => trim((string)$res['reply']) !== '',
+                      'text' => trim((string)$res['reply']) !== ''
+                        ? 'AI replied' . ($usage ? sprintf(' (%d in / %d out tokens, %s)',
+                             $usage['input_tokens'] ?? 0, $usage['output_tokens'] ?? 0, $usage['model'] ?? '?') : '')
+                        : 'AI produced no reply: ' . (string)$res['escalate_reason']];
+        }
 
     } elseif ($act === 'save_connection') {
         list($ok, $err) = PluginConfig::saveEvolutionCredentials(
@@ -277,6 +313,54 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
   <div class="wa-note">This is the only place these are set. The old
   <b>Settings &rarr; Evolution API</b> section no longer saves them &mdash; both screens wrote the
   same keys, so saving there could overwrite a working setup.</div>
+</div>
+
+<?php
+  $_aiProv = ($_wCfg['ai_provider'] ?? 'claude') === 'openai' ? 'openai' : 'claude';
+  $_aiKeyF = $_aiProv === 'openai' ? 'openai_api_key' : 'claude_api_key';
+  $_aiSet  = PluginConfig::isSet_($_wCfg, $_aiKeyF);
+?>
+<div class="wa-card">
+  <h3>AI</h3>
+  <form method="post"><?= $_csrf ?>
+    <input type="hidden" name="wa_action" value="save_ai">
+    <div class="wa-row">
+      <span class="n">Provider</span>
+      <select name="ai_provider">
+        <option value="claude" <?= $_aiProv === 'claude' ? 'selected' : '' ?>>Anthropic Claude</option>
+        <option value="openai" <?= $_aiProv === 'openai' ? 'selected' : '' ?>>OpenAI</option>
+      </select>
+    </div>
+    <div class="wa-row">
+      <span class="n">API key</span>
+      <input type="password" name="ai_api_key" style="min-width:420px" autocomplete="off"
+             placeholder="<?= $_aiSet ? 'stored — leave blank to keep it' : 'paste your ' . h($_aiProv) . ' key' ?>">
+      <span class="wa-pill <?= $_aiSet ? 'wa-ok' : 'wa-b' ?>"><?= $_aiSet ? 'set' : 'not set' ?></span>
+    </div>
+    <div class="wa-row" style="display:block">
+      <span class="n" style="display:block;margin-bottom:6px">Extra instructions</span>
+      <textarea name="bot_custom_instructions" rows="3" style="width:100%;padding:8px 10px;border:1px solid #dce3de;border-radius:4px;font:inherit;font-size:14px"
+        placeholder="Office hours, payment methods, locations. Cannot override the rules that stop the AI inventing prices."><?= h((string)($_wCfg['bot_custom_instructions'] ?? '')) ?></textarea>
+    </div>
+    <div class="wa-row"><button class="wa-btn p" type="submit">Save AI settings</button></div>
+  </form>
+  <div class="wa-row">
+    <span class="n">Test</span>
+    <span class="d">Ask the AI "Hello" directly, with no WhatsApp involved.</span>
+    <form method="post" style="margin-left:auto"><?= $_csrf ?>
+      <input type="hidden" name="wa_action" value="test_ai">
+      <button class="wa-btn" type="submit">Test AI now</button>
+    </form>
+  </div>
+  <?php if ($_wAiTest !== null): ?>
+    <div class="wa-row" style="display:block;background:#f8fbfa">
+      <div class="wa-note" style="padding:0 0 6px"><b>AI replied:</b></div>
+      <div style="white-space:pre-wrap;font-size:14px"><?= h((string)$_wAiTest['reply']) ?: '<em>(nothing)</em>' ?></div>
+      <?php if (!empty($_wAiTest['escalate'])): ?>
+        <div class="wa-note" style="padding:6px 0 0">Handover requested: <?= h((string)$_wAiTest['escalate_reason']) ?></div>
+      <?php endif; ?>
+    </div>
+  <?php endif; ?>
 </div>
 
 <?php if ($_wDetected): ?>

@@ -129,6 +129,43 @@ class PluginConfig
         return [true, ''];
     }
 
+    /**
+     * Store AI settings from an authenticated dashboard screen.
+     *
+     * Same reasoning as saveEvolutionCredentials(): a named, narrow path so the
+     * blanket refusal in saveOverrides() still holds everywhere else. A blank
+     * key keeps the stored one, because the form shows a mask.
+     */
+    public static function saveAiSettings(string $dataDir, string $provider, string $key, string $instructions): array
+    {
+        $provider = $provider === 'openai' ? 'openai' : 'claude';
+        $field    = $provider === 'openai' ? 'openai_api_key' : 'claude_api_key';
+
+        $path     = $dataDir . '/kyc_config.json';
+        $existing = [];
+        if (is_file($path)) {
+            $d = json_decode((string)file_get_contents($path), true);
+            if (is_array($d)) $existing = $d;
+        }
+
+        $existing['ai_provider']             = $provider;
+        $existing['bot_custom_instructions'] = trim($instructions);
+
+        $key = trim($key);
+        if ($key !== '') $existing[$field] = $key;
+
+        $json = json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if ($json === false) return [false, 'Could not encode settings.'];
+
+        $tmp = $path . '.tmp.' . getmypid();
+        if (@file_put_contents($tmp, $json, LOCK_EX) === false) {
+            return [false, 'Could not write to the plugin data directory.'];
+        }
+        @chmod($tmp, 0600);
+        if (!@rename($tmp, $path)) { @unlink($tmp); return [false, 'Could not save settings.']; }
+        return [true, ''];
+    }
+
     public static function isSet_(array $config, string $key): bool
     {
         return isset($config[$key]) && is_string($config[$key]) && trim($config[$key]) !== '';
