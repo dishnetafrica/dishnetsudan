@@ -16,66 +16,70 @@ If you rebuild the zip yourself, use `./build-zip.sh`. uCRM looks for
 instead of its contents gives "Plugin manifest could not be found in the ZIP
 archive". The script gets that right and verifies it before finishing.
 
-## 2. Configure
+## 2. Enter the secrets — once, on the Configuration screen
 
-UISP → Plugins → DishNet AI → **Settings**. Leave *Answer customers
-automatically* **OFF** for now.
+UISP → Plugins → DishNet AI → **Settings**. Only five fields matter here:
 
 | Field | Value |
 | --- | --- |
 | Evolution API URL | `https://evo-evolution-api.<your>.easypanel.host` — HTTPS, no trailing slash |
 | Evolution API key | from Evolution |
 | Webhook secret | generate: `openssl rand -hex 32` |
-| Sales / Support / Accounts instance | your Evolution instance names |
-| AI provider | Claude or OpenAI |
-| Provider API key | the matching key |
+| AI provider + key | Claude or OpenAI, and the matching key |
+| **Setup tab unlock token** | generate: `openssl rand -hex 24` |
+
+Leave the three instance names and *Answer customers automatically* alone —
+you will set those on the plugin page, where you can see the result.
+
+**Why secrets live here and not on the plugin page.** uCRM does not authenticate
+plugin pages; its own documentation says a plugin's public URL is reachable
+"without any authentication". This screen is behind your UISP login, so it is
+the right place for keys. The unlock token you set here is what opens the
+plugin page's Setup tab.
 
 Values are stored in `data/config.json` in the plugin's data directory — not in
-the plugin tree, not in git. **Nothing here is ever shown on the plugin page or
-written to a log**; secrets display as "set" or "not set".
+the plugin tree, not in git. **No secret is ever rendered on the plugin page or
+written to a log**; they display as "set" or "not set".
 
-## 3. Point Evolution at the plugin
+## 3. Do the rest on the plugin page
 
-For each instance:
+Open **DishNet AI** in the UISP menu → **Setup** tab → enter the unlock token.
+Five wrong attempts locks it for fifteen minutes.
 
-```bash
-curl -X POST "$EVO_URL/webhook/set/dishnet_sales" \
-  -H "apikey: $EVO_KEY" -H 'Content-Type: application/json' \
-  -d '{"webhook":{"enabled":true,
-       "url":"https://<your-uisp-host>/crm/_plugins/dishnet-ai/evo_webhook.php?token=<webhook secret>",
-       "byEvents":false,"base64":false,
-       "events":["MESSAGES_UPSERT","MESSAGES_UPDATE","CONNECTION_UPDATE"]}}'
-```
+Then, in order:
 
-**HTTPS is required.** Evolution v2 does not sign its webhooks, so that token is
-the only thing proving a request is genuine. If your build supports
-`webhook.headers`, send it as `X-DishNet-Token` and drop the query string — the
-plugin accepts either.
+1. **WhatsApp numbers.** The plugin reads your instance list from Evolution and
+   offers it as a dropdown, with each instance's connection state. Pick which
+   one is Sales, Support and Accounts. Leave a number blank if it is not in use.
+2. **Register webhook.** One button per number. The plugin sends Evolution the
+   correct URL with the secret already in it, so you never handle the secret
+   yourself.
+3. **Read plan & product fields.** Reports what your uCRM actually returns for
+   service plans and products, so the AI quotes real fields rather than assumed
+   ones. Send that list to your developer to finish the product mapping.
+4. **Start answering.** The on/off switch. Leave it off until the Status tab is
+   all green.
+
+If the instance dropdown is empty, the plugin could not reach Evolution — check
+the API URL and key on the Configuration screen. You can still type names by
+hand.
 
 ## 4. Check
 
-Open the **DishNet AI** page in UISP. Every setup row should read `ok`. If any
-reads `fix`, the page says what is wrong.
-
-Then confirm the plugin can see your real products:
-
-```bash
-curl -s -H "Authorization: Bearer <ai_tools_token>" \
-  "https://<your-uisp-host>/crm/_plugins/dishnet-ai/ai_tools.php?tool=describe_product_schema"
-```
-
-That reports which fields your uCRM actually returns for service plans. Send me
-the output and I will finish the product mapping against real field names
-instead of inference.
+The **Status** tab is read-only and safe to leave open. Every row should read
+`ok` before you go live.
 
 ## 5. Go live
 
-Turn on **Answer customers automatically**. Message the sales number from your
-own phone and ask what plans are available.
+Setup tab → **Start answering**. Message the sales number from your own phone
+and ask what plans are available.
 
-Start with sales only — leave the other two instances blank until sales behaves.
-Sales carries no billing data, so a mistake there costs a lead, not a customer's
-private information.
+Start with sales only — leave the other two numbers unassigned until sales
+behaves. Sales carries no billing data, so a mistake there costs a lead, not a
+customer's private information.
+
+To stop instantly at any time: Setup tab → **Stop answering**. Messages are
+still received and stored; nothing is sent.
 
 ## How it runs
 
@@ -143,5 +147,5 @@ still received and stored; nothing is sent.
 
 ```bash
 php tests/validate_environment.php     # environment go/no-go
-./tests/run.sh                         # 85 assertions, no network needed
+./tests/run.sh                         # 120 assertions, no network needed
 ```

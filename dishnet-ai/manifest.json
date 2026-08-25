@@ -6,8 +6,14 @@
         "description": "Answers customers on WhatsApp across three numbers (Sales, Support, Accounts) using one AI brain grounded in live UISP/uCRM data. Products, customer records, services, balances and invoices are read from uCRM at the moment of the conversation, never from a static list. Messages arrive from Evolution API, are queued, answered, and sent back. Hands over to a human when it is not confident.",
         "url": "https://dishnetafrica.com",
         "version": "1.0.0",
-        "ucrmVersionCompliancy": { "min": "2.14.0", "max": null },
-        "unmsVersionCompliancy": { "min": "1.0.0", "max": null },
+        "ucrmVersionCompliancy": {
+            "min": "2.14.0",
+            "max": null
+        },
+        "unmsVersionCompliancy": {
+            "min": "1.0.0",
+            "max": null
+        },
         "author": "DishNet Africa Ltd"
     },
     "executionPeriod": 1,
@@ -27,9 +33,16 @@
             "type": "checkbox"
         },
         {
+            "key": "admin_token",
+            "label": "Setup tab unlock token",
+            "description": "SECRET. Generate with: openssl rand -hex 24. The plugin page is NOT protected by uCRM login, so this token is what unlocks the Setup tab there. Leave blank to keep the plugin page read-only.",
+            "required": 0,
+            "type": "text"
+        },
+        {
             "key": "evo_api_url",
             "label": "Evolution API URL",
-            "description": "Base URL with no trailing slash, e.g. https://evo-evolution-api.example.easypanel.host — must be HTTPS.",
+            "description": "Base URL with no trailing slash, e.g. https://evo-evolution-api.example.easypanel.host \u2014 must be HTTPS.",
             "required": 1,
             "type": "text"
         },
@@ -50,21 +63,21 @@
         {
             "key": "evo_instance_sales",
             "label": "Sales WhatsApp instance",
-            "description": "Evolution instance name for the sales number, e.g. dishnet_sales. Leave blank if this number is not in use yet.",
+            "description": "Evolution instance name for the sales number, e.g. dishnet_sales. Leave blank if this number is not in use yet. You can also pick this from a live list on the plugin page once the API key is set.",
             "required": 0,
             "type": "text"
         },
         {
             "key": "evo_instance_support",
             "label": "Support WhatsApp instance",
-            "description": "Evolution instance name for the support number.",
+            "description": "Evolution instance name for the support number. You can also pick this from a live list on the plugin page once the API key is set.",
             "required": 0,
             "type": "text"
         },
         {
             "key": "evo_instance_account",
             "label": "Accounts WhatsApp instance",
-            "description": "Evolution instance name for the accounts number.",
+            "description": "Evolution instance name for the accounts number. You can also pick this from a live list on the plugin page once the API key is set.",
             "required": 0,
             "type": "text"
         },

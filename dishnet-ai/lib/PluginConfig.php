@@ -92,4 +92,52 @@ class PluginConfig
     {
         return isset($config[$key]) && is_string($config[$key]) && trim($config[$key]) !== '';
     }
+
+    /**
+     * Save operator overrides to kyc_config.json.
+     *
+     * Deliberately NOT data/config.json: uCRM owns that file and rewrites it
+     * whenever an admin saves the settings form, which would silently discard
+     * anything written here. kyc_config.json is merged on top at load time, so
+     * a value set from the plugin page wins until it is cleared.
+     *
+     * Refuses to store secrets. Those belong on the uCRM Configuration screen,
+     * which is behind uCRM's admin login; the plugin page is not.
+     */
+    public static function saveOverrides(string $dataDir, array $changes): array
+    {
+        foreach (array_keys($changes) as $k) {
+            if (in_array($k, self::SECRET_KEYS, true) || $k === 'admin_token') {
+                return [false, 'Secrets can only be set on the uCRM Configuration screen.'];
+            }
+        }
+
+        $path     = $dataDir . '/kyc_config.json';
+        $existing = [];
+        if (is_file($path)) {
+            $decoded = json_decode((string)file_get_contents($path), true);
+            if (is_array($decoded)) $existing = $decoded;
+        }
+
+        foreach ($changes as $k => $v) {
+            // An empty string clears the override and lets config.json show through.
+            if ($v === null || $v === '') { unset($existing[$k]); continue; }
+            $existing[$k] = $v;
+        }
+
+        $json = json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if ($json === false) return [false, 'Could not encode settings.'];
+
+        // Write-then-rename so a crash cannot leave a half-written config.
+        $tmp = $path . '.tmp.' . getmypid();
+        if (@file_put_contents($tmp, $json, LOCK_EX) === false) {
+            return [false, 'Could not write to the plugin data directory.'];
+        }
+        @chmod($tmp, 0600);
+        if (!@rename($tmp, $path)) {
+            @unlink($tmp);
+            return [false, 'Could not save settings.'];
+        }
+        return [true, ''];
+    }
 }
