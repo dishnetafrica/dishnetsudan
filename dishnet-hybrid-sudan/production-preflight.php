@@ -91,6 +91,16 @@ if ($whToken === '' && is_file($dataDir . '/webhook_secret')) {
     $whSrc   = 'data/webhook_secret';
 }
 $whToken !== '' ? ok("webhook token {$whSrc}: " . mask($whToken)) : bad('webhook token missing — inbound is unauthenticated');
+require_once __DIR__ . '/lib/ConfigVault.php';
+$vaultFile = ConfigVault::path(__DIR__, $dataDir);
+if (is_file($vaultFile)) {
+    $vk = json_decode((string)@file_get_contents($vaultFile), true);
+    $n  = count($vk['config'] ?? []);
+    $loc = strpos($vaultFile, $dataDir) === 0 ? 'data dir (survives updates only)' : 'plugins root (survives re-install)';
+    ok("config vault: {$n} key(s) protected, in the {$loc}");
+} else {
+    warn('config vault not written yet — it appears after the first configured load');
+}
 $crmKey = (string)($config['ucrm_app_key'] ?? ($config['pluginAppKey'] ?? ''));
 
 // ══ 2. Evolution ════════════════════════════════════════════════════════

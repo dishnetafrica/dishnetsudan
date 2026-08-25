@@ -50,6 +50,11 @@ class PluginConfig
             if (is_array($decoded)) $config = array_merge($config, $decoded);
         }
 
+        // The vault fills anything a re-install wiped; a value that is present
+        // -- including deliberately off -- is never overridden. See ConfigVault.
+        require_once __DIR__ . '/ConfigVault.php';
+        $config = ConfigVault::apply($pluginRoot, $dataDir, $config);
+
         foreach (self::BOOL_KEYS as $k) {
             if (array_key_exists($k, $config)) $config[$k] = self::toBool($config[$k]);
         }
