@@ -183,18 +183,23 @@ UGANDA = [
 # Sudan office number, the AI number nowhere, and 74 links stripped down to
 # a bare wa.me/ that opens an error. One number, everywhere, changed in one
 # place when a +249 number exists.
-SALES_WA = "211924332000"
+SALES_WA = "249900083481"   # the Sudanese number — sales, support and accounts in one
 WIRING = [
     (r'href="https://wa\.me/"', f'href="https://wa.me/{SALES_WA}"', "empty wa.me link"),
     (r'wa\.me/\?text=', f'wa.me/{SALES_WA}?text=', "empty wa.me link"),
+    # Migration from the interim +211 AI number to the Sudanese line.
+    (r'wa\.me/211924332000', f'wa.me/{SALES_WA}', "interim +211 AI number"),
+    (r'phone=\+?211924332000', f'phone={SALES_WA}', "interim number in form JS"),
+    (r'\+211 924 332 000', '+249 900 083 481', "displayed interim number"),
+    (r'211924332000', SALES_WA, "remaining interim-number references"),
     (r'wa\.me/211923400000', f'wa.me/{SALES_WA}', "wa.me to South Sudan office"),
     # A third number, found by the commercial regression check: the South
     # Sudan support line, on the app page and one tutorial.
     (r'wa\.me/211921443002', f'wa.me/{SALES_WA}', "wa.me to South Sudan support line"),
-    (r'\+211 921 443 002', '+211 924 332 000', "displayed support number"),
+    (r'\+211 921 443 002', '+249 900 083 481', "displayed support number"),
     (r'211921443002', SALES_WA, "remaining support-number references"),
     (r'phone=\+?211923400000', f'phone={SALES_WA}', "form JS to South Sudan office"),
-    (r'\+211 923 400 000', '+211 924 332 000', "displayed number matches the link"),
+    (r'\+211 923 400 000', '+249 900 083 481', "displayed number matches the link"),
     (r'211923400000', SALES_WA, "remaining old-number references"),
     # Customer Login pointed at the SOUTH SUDAN plugin's portal path on the
     # Sudan CRM — a plugin that is not installed there, so every click 404'd.

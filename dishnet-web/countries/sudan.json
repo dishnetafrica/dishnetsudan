@@ -30,10 +30,10 @@
     "_question_portal": "South Sudan uses portal.dishnetss.com, referenced 127 times. Does Sudan get its own customer portal, share the existing one, or is that section removed for launch?"
   },
   "contact": {
-    "sales_whatsapp": "211924332000",
-    "_note_sales": "The number dishnet_sales is paired to. Confirm this is the number Sudan customers should see - it carries a +211 prefix, which reads as South Sudan.",
-    "support_whatsapp": "NEEDS-CONFIRMATION",
-    "accounts_whatsapp": "NEEDS-CONFIRMATION",
+    "sales_whatsapp": "249900083481",
+    "_note_sales": "Decided 25 Aug 2026: one Sudanese number for sales, support and accounts. The AI answers sales; support and billing hand over to the team in the Inbox on the same number.",
+    "support_whatsapp": "249900083481",
+    "accounts_whatsapp": "249900083481",
     "sales_phone": "NEEDS-CONFIRMATION",
     "support_phone": "NEEDS-CONFIRMATION",
     "email_sales": "NEEDS-CONFIRMATION",

@@ -152,7 +152,7 @@ HELD = {'fiber.html','coverage-old.html','testimonials.html','gallery.html',
         'blog-starlink-south-sudan.html','pay.html','hotspot.html',
         'security.html','reseller.html'}
 PRICES = {'112','189','336','483','784'}          # uCRM, the source of truth
-NUMBER = '211924332000'                            # the number the AI answers
+NUMBER = '249900083481'                            # the number the AI answers
 bad = 0
 def err(m):
     global bad; bad = 1; print('  ' + m)

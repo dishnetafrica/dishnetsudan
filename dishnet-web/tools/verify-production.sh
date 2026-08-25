@@ -3,7 +3,7 @@
 # Run on the server (or any machine that can reach dishnetsudan.com):
 #   bash tools/verify-production.sh
 BASE="${1:-https://dishnetsudan.com}"
-NUMBER="211924332000"
+NUMBER="249900083481"
 PRICES="112 189 336 483 784"
 fail=0; warn=0
 ok()   { printf '  PASS  %s\n' "$1"; }
@@ -64,7 +64,7 @@ echo "$allbodies" | grep -qE '\$(112|189|336|483|784)\b' && ok "uCRM prices live
 echo "$allbodies" | grep -qE '\$(142|218|366|513|814)\b' && bad "sheet prices still live" || ok "no internal sheet prices"
 echo "$allbodies" | grep -qE '\$(80|65) ?<small>' && bad "South Sudan plan prices still live" || ok "no South Sudan plan prices"
 echo "$allbodies" | grep -q 'dishnet-hybrid-telecom' && bad "old plugin login URL still live" || ok "CRM login link correct"
-for n in 211923400000 211921443002; do
+for n in 211923400000 211921443002 211924332000; do
   echo "$allbodies" | grep -q "$n" && bad "South Sudan number $n still live" || ok "no $n"
 done
 echo "$allbodies" | grep -q "wa.me/$NUMBER" && ok "AI sales number wired" || bad "wa.me/$NUMBER not found"

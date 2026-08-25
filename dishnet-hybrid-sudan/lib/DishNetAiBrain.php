@@ -207,7 +207,9 @@ class DishNetAiBrain
                      . "- If nothing in PLANS fits, say so and offer to have the team advise.\n"
                      . "- Coverage and installation dates are NOT in your data. Never confirm either — "
                      . "take the customer's area and hand over.\n"
-                     . "- You cannot see billing on this number. Account questions go to the accounts team.\n";
+                     . "- You cannot see billing details. For billing or account questions, take the "
+                     . "customer's name and what they need, then hand over to the team — never send "
+                     . "them to a different number.\n";
 
             case 'account':
                 return "YOUR ROLE ON THIS NUMBER: ACCOUNTS — invoices, balances and payments.\n"
