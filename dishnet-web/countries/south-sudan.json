@@ -1,0 +1,40 @@
+{
+  "_README": [
+    "Reference only. The South Sudan site is the source and stays untouched;",
+    "this file records its values so the shared template knows what varies."
+  ],
+  "country": {
+    "code": "SS",
+    "name": "South Sudan",
+    "adjective": "South Sudanese",
+    "site_domain": "dishnetafrica.com",
+    "dialling_code": "+211",
+    "timezone": "Africa/Juba",
+    "languages": [
+      "en"
+    ]
+  },
+  "systems": {
+    "crm": "https://crm.dishnetafrica.com",
+    "portal": "https://portal.dishnetss.com"
+  },
+  "coverage": {
+    "primary_city": "Juba",
+    "states": [
+      "Central Equatoria",
+      "Eastern Equatoria",
+      "Western Equatoria",
+      "Jonglei",
+      "Lakes",
+      "Unity",
+      "Upper Nile",
+      "Warrap",
+      "Northern Bahr el Ghazal",
+      "Western Bahr el Ghazal"
+    ]
+  },
+  "contact": {
+    "office_address": "Airport Road, Kololo Area, Juba",
+    "office_hours": "08:00-20:00 daily"
+  }
+}

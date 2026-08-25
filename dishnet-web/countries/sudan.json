@@ -1,0 +1,111 @@
+{
+  "_README": [
+    "Every value on this site that changes between countries lives here.",
+    "Anything marked NEEDS-CONFIRMATION is a commercial or factual decision",
+    "that is yours to make - I will not guess at prices, coverage or numbers.",
+    "localise.sh reads this file and rewrites the site copy in sites/sudan/."
+  ],
+
+  "country": {
+    "code": "SD",
+    "name": "Sudan",
+    "adjective": "Sudanese",
+    "site_domain": "dishnetsudan.com",
+    "dialling_code": "+249",
+    "timezone": "Africa/Khartoum",
+    "languages": ["en", "ar"],
+    "_note_languages": "Arabic is the working language for most of Sudan. The site is English-only today - see docs for the RTL question."
+  },
+
+  "currency": {
+    "code": "NEEDS-CONFIRMATION",
+    "symbol": "NEEDS-CONFIRMATION",
+    "_question": "Are the sales-team prices (142, 218, 366, 513, 814) in USD, or SDG? The site quotes prices in 158 places and must not be ambiguous."
+  },
+
+  "systems": {
+    "crm": "https://crm.dishnetsudan.com",
+    "portal": "NEEDS-CONFIRMATION",
+    "_note_crm": "Live and holding a valid certificate as of today.",
+    "_question_portal": "South Sudan uses portal.dishnetss.com, referenced 127 times. Does Sudan get its own customer portal, share the existing one, or is that section removed for launch?"
+  },
+
+  "contact": {
+    "sales_whatsapp": "211924332000",
+    "_note_sales": "The number dishnet_sales is paired to. Confirm this is the number Sudan customers should see - it carries a +211 prefix, which reads as South Sudan.",
+    "support_whatsapp": "NEEDS-CONFIRMATION",
+    "accounts_whatsapp": "NEEDS-CONFIRMATION",
+    "sales_phone": "NEEDS-CONFIRMATION",
+    "support_phone": "NEEDS-CONFIRMATION",
+    "email_sales": "NEEDS-CONFIRMATION",
+    "email_support": "NEEDS-CONFIRMATION",
+    "office_address": "NEEDS-CONFIRMATION",
+    "office_hours": "NEEDS-CONFIRMATION",
+    "_question": "South Sudan shows a Juba office on Airport Road, Kololo, open 8am-8pm daily. What is the Sudan equivalent, and is there a physical office customers can visit?"
+  },
+
+  "coverage": {
+    "primary_city": "NEEDS-CONFIRMATION",
+    "cities": [],
+    "states": [],
+    "_question": "Which Sudanese cities and states does DishNet actually serve? Do not assume Khartoum - the site makes coverage claims in 222 places and a wrong claim generates support tickets and refunds. List only where you can genuinely install."
+  },
+
+  "products": {
+    "starlink": {
+      "_source": "Sales team spreadsheet, 25 Aug 2026. Customer-facing column only.",
+      "_never_publish": "Starlink subscription cost, terminal charge, and DishNet selling price are internal margin data. They must not appear on the site or reach the AI.",
+      "plans": [
+        { "name": "Starlink 500 GB", "data": "500 GB", "price": 142 },
+        { "name": "Starlink 1 TB",   "data": "1 TB",   "price": 218 },
+        { "name": "Starlink 2 TB",   "data": "2 TB",   "price": 366 },
+        { "name": "Starlink 3 TB",   "data": "3 TB",   "price": 513 },
+        { "name": "Starlink 5 TB",   "data": "5 TB",   "price": 814 }
+      ],
+      "terminal_charge": {
+        "amount": 20,
+        "billing": "NEEDS-CONFIRMATION",
+        "_question": "Your sheet folds 20 into the monthly total. Is it monthly (like Starlink's own terminal access fee) or a one-off? If one-off it must not sit inside a monthly price, and the customer has to be told separately."
+      },
+      "throttle_after_cap": "1 Mbps down / 500 Kbps up until the next month",
+      "speed": "up to 250 Mbps",
+      "hardware_prices": "NEEDS-CONFIRMATION",
+      "_question_hardware": "The site sells four Starlink kits (Mini, V4, Flat High Performance, Standard Actuated) with South Sudan prices. What are the Sudan prices, and which kits do you actually stock?"
+    },
+    "fiber": {
+      "available": "NEEDS-CONFIRMATION",
+      "plans": [],
+      "_question": "fiber.html is 49 KB of South Sudan fibre content with a named supplier and per-plan pricing. Does DishNet sell fibre in Sudan at all? If not, the page should be removed rather than left with wrong claims."
+    },
+    "lte": {
+      "available": "NEEDS-CONFIRMATION",
+      "plans": [],
+      "_question": "Same question for LTE/SIM. The South Sudan site sells Silver/Gold/Platinum/Diamond SIM plans."
+    }
+  },
+
+  "content": {
+    "demo_sites": {
+      "keep": "NEEDS-CONFIRMATION",
+      "_question": "demo/ is 229 pages of NGO, embassy and UN demo dashboards using South Sudan state codes - Jonglei, Lakes, Unity, Upper Nile, Warrap, the Equatorias. For Sudan they are either rebuilt with Sudanese states, kept as a generic capability demo, or dropped. They are also the bulk of the site's file count."
+    },
+    "testimonials": {
+      "keep": "NEEDS-CONFIRMATION",
+      "_question": "testimonials.html quotes named South Sudan customers. Using those to sell in Sudan would be misleading. Remove until you have Sudanese ones?"
+    },
+    "blog": {
+      "_note": "Three posts, all South Sudan specific, including one titled 'Starlink in South Sudan'. Rewrite or drop."
+    },
+    "gallery": {
+      "_note": "Photographs of South Sudan installations."
+    }
+  },
+
+  "performance": {
+    "_note": "Sudan connectivity is the design constraint, so these are not cosmetic.",
+    "google_fonts_refs": 536,
+    "_action_fonts": "Self-host the two font families. 536 external references means every page waits on fonts.googleapis.com before it renders.",
+    "external_images": 6,
+    "_action_images": "All six images are hotlinked from dishnetafrica.com and portal.dishnetss.com. Copy them into the Sudan site so it does not depend on South Sudan infrastructure being up."
+  }
+}

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>DishNet Africa — Live Portal Demo</title>
+<meta name="description" content="Interactive preview of the DishNet Africa customer portal as your team would see it. Three example tenants — embassy, NGO, UN agency — all illustrative.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#D41C1C;--red-dark:#A81515;
+  --dark:#141414;--dark-2:#222;
+  --gray:#6B6B6B;--gray-2:#9B9B9B;--gray-3:#C4C4C4;
+  --gray-light:#EBEBEB;--off-white:#F5F5F5;--white:#fff;
+  --swoosh:linear-gradient(110deg,#D41C1C 0%,#E8521A 60%,#FF7A35 100%);
+  --blue:#1A4DB5;--blue-light:#E6F1FB;
+  --green:#0D7A4E;--green-light:#E7F8EF;
+  --amber:#EF9F27;--amber-light:#FEF6E6;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden}
+body{font-family:'Barlow',-apple-system,sans-serif;background:var(--off-white);color:var(--dark);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* Hero stripe */
+.demo-banner{background:#FEF6E6;border-bottom:1px solid #F4DBB0;padding:8px 20px;text-align:center;font-size:12px;color:#854F0B;font-weight:600}
+.demo-banner b{font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:1px;text-transform:uppercase;font-size:11px;background:#854F0B;color:#FEF6E6;padding:2px 8px;border-radius:3px;margin-right:8px}
+
+.hero{background:var(--dark);color:#fff;padding:60px 24px 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 80% 50%,rgba(212,28,28,.18),transparent 65%);pointer-events:none}
+.hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:2}
+.hero-logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:-.5px;display:inline-block;position:relative}
+.hero-logo::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:3px;background:var(--swoosh);border-radius:2px}
+.hero-tag{display:inline-block;background:#fff;color:var(--dark);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:10px;letter-spacing:.15em;padding:4px 10px;border-radius:4px;margin-left:14px;vertical-align:5px;text-transform:uppercase}
+.hero h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:48px;line-height:1.05;letter-spacing:-1px;margin-top:36px;max-width:780px}
+.hero h1 .accent{background:var(--swoosh);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:17px;color:rgba(255,255,255,.7);max-width:620px;line-height:1.6;margin-top:20px}
+.hero-meta{display:flex;gap:32px;margin-top:32px;font-size:13px;color:rgba(255,255,255,.55);flex-wrap:wrap}
+.hero-meta b{color:#fff;font-weight:600;display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+
+/* Picker section */
+.picker{max-width:1100px;margin:0 auto;padding:60px 24px;position:relative;z-index:3;margin-top:-40px}
+.picker-eyebrow{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:8px;text-align:center}
+.picker h2{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:34px;letter-spacing:-.5px;text-align:center;margin-bottom:8px}
+.picker-sub{text-align:center;color:var(--gray);font-size:15px;margin-bottom:48px;max-width:560px;margin-left:auto;margin-right:auto}
+
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.tile{background:#fff;border-radius:18px;border:1px solid rgba(0,0,0,.05);overflow:hidden;cursor:pointer;text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s,border-color .2s;display:flex;flex-direction:column;position:relative}
+.tile:hover{transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,.08);border-color:transparent}
+.tile.disabled{cursor:not-allowed;opacity:.55;pointer-events:none}
+.tile.disabled:hover{transform:none;box-shadow:none}
+
+.tile-head{padding:24px 24px 16px;border-bottom:1px solid var(--off-white);display:flex;align-items:center;gap:14px;position:relative}
+.tile-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.5px;flex-shrink:0}
+.tile-icon.embassy{background:#1A4DB5}
+.tile-icon.ngo{background:#0D7A4E}
+.tile-icon.un{background:#5B5BD6}
+.tile-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:21px;letter-spacing:-.3px;color:var(--dark);line-height:1.15}
+.tile-type{font-size:11px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
+.tile-pill{position:absolute;top:18px;right:18px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:4px;background:var(--off-white);color:var(--gray)}
+.tile-pill.live{background:var(--green-light);color:var(--green)}
+
+.tile-body{padding:18px 24px 22px;flex:1}
+.tile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--off-white)}
+.tile-stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;color:var(--dark);letter-spacing:-.5px;line-height:1}
+.tile-stat-num small{font-size:13px;font-weight:700;color:var(--gray);margin-left:2px}
+.tile-stat-lbl{font-size:10px;font-weight:600;color:var(--gray-2);text-transform:uppercase;letter-spacing:.6px;margin-top:5px}
+.tile-desc{font-size:13px;color:var(--gray);line-height:1.55;margin-bottom:18px}
+.tile-feats{margin-bottom:0}
+.tile-feat{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dark);margin-bottom:7px}
+.tile-feat svg{width:13px;height:13px;color:var(--green);flex-shrink:0}
+
+.tile-foot{padding:14px 24px;background:var(--off-white);display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(0,0,0,.04)}
+.tile-cta{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--red)}
+.tile-foot-meta{font-size:11px;color:var(--gray-2);font-weight:500}
+
+/* What you'll see section */
+.whatusee{max-width:1100px;margin:60px auto;padding:0 24px}
+.whatusee h3{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;letter-spacing:-.3px;margin-bottom:6px}
+.whatusee p{color:var(--gray);font-size:14px;margin-bottom:28px;max-width:600px}
+.feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.feat-card{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.04);padding:18px}
+.feat-card svg{width:22px;height:22px;color:var(--red);margin-bottom:12px}
+.feat-card h4{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;letter-spacing:-.2px;margin-bottom:5px}
+.feat-card p{font-size:12px;color:var(--gray);line-height:1.5;margin:0}
+
+/* Footer */
+.foot{background:var(--dark);color:rgba(255,255,255,.55);padding:32px 24px;font-size:12px;text-align:center;line-height:1.6}
+.foot b{color:#fff;font-weight:600}
+.foot a{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3)}
+
+/* Responsive */
+@media (max-width:900px){
+  .tiles{grid-template-columns:1fr;gap:16px}
+  .feat-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .hero h1{font-size:34px}
+  .hero{padding:40px 20px 60px}
+  .picker{padding:40px 20px}
+  .hero-meta{gap:24px}
+}
+</style>
+</head>
+<body>
+
+<!-- Demo banner -->
+<div class="demo-banner">
+  <b>Demo</b>
+  This is a demonstration environment. All names, KIT numbers, and usage figures shown are illustrative.
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-logo">DishNet</span><span class="hero-tag">Live Portal Demo</span>
+    <h1>Pick a tenant. <span class="accent">Walk through</span><br>your fleet, your way.</h1>
+    <p>This is the actual DishNet Africa customer portal — same code, same screens, same controls — pre-loaded with three example tenants so you can see how it would look for your organisation. Nothing here writes to live systems. Click anywhere.</p>
+    </div>
+</section>
+
+<!-- Persona picker -->
+<section class="picker">
+  <div class="picker-eyebrow">Choose a Tenant</div>
+  <h2>Three example organisations</h2>
+  <p class="picker-sub">Each tenant has its own fleet shape, sector mix, and use cases. Pick the one that most resembles your operation.</p>
+
+  <div class="tiles">
+
+    <!-- Embassy -->
+    <a class="tile" href="embassy/login.html">
+      <div class="tile-head">
+        <div class="tile-icon embassy">EN</div>
+        <div>
+          <div class="tile-name">Embassy of Nordhavn</div>
+          <div class="tile-type">Diplomatic Mission · Juba</div>
+        </div>
+        <span class="tile-pill live">▸ Live demo</span>
+      </div>
+      <div class="tile-body">
+        <div class="tile-stats">
+          <div>
+            <div class="tile-stat-num">4</div>
+            <div class="tile-stat-lbl">Sites</div>
+          </div>
+          <div>
+            <div class="tile-stat-num">3<small>TB</small></div>
+            <div class="tile-stat-lbl">Monthly</div>
+          </div>
+          <div>
+            <div class="tile-stat-num">100%</div>
+            <div class="tile-stat-lbl">Starlink</div>
+          </div>
+        </div>
+        <p class="tile-desc">Compact fleet — chancery, ambassador residence, deputy residence, summer compound. High-uptime requirements, bandwidth not the headline.</p>
+        <div class="tile-feats">
+          <div class="tile-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Mission-critical SLA</div>
+          <div class="tile-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Per-residence isolation</div>
+        </div>
+      </div>
+      <div class="tile-foot">
+        <div class="tile-cta">Open Embassy demo →</div>
+        <div class="tile-foot-meta">~2 min walkthrough</div>
+      </div>
+    </a>
+
+    <!-- NGO (live) -->
+    <a class="tile" href="ngo/login.html">
+      <div class="tile-head">
+        <div class="tile-icon ngo">BF</div>
+        <div>
+          <div class="tile-name">Bright Future Initiative</div>
+          <div class="tile-type">Multi-sector NGO · 5 regions</div>
+        </div>
+        <span class="tile-pill live">▸ Live demo</span>
+      </div>
+      <div class="tile-body">
+        <div class="tile-stats">
+          <div>
+            <div class="tile-stat-num">32</div>
+            <div class="tile-stat-lbl">Sites</div>
+          </div>
+          <div>
+            <div class="tile-stat-num">11.8<small>TB</small></div>
+            <div class="tile-stat-lbl">This month</div>
+          </div>
+          <div>
+            <div class="tile-stat-num">8<small>+</small>24</div>
+            <div class="tile-stat-lbl">Fiber + Star</div>
+          </div>
+        </div>
+        <p class="tile-desc">Mixed clinics, schools, and field offices spanning Juba HQ plus Eastern Equatoria, Lakes, Western Equatoria, Jonglei, Upper Nile.</p>
+        <div class="tile-feats">
+          <div class="tile-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>14 clinics + 11 schools + 7 offices</div>
+          <div class="tile-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Hybrid Fiber + Starlink fleet</div>
+          <div class="tile-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Donor-ready exports</div>
+        </div>
+      </div>
+      <div class="tile-foot">
+        <div class="tile-cta">Open NGO demo →</div>
+        <div class="tile-foot-meta">~3 min walkthrough</div>
+      </div>
+    </a>
+
+    <!-- UN -->
+    <a class="tile" href="un/login.html">
+      <div class="tile-head">
+        <div class="tile-icon un">UN</div>
+        <div>
+          <div class="tile-name">UN Mission · UNCOM</div>
+          <div class="tile-type">UN Agency · Country-wide</div>
+        </div>
+        <span class="tile-pill live">▸ Live demo</span>
+      </div>
+      <div class="tile-body">
+        <div class="tile-stats">
+          <div>
+            <div class="tile-stat-num">67</div>
+            <div class="tile-stat-lbl">Sites</div>
+          </div>
+          <div>
+            <div class="tile-stat-num">24.5<small>TB</small></div>
+            <div class="tile-stat-lbl">This month</div>
+          </div>
+          <div>
+            <div class="tile-stat-num">12<small>+</small>55</div>
+            <div class="tile-stat-lbl">Fiber + Star</div>
+          </div>
+        </div>
+        <p class="tile-desc">Country-wide deployment — UN Houses, field bases, POC sites. Largest fleet, multi-team access, integration with internal procurement.</p>
+        <div class="tile-feats">
+          <div class="tile-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>SAP / Umoja-aligned billing</div>
+          <div class="tile-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Per-agency tenant separation</div>
+        </div>
+      </div>
+      <div class="tile-foot">
+        <div class="tile-cta">Open UN demo →</div>
+        <div class="tile-foot-meta">~5 min walkthrough</div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- What you'll see -->
+<section class="whatusee">
+  <h3>What's inside the demo</h3>
+  <p>Same screens DishNet's existing customers see today — login, fleet dashboard, per-site usage, WiFi controls, invoices.</p>
+
+  <div class="feat-grid">
+    <div class="feat-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <h4>OTP Login</h4>
+      <p>Phone or Email · same flow your team would use daily</p>
+    </div>
+    <div class="feat-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <h4>Fleet Dashboard</h4>
+      <p>Every site, every KIT, every region — one screen</p>
+    </div>
+    <div class="feat-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <h4>Per-Site Usage</h4>
+      <p>Daily trends, monthly history, audit-ready exports</p>
+    </div>
+    <div class="feat-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+      <h4>Remote WiFi</h4>
+      <p>Change SSID, reset password, pause devices · from your phone</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="foot">
+  <div><b>DishNet Africa Ltd</b> · Plot No. 403K South · Tomping, Juba · Republic of South Sudan</div>
+  <div style="margin-top:8px">+211 921 443 002 · info@dishnetafrica.com · <a href="https://dishnetafrica.com">dishnetafrica.com</a></div>
+  <div style="margin-top:14px;font-size:11px">This demo is shared for evaluation purposes. Not for redistribution.</div>
+</footer>
+
+</body>
+</html>

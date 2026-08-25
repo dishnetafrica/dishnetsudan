@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+// DishNet Demo — lightweight session gate
+// Uses localStorage (works on file:// and web servers, unlike cookies)
+(function(){
+  var KEY = 'dn_demo_ok';
+
+  window._demoLogin = function(returnUrl){
+    try { localStorage.setItem(KEY, '1'); } catch(e){}
+    window.location.href = returnUrl || 'home.html';
+  };
+
+  window._demoCheck = function(loginUrl){
+    var ok = false;
+    try { ok = localStorage.getItem(KEY) === '1'; } catch(e){ ok = true; }
+    if(!ok){
+      window.location.replace(loginUrl || 'login.html');
+    }
+  };
+})();
+
+window._demoCheck('login.html');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#141414">
+<meta name="robots" content="noindex,nofollow">
+<title>DishNet · Devices — Embassy of Nordhavn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#D41C1C;--red-dark:#A81515;
+  --dark:#141414;--dark-2:#222;
+  --gray:#6B6B6B;--gray-2:#9B9B9B;--gray-3:#C4C4C4;
+  --gray-light:#EBEBEB;--off-white:#F5F5F5;--white:#fff;
+  --swoosh:linear-gradient(110deg,#D41C1C 0%,#E8521A 60%,#FF7A35 100%);
+  --blue:#1A4DB5;--blue-light:#E6F1FB;
+  --green:#22C55E;--green-mid:#0F7A3D;--green-light:#E7F8EF;
+  --amber:#EF9F27;--amber-dark:#854F0B;--amber-light:#FEF6E6;--amber-border:#F4DBB0;
+  --danger-light:#FCEBEB;--danger-text:#A32D2D;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden;overflow-y:auto}
+body{font-family:'Barlow',-apple-system,sans-serif;background:var(--off-white);color:var(--dark);min-height:100vh;line-height:1.4;padding-bottom:24px}
+button{font-family:inherit;cursor:pointer}
+
+/* Dark hero header */
+.scr-head{background:var(--dark);padding:14px 22px 42px;position:relative;overflow:hidden;color:#fff}
+.scr-head::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 85% 50%,rgba(212,28,28,.18),transparent 65%)}
+.scr-head-row{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2;gap:12px;margin-bottom:12px}
+.scr-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;color:#fff;border:none}
+.scr-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:#fff}
+.home-logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.5px;position:relative;z-index:2}
+.home-logo::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:2px;background:var(--swoosh);border-radius:2px}
+.home-hello{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;letter-spacing:-.4px;position:relative;z-index:2;margin-top:14px}
+.home-hello-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:2px;position:relative;z-index:2}
+
+.scr-body{padding:0 20px 30px}
+
+/* Home balance card */
+.home-bal{background:#fff;border-radius:16px;padding:18px;margin-top:-28px;box-shadow:0 2px 8px rgba(0,0,0,.06);position:relative;z-index:3}
+.home-bal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.home-bal-k{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px}
+.home-bal-svc{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:10px;letter-spacing:1.1px;padding:3px 8px 2px;background:var(--off-white);border-radius:4px;color:var(--dark);text-transform:uppercase}
+.home-bal-main{display:flex;align-items:baseline;gap:6px}
+.home-bal-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:46px;color:var(--dark);letter-spacing:-1.5px;line-height:1}
+.home-bal-of{font-size:14px;color:var(--gray-2);font-weight:600}
+.home-bal-unlim{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:30px;color:var(--dark);letter-spacing:-.8px;line-height:1}
+.home-bal-sub{font-size:11px;color:var(--gray);margin-top:6px}
+.home-bal-sub b{color:var(--dark);font-weight:700}
+.home-bal-prog{height:6px;background:var(--off-white);border-radius:3px;margin-top:12px;overflow:hidden}
+.home-bal-fill{height:100%;background:var(--swoosh);border-radius:3px}
+.home-bal-foot{display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--gray)}
+.home-bal-foot b{color:var(--dark);font-weight:700}
+
+Service-type pill toggle for hybrid customers (mobile) */
+.svc-toggle{
+  display:flex;background:var(--gray-light);border-radius:12px;
+  padding:4px;margin:-14px 0 14px;position:relative;z-index:4;
+}
+.svc-pill{
+  flex:1;padding:9px 10px;text-align:center;border-radius:9px;
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;
+  font-size:13px;letter-spacing:.4px;color:var(--gray);
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  border:none;background:transparent;text-transform:none;
+}
+.svc-pill.active{
+  background:#fff;color:var(--dark);
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
+}
+.svc-pill .ic{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none}
+
+Fiber service badge (blue accent) */
+.home-bal-svc.fiber{background:#E6F1FB;color:#1A4DB5}
+
+Fiber weekly download/upload split */
+.home-bal-fiber-split{margin-top:14px;padding-top:12px;border-top:1px solid var(--off-white)}
+.home-bal-fiber-split .row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;font-size:12px;color:var(--gray);
+}
+.home-bal-fiber-split .lbl{
+  display:flex;align-items:center;gap:8px;font-weight:600;color:var(--dark);
+}
+.home-bal-fiber-split .dot{
+  display:inline-block;width:10px;height:10px;border-radius:50%;
+}
+.home-bal-fiber-split .gb{font-weight:700;color:var(--gray)}
+
+/* Quick actions */
+.home-acts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.home-acts.cols-2{grid-template-columns:repeat(2,1fr)}
+.home-act{background:#fff;border-radius:14px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;border:1px solid rgba(0,0,0,.04);cursor:pointer}
+.home-act:active{transform:scale(.97)}
+.home-act-ic{width:36px;height:36px;border-radius:10px;background:var(--off-white);display:flex;align-items:center;justify-content:center;color:var(--dark)}
+.home-act-ic.red{background:var(--red);color:#fff}
+.home-act-l{font-size:11px;font-weight:700;color:var(--dark);text-align:center}
+.ic{width:18px;height:18px;display:block}
+
+/* Due banner */
+.due-banner{background:var(--amber-light);border:1px solid var(--amber-border);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;margin-top:14px;cursor:pointer}
+.due-banner-ic{width:32px;height:32px;border-radius:8px;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.due-banner-t{flex:1}
+.due-banner-tt{font-size:12px;font-weight:700;color:var(--amber-dark)}
+.due-banner-ts{font-size:11px;color:var(--amber-dark)}
+
+/* Section label */
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray-2);margin:22px 0 10px 2px;display:flex;justify-content:space-between;align-items:baseline}
+.sec-lbl-meta{font-size:11px;font-weight:700;color:var(--red);text-transform:none;letter-spacing:0;cursor:pointer}
+
+/* List card */
+.list-card{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.04);overflow:hidden}
+.list-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--off-white);cursor:pointer}
+.list-row:last-child{border-bottom:none}
+.list-row:active{background:var(--off-white)}
+.list-ic{width:34px;height:34px;border-radius:9px;background:var(--off-white);color:var(--dark);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.list-t{flex:1;min-width:0}
+.list-tt{font-size:13px;font-weight:600;color:var(--dark);line-height:1.2}
+.list-ts{font-size:11px;font-weight:500;color:var(--gray-2);margin-top:2px}
+.list-r{flex-shrink:0}
+.list-v{font-size:12px;font-weight:700;color:var(--dark)}
+.chev{color:var(--gray-3);font-weight:900;font-size:18px;line-height:1;margin-left:4px}
+
+/* Pills */
+.pill{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;padding:2px 7px 1px;border-radius:3px;display:inline-flex;align-items:center;gap:5px}
+.pill.green{background:var(--green-light);color:var(--green-mid)}
+.pill.amber{background:var(--amber-light);color:var(--amber-dark)}
+.pill.red{background:var(--danger-light);color:var(--danger-text)}
+.pill.gray{background:var(--off-white);color:var(--gray)}
+
+/* CTAs */
+.cta-red{background:var(--red);color:#fff;border:none;border-radius:14px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:1.1px;text-transform:uppercase;box-shadow:0 8px 24px rgba(212,28,28,.25);display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:14px}
+.cta-red:active{transform:scale(.98)}
+.cta-alt{background:#fff;border:1px solid var(--gray-light);color:var(--dark);border-radius:14px;padding:13px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px}
+
+/* Plans screen */
+.plan-card{background:#fff;border-radius:16px;padding:18px;margin-top:12px;border:1px solid rgba(0,0,0,.04)}
+.plan-card.current{border:2px solid var(--dark)}
+.plan-card.popular{border:2px solid var(--red);box-shadow:0 4px 12px rgba(212,28,28,.1)}
+.plan-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.plan-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:-.5px;color:var(--dark)}
+.plan-desc{font-size:11px;color:var(--gray);margin-top:2px}
+.plan-price{text-align:right}
+.plan-price-v{display:flex;align-items:baseline;justify-content:flex-end;gap:2px}
+.plan-price-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;color:var(--dark);letter-spacing:-.6px}
+.plan-price-cur{font-size:14px;font-weight:700;color:var(--gray)}
+.plan-price-per{font-size:10px;color:var(--gray-2);font-weight:600}
+
+/* Invoice row */
+.inv-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--off-white);cursor:pointer}
+.inv-row:last-child{border-bottom:none}
+.inv-ic{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.inv-ic.pending{background:var(--amber-light);color:var(--amber-dark)}
+.inv-ic.paid{background:var(--green-light);color:var(--green-mid)}
+.inv-ic.overdue{background:var(--danger-light);color:var(--danger-text)}
+.inv-t{flex:1;min-width:0}
+.inv-tt{font-size:13px;font-weight:600;color:var(--dark)}
+.inv-ts{font-size:11px;color:var(--gray-2);margin-top:2px}
+.inv-r{text-align:right;flex-shrink:0}
+.inv-amt{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--dark)}
+
+/* Account */
+.acc-profile{background:#fff;border-radius:16px;padding:20px;display:flex;align-items:center;gap:14px;margin-top:-28px;box-shadow:0 2px 8px rgba(0,0,0,.06);position:relative;z-index:3}
+.acc-avatar{width:54px;height:54px;border-radius:50%;background:var(--swoosh);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;flex-shrink:0}
+.acc-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--dark);letter-spacing:-.3px}
+.acc-sub{font-size:12px;color:var(--gray);margin-top:2px}
+
+.empty{text-align:center;padding:40px 20px;color:var(--gray)}
+.empty h3{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:var(--dark);margin-bottom:6px}
+.empty p{font-size:12px}
+
+/* Support */
+.wa-card{background:#25D366;color:#fff;border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;margin-top:14px;cursor:pointer}
+.wa-card:active{transform:scale(.98)}
+.wa-card-ic{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wa-card-t{flex:1}
+.wa-card-tt{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;letter-spacing:-.3px}
+.wa-card-ts{font-size:12px;color:rgba(255,255,255,.85);margin-top:2px}
+
+/* Native-style toggle */
+.tog{width:38px;height:22px;border-radius:11px;background:var(--gray-3);position:relative;transition:background .2s;flex-shrink:0}
+.tog.on{background:var(--dark)}
+.tog::after{content:'';position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:all .2s}
+.tog.on::after{right:2px}
+.tog.off::after{left:2px}
+
+/* Bottom tab bar (PWA only — hidden when Android native shell is present) */
+.btm-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--gray-light);display:flex;justify-content:space-around;align-items:stretch;z-index:100;padding-bottom:env(safe-area-inset-bottom,0)}
+.btm-nav.hide-native{display:none}
+.btm-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 0 6px;cursor:pointer;text-decoration:none;-webkit-tap-highlight-color:transparent;border:none;background:none;font-family:inherit}
+.btm-tab svg{width:20px;height:20px;color:var(--gray-2);transition:color .15s}
+.btm-tab-lbl{font-size:10px;font-weight:600;color:var(--gray-2);transition:color .15s}
+.btm-tab.active svg{color:var(--red)}
+.btm-tab.active .btm-tab-lbl{color:var(--red);font-weight:700}
+/* Add padding to body so content isn't hidden behind fixed nav */
+body{padding-bottom:68px !important}
+
+/* ═══ Connected Devices view ═══ */
+.scr-eyebrow{font-size:11px;color:rgba(255,255,255,.55);position:relative;z-index:2;margin-top:-4px}
+.scr-btn-ph{width:32px;height:32px;flex-shrink:0}
+
+.chip-row{display:flex;gap:6px;margin-top:-24px;position:relative;z-index:3;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.chip-row::-webkit-scrollbar{display:none}
+.chip{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.8px;text-transform:uppercase;padding:7px 12px 6px;border-radius:10px;background:#fff;color:var(--gray);border:1px solid var(--gray-light);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.chip.on{background:var(--dark);color:#fff;border-color:var(--dark)}
+.chip .cnt{font-family:'Barlow',sans-serif;font-size:9px;margin-left:3px;opacity:.55}
+.chip.on .cnt{opacity:.7}
+
+.cd-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--off-white);cursor:pointer}
+.cd-row:last-child{border-bottom:none}
+.cd-row-ic{width:38px;height:38px;border-radius:11px;background:var(--off-white);color:var(--dark);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.cd-row-ic.me{background:var(--danger-light);color:var(--danger-text)}
+.cd-row-ic.blocked{background:#F1EFE8;color:var(--gray-2)}
+.cd-dot{position:absolute;bottom:-2px;right:-2px;width:10px;height:10px;border-radius:50%;border:2px solid #fff}
+.cd-dot.good{background:var(--green)}
+.cd-dot.weak{background:var(--amber)}
+.cd-dot.poor{background:var(--red)}
+.cd-t{flex:1;min-width:0}
+.cd-top{display:flex;align-items:baseline;gap:6px;margin-bottom:2px;flex-wrap:wrap}
+.cd-name{font-size:13px;font-weight:700;color:var(--dark);line-height:1.2;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd-tag{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:8px;letter-spacing:1.2px;text-transform:uppercase;padding:2px 6px 1px;border-radius:3px}
+.cd-tag.me{background:var(--red);color:#fff}
+.cd-tag.wired{background:var(--off-white);color:var(--gray)}
+.cd-tag.band24{background:rgba(239,159,39,.12);color:var(--amber-dark)}
+.cd-tag.band5{background:var(--green-light);color:var(--green-mid)}
+.cd-sub{font-size:11px;color:var(--gray-2);display:flex;align-items:center;gap:6px}
+.cd-right{text-align:right;flex-shrink:0;min-width:60px;display:flex;align-items:center;gap:6px}
+.cd-bw{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:var(--dark);line-height:1}
+.cd-bw .u{font-family:'Barlow',sans-serif;font-size:9px;color:var(--gray-2);margin-left:2px}
+.cd-bw-sub{font-size:9px;font-weight:600;color:var(--gray-2);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+.cd-bw-sub.heavy{color:var(--red)}
+.cd-bw-sub.active{color:var(--green-mid)}
+.cd-row.blocked .cd-name{text-decoration:line-through;color:var(--gray-2)}
+.cd-hide{width:22px;height:22px;border-radius:50%;background:transparent;color:var(--gray-2);display:flex;align-items:center;justify-content:center;border:none;font-size:14px;opacity:.55;transition:opacity .15s,background .15s}
+.cd-hide:hover,.cd-hide:active{opacity:1;background:var(--off-white)}
+.cd-sys-note{text-align:center;font-size:10px;color:var(--gray-2);padding:8px;font-style:italic}
+
+/* ═══ : Hotspot UI ═══ */
+
+/* "Pause" button — sits next to .cd-hide, real network pause via dr_wifi_pause_client */
+.cd-pause{width:22px;height:22px;border-radius:50%;background:transparent;color:var(--gray-2);display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;opacity:.65;transition:opacity .15s,background .15s,color .15s;padding:0}
+.cd-pause:hover,.cd-pause:active{opacity:1;background:var(--amber-light);color:var(--amber-dark)}
+.cd-pause svg{width:13px;height:13px}
+.cd-pause.is-paused{opacity:1;background:var(--amber-light);color:var(--amber-dark)}
+.cd-row.is-paused{background:rgba(245,158,11,.04)}
+.cd-row.is-paused .cd-name{color:var(--gray-2)}
+.cd-tag.paused-tag{background:var(--amber-light);color:var(--amber-dark)}
+NEW badge for first-time-seen devices. Red tint = "pay attention",
+   matches the brand-red cue used elsewhere for important state. */
+.cd-tag.new-tag{background:rgba(212,28,28,.12);color:var(--brand-red);animation:new-pulse 2s ease-in-out infinite}
+@keyframes new-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+/* Subtle pink tint on the row so the eye lands on new devices when scanning */
+.cd-row.is-new{background:rgba(212,28,28,.03)}
+/* Ack button (checkmark) — sits left of the pause button. Tap = "I know this device" */
+.cd-ack{width:22px;height:22px;border-radius:50%;background:var(--green-light);color:var(--green-mid);display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;transition:background .15s,color .15s,transform .12s;padding:0}
+.cd-ack:hover{background:var(--green);color:#fff}
+.cd-ack:active{transform:scale(.9)}
+.cd-ack svg{width:13px;height:13px}
+Time-based access controls */
+/* Grant button: clock icon, sits left of pause */
+.cd-grant{width:22px;height:22px;border-radius:50%;background:transparent;color:var(--gray-2);display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;opacity:.55;transition:opacity .15s,background .15s,color .15s;padding:0}
+.cd-grant:hover,.cd-grant:active{opacity:1;background:var(--blue-light,#E9F0FB);color:var(--blue-dark,#1d4eb8)}
+.cd-grant.active{opacity:1;background:var(--green-light);color:var(--green-mid)}
+.cd-grant svg{width:13px;height:13px}
+/* Countdown badge in row title */
+.cd-timer{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:9px;letter-spacing:.6px;text-transform:uppercase;padding:2px 7px 1px;border-radius:8px;background:var(--green-light);color:var(--green-mid);display:inline-flex;align-items:center;line-height:1.2}
+.cd-timer.warn{background:var(--amber-light);color:var(--amber-dark)}
+.cd-timer.crit{background:rgba(212,28,28,.12);color:var(--brand-red);animation:new-pulse 1s ease-in-out infinite}
+/* Row tint when device has an active grant */
+.cd-row.has-grant{background:rgba(34,197,94,.03)}
+/* Grant sheet chips */
+.grant-chip{padding:14px 8px;border:1px solid var(--gray-light);border-radius:10px;background:#fff;color:var(--dark);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.grant-chip:hover{border-color:var(--brand-red);color:var(--brand-red)}
+.grant-chip:active{transform:scale(.97)}
+.grant-chip:disabled{opacity:.5;cursor:not-allowed}
+
+/* Hotspot mode card on Site Detail (entry point) */
+.hs-entry{background:#fff;border-radius:14px;border:1px solid rgba(0,0,0,.04);padding:16px;margin-top:14px;display:flex;align-items:center;gap:14px}
+.hs-entry-ic{width:42px;height:42px;border-radius:11px;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hs-entry-ic.on{background:var(--green);color:#fff}
+.hs-entry-t{flex:1;min-width:0}
+.hs-entry-tt{font-size:13px;font-weight:700;color:var(--dark);line-height:1.2;display:flex;align-items:center;gap:7px}
+.hs-entry-ts{font-size:11px;color:var(--gray-2);margin-top:3px;line-height:1.4}
+.hs-entry-cta{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--red);background:var(--danger-light);border:none;padding:7px 11px;border-radius:8px;cursor:pointer;flex-shrink:0}
+.hs-entry-cta.on{color:#fff;background:var(--green)}
+pulse highlight when arriving at Site Detail from Hotspot tile.
+   Card briefly glows red so the eye lands on it after auto-scroll. */
+.hs-entry.hs-entry-pulse{animation:hs-entry-pulse 2.2s ease-out 1}
+@keyframes hs-entry-pulse{
+  0%  {box-shadow:0 0 0 0 rgba(220,38,38,.0); border-color:rgba(0,0,0,.04)}
+  20% {box-shadow:0 0 0 6px rgba(220,38,38,.12); border-color:rgba(220,38,38,.4)}
+  100%{box-shadow:0 0 0 0 rgba(220,38,38,0); border-color:rgba(0,0,0,.04)}
+}
+
+/* Hotspot dashboard (s-hotspot) — hero pill + cards */
+.hs-hero-row{display:flex;align-items:baseline;gap:10px;position:relative;z-index:2;margin-top:6px}
+.hs-hello{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:#fff;letter-spacing:-.3px}
+.hs-live{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:20px}
+.hs-live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.2)}
+.hs-live span{font-size:11px;font-weight:700;color:var(--green);letter-spacing:.3px}
+
+/* Today's WiFi card */
+.sl-pw-card{margin-top:-24px;background:#fff;border-radius:18px;padding:18px 20px;box-shadow:0 2px 12px rgba(0,0,0,.07);border:1px solid rgba(0,0,0,.03);position:relative;z-index:3}
+.sl-pw-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.sl-pw-ssid{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:var(--dark);letter-spacing:-.3px}
+.sl-pw-k{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray-2);margin-bottom:4px}
+.sl-pw-code{background:var(--off-white);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.sl-pw-code-t{flex:1;min-width:0}
+.sl-pw-code-k{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-2);margin-bottom:3px}
+.sl-pw-code-v{font-family:'Barlow',monospace;font-size:16px;font-weight:700;color:var(--dark);letter-spacing:2px;cursor:pointer;user-select:all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-pw-code-v.bullets{letter-spacing:3px;color:var(--gray-2)}
+.sl-pw-code-btn{width:30px;height:30px;border-radius:8px;background:#fff;color:var(--dark);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--gray-light);flex-shrink:0;padding:0}
+.sl-pw-code-btn:active{transform:scale(.92)}
+
+/* Hotspot stats strip (Connected / Paused) */
+.hs-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.hs-stat{background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:14px;padding:14px}
+tappable stat card: subtle press shrink + slight border darken on hover */
+.hs-stat-tap{transition:transform .12s ease, border-color .15s ease}
+.hs-stat-tap:hover{border-color:rgba(0,0,0,.12)}
+.hs-stat-tap:active{transform:scale(.97)}
+.hs-stat-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.hs-stat-ic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hs-stat-ic.blue{background:var(--blue-light,#E9F0FB);color:var(--blue-dark,#1d4eb8)}
+.hs-stat-ic.green{background:var(--green-light);color:var(--green-mid)}
+.hs-stat-ic.amber{background:var(--amber-light);color:var(--amber-dark)}
+.hs-stat-k{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-2)}
+.hs-stat-main{display:flex;align-items:baseline;gap:5px}
+.hs-stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:var(--dark);letter-spacing:-.6px;line-height:1}
+.hs-stat-unit{font-size:11px;font-weight:600;color:var(--gray-2)}
+.hs-stat-sub{font-size:11px;color:var(--gray);margin-top:4px}
+
+/* Action grid */
+.hs-acts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.hs-act{background:#fff;border:1px solid rgba(0,0,0,.05);border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;cursor:pointer;text-align:left;font-family:inherit;width:100%}
+.hs-act:active{transform:scale(.97)}
+.hs-act-ic{width:34px;height:34px;border-radius:9px;background:var(--off-white);color:var(--dark);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hs-act-ic.red{background:var(--red);color:#fff}
+.hs-act-ic.amber{background:var(--amber-light);color:var(--amber-dark)}
+.hs-act-t{flex:1;min-width:0}
+.hs-act-tt{font-size:12px;font-weight:700;color:var(--dark);line-height:1.15}
+.hs-act-ts{font-size:10px;color:var(--gray-2);margin-top:2px}
+
+/* Honest disclaimer banner */
+.hs-honest{background:var(--blue-light,#E9F0FB);border:1px solid var(--blue-border,#BBD2F0);border-radius:12px;padding:12px 14px;margin-top:18px;display:flex;gap:10px;align-items:flex-start}
+.hs-honest-t{flex:1;font-size:11px;color:var(--blue-dark,#1d4eb8);line-height:1.55}
+.hs-honest-t b{color:#042C53;font-weight:700;display:block;margin-bottom:4px}
+.hs-honest-cta{margin-top:10px;background:#fff;color:var(--blue-dark,#1d4eb8);border:1px solid var(--blue-border,#BBD2F0);border-radius:8px;padding:7px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:10px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer}
+
+/* Tech tag (blue Starlink badge in eyebrow) */
+.tech-tag{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:9px;letter-spacing:1.2px;padding:2px 7px 1px;border-radius:3px;line-height:1.4;text-transform:uppercase;display:inline-flex;align-items:center}
+.tech-tag.sl-dark{background:#1D3A66;color:#9CC3F0;border:1px solid rgba(95,151,213,.3)}
+
+/* Rotation card on s-hotspot-pw */
+.rot-card{margin-top:-24px;background:#fff;border-radius:16px;padding:18px;position:relative;z-index:3;box-shadow:0 2px 12px rgba(0,0,0,.07);border:1px solid rgba(0,0,0,.03)}
+.rot-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.rot-k{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gray-2)}
+.rot-window{background:var(--off-white);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.rot-ic{width:32px;height:32px;border-radius:9px;background:#fff;color:var(--dark);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--gray-light)}
+.rot-t{flex:1;min-width:0}
+.rot-tt{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:3px}
+.rot-ts{font-size:11px;color:var(--gray);line-height:1.4}
+.rot-choices{display:flex;gap:5px;margin-bottom:4px}
+.rot-choice{flex:1;padding:8px 3px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--gray-2);background:var(--off-white);border-radius:9px;border:1.5px solid transparent;cursor:pointer;position:relative;letter-spacing:.4px;text-transform:uppercase}
+.rot-choice.on{background:#fff;color:var(--dark);border-color:var(--dark)}
+.rot-choice.disabled{opacity:.55;cursor:not-allowed;background:var(--off-white)}
+.rot-choice.disabled .soon{display:block;font-size:7px;color:var(--gray-2);font-weight:700;letter-spacing:.5px;margin-top:2px;text-transform:uppercase}
+.rot-choice .soon{display:none}
+
+/* Confirm sheets (slide up from bottom) */
+.hs-sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.hs-sheet-bg.show{display:flex}
+.hs-sheet{background:#fff;width:100%;max-width:480px;border-top-left-radius:20px;border-top-right-radius:20px;padding:22px 22px calc(28px + env(safe-area-inset-bottom,0));animation:hs-sheet-up .22s ease-out}
+@keyframes hs-sheet-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.hs-sheet h3{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--dark);letter-spacing:-.3px;margin:0 0 8px}
+.hs-sheet p{font-size:13px;color:var(--gray);line-height:1.5;margin:0 0 14px}
+.hs-sheet input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--gray-light);border-radius:10px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;margin-bottom:12px}
+.hs-sheet input[type=text]:focus{border-color:var(--red)}
+
+/* QR modal */
+.hs-qr-card{background:#fff;border-radius:16px;padding:20px;text-align:center;max-width:320px;margin:0 auto}
+.hs-qr-card .qr-svg{width:240px;height:240px;margin:14px auto;background:#fff;border-radius:12px;border:1px solid var(--off-white);padding:8px}
+.hs-qr-ssid{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--dark);margin-top:6px}
+.hs-qr-pw{font-family:'Barlow',monospace;font-size:13px;color:var(--gray-2);margin-top:4px;letter-spacing:1.5px}
+
+/* "Coming soon" inline badge */
+.coming-soon-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:8px;letter-spacing:1px;text-transform:uppercase;background:var(--off-white);color:var(--gray-2);padding:2px 6px;border-radius:3px;display:inline-block}
+/* Demo additions */
+.demo-banner-top{background:#FEF6E6;border-bottom:1px solid #F4DBB0;padding:7px 16px;text-align:center;font-size:11px;color:#854F0B;font-weight:600;line-height:1.4}
+.demo-banner-top b{font-family:"Barlow Condensed",sans-serif;font-weight:900;letter-spacing:1px;text-transform:uppercase;background:#854F0B;color:#FEF6E6;padding:2px 7px;border-radius:3px;margin-right:6px;font-size:10px}
+.demo-banner-top a{color:#854F0B;text-decoration:underline;font-weight:700;margin-left:8px}
+
+
+</style>
+</head>
+<body>
+<div class="demo-banner-top">
+  <b>Demo</b> Embassy of Nordhavn · illustrative
+  <a href="../index.html">switch tenant</a>
+</div>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+<symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></symbol>
+<symbol id="i-chev-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-speed" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+<symbol id="i-support" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5a10 10 0 0 1 14 0M2 8.5a15 15 0 0 1 20 0M8.5 16.5a5 5 0 0 1 7 0M12 20h.01"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 7v5l3 2"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M20 6L9 17l-5-5"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10.3 3L2 17a2 2 0 0 0 1.7 3h16.6A2 2 0 0 0 22 17L13.7 3a2 2 0 0 0-3.4 0zM12 9h.01"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 2v20l3-2 3 2 3-2 3 2 3-2 1 2V2zM8 7h8M8 11h8M8 15h6"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M2 10h20M6 15h2M11 15h3"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></symbol>
+<symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M17.5 14c-.3-.2-1.7-.8-2-.9s-.5-.2-.7.1-.8 1-1 1.2-.3.2-.6 0-1.3-.5-2.4-1.5c-.9-.8-1.5-1.8-1.7-2.1s0-.4.1-.6c.1-.1.3-.3.4-.5s.2-.3.3-.5.1-.4 0-.5-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5H7.6c-.2 0-.5.1-.8.4s-1 1-1 2.4 1.1 2.8 1.2 3 2.1 3.2 5.1 4.5c.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.2-.3-.3-.6-.4M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.4 1.3 4.9L2 22l5.3-1.3c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 0 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3 1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8 1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2 6l10 7 10-7"/></symbol>
+<symbol id="i-tv" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7 20h10M12 16v4"/></symbol>
+<symbol id="i-laptop" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8 21h8M12 17v4"/></symbol>
+<symbol id="i-router" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/></symbol>
+<symbol id="i-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2.2"/><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M4.9 4.9l14.2 14.2"/></symbol>
+<symbol id="i-ether" viewBox="0 0 24 24"><rect x="6" y="9" width="12" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 9V6M15 9V6M12 9V5"/></symbol>
+<!-- : hotspot UI icons -->
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-qr" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path fill="currentColor" d="M14 14h2v2h-2zM18 14h3v2h-3zM14 18h2v3h-2zM18 18h3v3h-3z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4l13 8-13 8z"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 16v-4M12 8h.01"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+<symbol id="i-power" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18.4 6.6a9 9 0 1 1-12.8 0M12 2v10"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></symbol>
+</svg>
+
+<div class="scr-head">
+  <div class="scr-head-row">
+    <button class="scr-btn" onclick="location.href='home.html'"><svg class="ic" style="width:14px;height:14px"><use href="#i-back"/></svg></button>
+    <div class="scr-title">Connected devices</div>
+    <div style="width:32px"></div>
+  </div>
+  <div style="font-size:12px;color:rgba(255,255,255,.55);position:relative;z-index:2">Live · per-site</div>
+</div>
+<div class="scr-body">
+
+  <div style="background:#fff;border-radius:14px;padding:14px;margin-top:-28px;box-shadow:0 2px 8px rgba(0,0,0,.06);position:relative;z-index:3;display:flex;align-items:center;gap:12px">
+    <div style="width:42px;height:42px;border-radius:11px;background:var(--green-light);color:var(--green-mid);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg class="ic" style="width:18px;height:18px"><use href="#i-wifi"/></svg>
+    </div>
+    <div style="flex:1">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--dark)">Pick a site to view connected devices</div>
+      <div style="font-size:11px;color:var(--gray)">Live device list with bandwidth per device</div>
+    </div>
+  </div>
+  <div class="sec-lbl">Sites with router</div>
+  <div class="list-card">
+    <div class="list-row" onclick="alert('Demo: Connected devices for Chancery — Diplomatic Office would load here · 47 devices')">
+      <div class="list-ic" style="background:var(--green-light);color:var(--green-mid)"><svg class="ic"><use href="#i-laptop"/></svg></div>
+      <div class="list-t"><div class="list-tt">Chancery — Diplomatic Office</div><div class="list-ts">47 devices · KIT403335941XAA</div></div>
+      <span class="chev">›</span>
+    </div>
+    <div class="list-row" onclick="alert('Demo: Connected devices for Ambassador Residence would load here · 18 devices')">
+      <div class="list-ic" style="background:var(--green-light);color:var(--green-mid)"><svg class="ic"><use href="#i-laptop"/></svg></div>
+      <div class="list-t"><div class="list-tt">Ambassador Residence</div><div class="list-ts">18 devices · KIT302594411</div></div>
+      <span class="chev">›</span>
+    </div>
+    <div class="list-row" onclick="alert('Demo: Connected devices for Deputy Head Residence would load here · 14 devices')">
+      <div class="list-ic" style="background:var(--green-light);color:var(--green-mid)"><svg class="ic"><use href="#i-laptop"/></svg></div>
+      <div class="list-t"><div class="list-tt">Deputy Head Residence</div><div class="list-ts">14 devices · KIT302594433</div></div>
+      <span class="chev">›</span>
+    </div>
+    <div class="list-row" onclick="alert('Demo: Connected devices for Summer Compound · Yei would load here · 9 devices')">
+      <div class="list-ic" style="background:var(--green-light);color:var(--green-mid)"><svg class="ic"><use href="#i-laptop"/></svg></div>
+      <div class="list-t"><div class="list-tt">Summer Compound · Yei</div><div class="list-ts">9 devices · KIT303125447</div></div>
+      <span class="chev">›</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

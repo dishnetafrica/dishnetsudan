@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starlink Flat High Performance Kit — $2,600 | DishNet Africa Ltd</title>
+    <link rel="icon" type="image/png" href="https://portal.dishnetss.com/uploads/images/1727669803.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .pd-section { padding: 40px 0 80px; }
+        .pd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+        .gallery { position: sticky; top: 100px; }
+        .gallery-main { border-radius: var(--radius); overflow: hidden; background: var(--surface); border: 1px solid var(--border); aspect-ratio: 1; }
+        .gallery-main img { width: 100%; height: 100%; object-fit: contain; padding: 32px; transition: var(--transition); }
+        .gallery-main:hover img { transform: scale(1.05); }
+        .pd-badges { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .stock-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--green); background: var(--green-glow); padding: 5px 14px; border-radius: var(--radius-pill); }
+        .stock-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+        .pd-title { font-family: var(--font-display); font-size: clamp(28px, 3.5vw, 38px); font-weight: 700; line-height: 1.15; margin-bottom: 8px; }
+        .pd-subtitle { font-size: 16px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px; }
+        .pd-price-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 6px; }
+        .pd-price { font-family: var(--font-display); font-size: 40px; font-weight: 800; }
+        .pd-ssp { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+        .pd-divider { height: 1px; background: var(--border); margin: 24px 0; }
+        .pd-list-title { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+        .pd-list { list-style: none; margin-bottom: 24px; }
+        .pd-list li { display: flex; align-items: center; gap: 10px; padding: 9px 0; font-size: 15px; border-bottom: 1px solid var(--surface-alt); }
+        .pd-list li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+        .pd-cta { display: flex; gap: 12px; margin-bottom: 16px; }
+        .pd-cta .btn { flex: 1; }
+        .pd-trust { display: flex; gap: 20px; font-size: 12px; color: var(--text-secondary); }
+        .pd-trust-item { display: flex; align-items: center; gap: 5px; }
+        .pd-trust-item::before { content: '✓'; color: var(--green); font-weight: 700; }
+        .tabs-section { padding: 0 0 80px; }
+        .tab-nav { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 40px; }
+        .tab-btn { font-family: var(--font-display); font-size: 15px; font-weight: 500; padding: 16px 28px; color: var(--text-secondary); position: relative; transition: var(--transition); }
+        .tab-btn::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: transparent; transition: var(--transition); }
+        .tab-btn.active { color: var(--text); }
+        .tab-btn.active::after { background: var(--accent); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .specs-table { width: 100%; max-width: 700px; }
+        .specs-table tr { border-bottom: 1px solid var(--surface-alt); }
+        .specs-table td { padding: 12px 0; font-size: 14px; vertical-align: top; }
+        .specs-table td:first-child { font-weight: 500; color: var(--text-secondary); width: 200px; padding-right: 32px; }
+        .specs-table td:last-child { font-weight: 500; }
+        .related { padding: 80px 0; background: var(--surface); }
+        .related-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .related-header h2 { font-family: var(--font-display); font-size: 28px; font-weight: 700; }
+        .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .rel-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: var(--transition); }
+        .rel-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: transparent; }
+        .rel-img { aspect-ratio: 4/3; background: var(--surface-alt); overflow: hidden; }
+        .rel-img img { width: 100%; height: 100%; object-fit: contain; padding: 20px; }
+        .rel-body { padding: 20px; }
+        .rel-name { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .rel-price { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+        .rel-btn { display: block; text-align: center; padding: 11px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-family: var(--font-display); font-weight: 600; font-size: 14px; transition: var(--transition); }
+        .rel-btn:hover { border-color: var(--accent); color: var(--accent); }
+        @media (max-width: 768px) { .pd-grid { grid-template-columns: 1fr; } .gallery { position: static; } .related-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; } .pd-cta { flex-direction: column; } }
+    </style>
+<meta name="description" content="Starlink Flat High Performance Kit $2,600 — enterprise-grade with 350 Mbps and in-motion capability. Official reseller DishNet Africa.">
+<link rel="canonical" href="https://dishnetafrica.com/device-hp.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Starlink High Performance Kit — $2,600 | DishNet Africa">
+<meta property="og:description" content="Starlink Flat High Performance Kit $2,600 — enterprise-grade with 350 Mbps and in-motion capability. Official reseller DishNet Africa.">
+<meta property="og:image" content="https://dishnetafrica.com/admin/public/uploads/images/1751869896.jpg">
+<meta property="og:url" content="https://dishnetafrica.com/device-hp.html">
+<meta property="og:site_name" content="DishNet Africa">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Starlink High Performance Kit — $2,600 | DishNet Africa">
+<meta name="twitter:description" content="Starlink Flat High Performance Kit $2,600 — enterprise-grade with 350 Mbps and in-motion capability. Official reseller DishNet Africa.">
+</head>
+<body>
+<header class="header"><div class="container"><div class="header-inner"><a href="index.html" class="logo"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet Africa"></a><nav class="nav"><a href="index.html#products">Products</a><a href="fiber.html">Fiber</a><a href="services.html">Services</a><a href="coverage.html">Coverage</a><a href="about.html">About</a><a href="tutorials/index.html">Tutorials</a><a href="portal-preview.html">Live Demo</a><a href="get-the-app.html">App</a><a href="contact.html">Contact</a></nav><div class="nav-actions"><a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" class="btn btn-outline" style="padding:10px 20px;font-size:14px;">Customer Login</a><a href="https://wa.me/211923400000" class="header-cta">Get a Quote</a></div><button class="mobile-toggle" onclick="document.getElementById('mobileNav').classList.add('open')"><span></span></button></div></div></header>
+<div class="mobile-nav" id="mobileNav"><button class="mobile-nav-close" onclick="this.parentElement.classList.remove('open')">&times;</button><a href="index.html">Home</a><a href="fiber.html">Fiber</a><a href="services.html">Services</a><a href="coverage.html">Coverage</a><a href="about.html">About</a><a href="tutorials/index.html">Tutorials</a><a href="portal-preview.html">Live Demo</a><a href="get-the-app.html">App</a><a href="contact.html">Contact</a><a href="faq.html">FAQ</a><a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></div>
+
+<div class="breadcrumb"><div class="container"><div class="breadcrumb-inner"><a href="index.html">Home</a><span class="breadcrumb-sep">›</span><a href="index.html#products">Products</a><span class="breadcrumb-sep">›</span><span class="breadcrumb-current">Starlink Flat High Performance Kit</span></div></div></div>
+
+<section class="pd-section"><div class="container"><div class="pd-grid">
+    <div class="gallery fade-up"><div class="gallery-main"><img src="https://dishnetafrica.com/admin/public/uploads/images/1751869896.jpg" alt="Starlink Flat High Performance Kit"></div></div>
+    <div>
+        <div class="pd-badges fade-up fd1"><span class="badge-label badge-accent">Enterprise</span><span class="stock-badge">In Stock</span></div>
+        <h1 class="pd-title fade-up fd1">Starlink Flat High Performance Kit</h1>
+        <p class="pd-subtitle fade-up fd2">Enterprise-grade terminal with the widest field of view, highest throughput, and in-motion capability. Built for businesses, maritime, and vehicle-mounted deployments.</p>
+        <div class="pd-price-row fade-up fd2"><span class="pd-price">$2,600</span><span style="font-size:14px;color:var(--text-secondary);">USD · Tax included</span></div>
+        <p class="pd-ssp fade-up fd2">SSP 15,080,000 at current rate</p>
+        <div class="pd-divider"></div>
+        <h3 class="pd-list-title">What's Included</h3>
+        <ul class="pd-list"><li>Flat High Performance Dish</li><li>Enterprise Wi-Fi Router</li><li>25m Power &amp; Data Cable</li><li>Wedge Wall Mount</li><li>Quick Start Guide</li></ul>
+        <div class="pd-cta fade-up fd3">
+            <a href="https://api.whatsapp.com/send/?phone=+211923400000&text=*Starlink%20Purchase*%0A*Kit%3A*%20Flat%20High%20Performance%20%242600%0A*Name%3A*%20%0A*Phone%3A*%20" class="btn btn-primary" target="_blank">Buy Now — $2,600</a>
+            <a href="https://wa.me/211923400000?text=Hi%2C%20I'm%20interested%20in%20the%20Starlink%20Flat%20High%20Performance%20Kit" class="btn btn-outline" target="_blank">Ask a Question</a>
+        </div>
+        <div class="pd-trust fade-up fd4"><span class="pd-trust-item">12-month warranty</span><span class="pd-trust-item">Free Juba delivery</span><span class="pd-trust-item">Genuine Starlink</span></div>
+    </div>
+</div></div></section>
+
+<section class="tabs-section"><div class="container">
+    <div class="tab-nav"><button class="tab-btn active" onclick="showTab('desc',this)">Description</button><button class="tab-btn" onclick="showTab('specs',this)">Specifications</button></div>
+    <div class="tab-panel active" id="tab-desc"><div class="prose">
+        <h3>Enterprise-Grade Performance</h3><p>The Flat High Performance terminal is Starlink's most powerful dish — designed for demanding commercial environments where uptime, speed, and in-motion capability are non-negotiable. With a wider field of view and higher gain antenna, it maintains connections in conditions where standard dishes would struggle.</p>
+        <h3>Perfect For</h3><ul><li>Large businesses and corporate offices</li><li>NGO and UN compound headquarters</li><li>Maritime and river vessel operations</li><li>Vehicle-mounted mobile deployments</li><li>Multi-building campus networks</li></ul>
+        <h3>Monthly Service</h3><p>Hardware is a one-time purchase. You'll also need a monthly Starlink plan — starting at $65/mo for Roam or $80/mo for Residential. DishNet handles activation and billing support locally.</p>
+    </div></div>
+    <div class="tab-panel" id="tab-specs"><table class="specs-table"><tr><td>Dimensions</td><td>570 × 511 × 44 mm</td></tr><tr><td>Weight</td><td>7.3 kg (16 lbs)</td></tr><tr><td>Download Speed</td><td>40 – 350 Mbps (typical)</td></tr><tr><td>Upload Speed</td><td>8 – 25 Mbps (typical)</td></tr><tr><td>Latency</td><td>20 – 40 ms</td></tr><tr><td>Wi-Fi Standard</td><td>Wi-Fi 6 (802.11ax)</td></tr><tr><td>Wi-Fi Coverage</td><td>Up to 464 m² (5,000 ft²)</td></tr><tr><td>Ethernet</td><td>2 × Ethernet (1 Gbps)</td></tr><tr><td>Power Consumption</td><td>Avg. 110–150W</td></tr><tr><td>Weather Rating</td><td>IP56</td></tr><tr><td>Operating Temp</td><td>-30°C to 50°C</td></tr><tr><td>Field of View</td><td>140° (widest Starlink dish)</td></tr><tr><td>In-Motion</td><td>Yes — approved for vehicles &amp; vessels</td></tr><tr><td>Mounting</td><td>Flush mount, wedge mount, or pole mount</td></tr></table></div>
+</div></section>
+
+<section class="related"><div class="container">
+    <div class="related-header"><h2>Other Kits</h2><a href="index.html#products" style="font-family:var(--font-display);font-size:14px;font-weight:600;color:var(--accent);">View All →</a></div>
+    <div class="related-grid"><a href="device-mini.html" class="rel-card"><div class="rel-img"><img src="https://dishnetafrica.com/admin/public/uploads/images/1751541009.jpg" alt="Starlink Mini" loading="lazy"></div><div class="rel-body"><div class="rel-name">Starlink Mini</div><div class="rel-price">$299 <small style="font-size:13px;font-weight:400;color:var(--text-secondary);">USD</small></div><span class="rel-btn">View Details</span></div></a><a href="device-v4.html" class="rel-card"><div class="rel-img"><img src="https://dishnetafrica.com/admin/public/uploads/images/1752147097.avif" alt="Starlink V4 Standard" loading="lazy"></div><div class="rel-body"><div class="rel-name">Starlink V4 Standard</div><div class="rel-price">$550 <small style="font-size:13px;font-weight:400;color:var(--text-secondary);">USD</small></div><span class="rel-btn">View Details</span></div></a><a href="device-actuated.html" class="rel-card"><div class="rel-img"><img src="https://dishnetafrica.com/admin/public/uploads/images/1751869933.png" alt="Standard Actuated" loading="lazy"></div><div class="rel-body"><div class="rel-name">Standard Actuated</div><div class="rel-price">$650 <small style="font-size:13px;font-weight:400;color:var(--text-secondary);">USD</small></div><span class="rel-btn">View Details</span></div></a></div>
+</div></section>
+
+<section class="cta-banner"><div class="container"><div class="cta-card"><h2>Not Sure Which Kit Is Right?</h2><p>Our team can help you choose the best hardware and plan for your needs.</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><a href="https://wa.me/211923400000" class="btn btn-primary">WhatsApp Us</a><a href="contact.html" class="btn btn-ghost-white">Request Callback</a></div></div></div></section>
+
+<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet"><p>Connecting South Sudan since 2013. Starlink, fiber, and LTE internet across all major cities.</p></div><div><h4>Services</h4><ul class="footer-links"><li><a href="index.html#products">Starlink Kits</a></li><li><a href="fiber.html">Fiber Internet</a></li><li><a href="services.html">All Services</a></li><li><a href="coverage.html">Coverage Map</a></li></ul></div><div><h4>Company</h4><ul class="footer-links"><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact</a></li><li><a href="faq.html">FAQ</a></li><li><a href="blog.html">Blog</a></li><li><a href="testimonials.html">Reviews</a></li><li><a href="gallery.html">Gallery</a></li><li><a href="careers.html">Careers</a></li></ul></div><div><h4>Support & Legal</h4><ul class="footer-links"><li><a href="get-the-app.html">Get the App</a></li><li><a href="portal-preview.html"><strong style="color:#fff">▸ Live Portal Demo</strong></a></li><li><a href="tutorials/index.html">App Tutorials</a></li><li><a href="guides.html">Help Guides</a></li><li><a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></li><li><a href="https://wa.me/211923400000">WhatsApp Support</a></li><li><a href="terms.html">Terms of Use</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div></div><div class="footer-bottom"><span>&copy; 2026 DishNet Africa Ltd. All rights reserved.</span></div></div></footer>
+<a href="https://wa.me/211923400000" class="wa-float" target="_blank"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+<script>
+function showTab(t,b){document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');b.classList.add('active');}
+</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Starlink Flat High Performance Kit","image":"https://dishnetafrica.com/admin/public/uploads/images/1751869896.jpg","description":"Official Starlink Flat High Performance Kit from DishNet Africa, South Sudan's authorized Starlink reseller.","brand":{"@type":"Brand","name":"Starlink"},"offers":{"@type":"Offer","price":"2600","priceCurrency":"USD","availability":"https://schema.org/InStock","seller":{"@type":"Organization","name":"DishNet Africa Ltd"}}}</script>
+</body>
+</html>

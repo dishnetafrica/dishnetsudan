@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+// DishNet Demo — lightweight session gate
+// Uses localStorage (works on file:// and web servers, unlike cookies)
+(function(){
+  var KEY = 'dn_demo_ok';
+
+  window._demoLogin = function(returnUrl){
+    try { localStorage.setItem(KEY, '1'); } catch(e){}
+    window.location.href = returnUrl || 'home.html';
+  };
+
+  window._demoCheck = function(loginUrl){
+    var ok = false;
+    try { ok = localStorage.getItem(KEY) === '1'; } catch(e){ ok = true; }
+    if(!ok){
+      window.location.replace(loginUrl || 'login.html');
+    }
+  };
+})();
+
+window._demoCheck('login.html');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0B1120">
+<meta name="robots" content="noindex,nofollow">
+<title>Subscriptions — DishNet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#0B1120;color:#fff;min-height:100vh;-webkit-font-smoothing:antialiased}
+.demo-banner{background:#FEF6E6;border-bottom:1px solid #F4DBB0;padding:8px 16px;text-align:center;font-size:11px;color:#854F0B;font-weight:600}
+.demo-banner b{font-family:'Inter';font-weight:800;letter-spacing:1px;text-transform:uppercase;background:#854F0B;color:#FEF6E6;padding:2px 7px;border-radius:3px;margin-right:6px;font-size:10px}
+.demo-banner a{color:#854F0B;text-decoration:underline;font-weight:700;margin-left:6px}
+.dr-top{background:#0B1120;padding:18px 32px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)}
+.dr-back{font-size:13px;color:rgba(255,255,255,.5);text-decoration:none;display:flex;align-items:center;gap:6px;font-weight:500}
+.dr-back:hover{color:#fff}
+.dr-logo{font-family:'Inter';font-weight:900;font-size:18px;letter-spacing:-.4px;color:#fff;position:relative}
+.dr-logo::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:2px;background:linear-gradient(90deg,#D41C1C,#E8521A);border-radius:2px}
+.dr-portal-link{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.5);text-decoration:none}
+.dr-body{max-width:1200px;margin:0 auto;padding:36px 32px 60px}
+.dr-title{font-family:'Inter';font-weight:800;font-size:42px;letter-spacing:-1px;color:#fff;margin-bottom:24px}
+.dr-meta{display:flex;gap:24px;margin-bottom:28px;font-size:13px;color:rgba(255,255,255,.55);flex-wrap:wrap}
+.dr-meta b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.4);margin-bottom:3px;font-weight:600}
+.dr-meta strong{color:#fff;font-weight:700}
+.dr-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.dr-stat{background:#141F33;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:18px 20px}
+.dr-stat-num{font-family:'Inter';font-weight:800;font-size:28px;color:#fff;letter-spacing:-.5px;line-height:1}
+.dr-stat-num small{font-size:14px;color:rgba(255,255,255,.5);font-weight:600;margin-left:3px}
+.dr-stat-lbl{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:6px}
+.sub-tbl{background:#141F33;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden}
+.sub-head{display:grid;grid-template-columns:2fr 1.2fr 100px 30px;gap:16px;padding:14px 24px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.06)}
+.sub-row{display:grid;grid-template-columns:2fr 1.2fr 100px 30px;gap:16px;align-items:center;padding:18px 24px;border-bottom:1px solid rgba(255,255,255,.04);text-decoration:none;transition:background .12s}
+.sub-row:last-child{border-bottom:none}
+.sub-row:hover{background:rgba(255,255,255,.02)}
+.sub-name{font-size:14px;font-weight:700;color:#fff}
+.sub-loc{font-size:13px;color:rgba(255,255,255,.5);font-family:'Inter',monospace}
+.sub-pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.3px;padding:3px 10px;border-radius:14px;border:1px solid;text-align:center}
+.sub-chev{font-size:18px;color:rgba(255,255,255,.3);font-weight:300;text-align:right}
+@media (max-width:700px){.dr-body{padding:24px 18px 40px}.dr-title{font-size:30px}.dr-stats{grid-template-columns:repeat(2,1fr)}.sub-head,.sub-row{grid-template-columns:1.5fr 1fr 80px 20px;padding:12px 16px;font-size:10px}.sub-name{font-size:13px}.sub-loc{font-size:11px}.sub-pill{font-size:10px;padding:2px 8px}}
+</style>
+</head>
+<body>
+<div class="demo-banner">
+  <b>Demo</b> All data shown is illustrative
+  <a href="../index.html">switch tenant</a>
+</div>
+<div class="dr-top">
+  <a class="dr-back" href="home.html">← Portal</a>
+  <span class="dr-logo">DishNet</span>
+  <span class="dr-portal-link">STARLINK PORTAL</span>
+</div>
+<div class="dr-body">
+  <h1 class="dr-title">Subscriptions</h1>
+  <div class="dr-meta">
+    <div><b>Tenant</b><strong>UN Mission · UNCOM</strong></div>
+    <div><b>Total subscriptions</b><strong>55</strong></div>
+    <div><b>Active</b><strong style="color:#4ade80">52</strong></div>
+    
+  </div>
+  <div class="dr-stats">
+    <div class="dr-stat"><div class="dr-stat-num">52</div><div class="dr-stat-lbl">Active KITs</div></div>
+    <div class="dr-stat"><div class="dr-stat-num">20,245<small>GB</small></div><div class="dr-stat-lbl">This cycle</div></div>
+    <div class="dr-stat"><div class="dr-stat-num">10</div><div class="dr-stat-lbl">Regions</div></div>
+    <div class="dr-stat"><div class="dr-stat-num">15<small>min</small></div><div class="dr-stat-lbl">Refresh interval</div></div>
+  </div>
+  <div class="sub-tbl">
+    <div class="sub-head">
+      <div>Subscription</div>
+      <div>Service Location</div>
+      <div>Status</div>
+      <div></div>
+    </div>
+      <a class="sub-row" href="sub-UN-JON-FIE-15.html">
+        <div class="sub-name">Akobo Field Base</div>
+        <div class="sub-loc">KIT824636385AD</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-LAK-FIE-38.html">
+        <div class="sub-name">Akot Field Base</div>
+        <div class="sub-loc">KIT347659674WN</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-NOR-FIE-51.html">
+        <div class="sub-name">Aweil East Field Base</div>
+        <div class="sub-loc">KIT650948014KY</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-NOR-FIE-52.html">
+        <div class="sub-name">Aweil North Field Base</div>
+        <div class="sub-loc">KIT675767056HU</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-NOR-POC-50.html">
+        <div class="sub-name">Aweil POC Site</div>
+        <div class="sub-loc">KIT723076025SS</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-NOR-FIE-53.html">
+        <div class="sub-name">Aweil South Field Base</div>
+        <div class="sub-loc">KIT808482316VD</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-NOR-POC-54.html">
+        <div class="sub-name">Aweil West POC Site</div>
+        <div class="sub-loc">KIT475842194JD</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-JON-POC-19.html">
+        <div class="sub-name">Ayod POC Site</div>
+        <div class="sub-loc">KIT333729406KC</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UNI-POC-63.html">
+        <div class="sub-name">Bentiu POC Site</div>
+        <div class="sub-loc">KIT492673892JA</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-JON-FIE-13.html">
+        <div class="sub-name">Bor Field Base</div>
+        <div class="sub-loc">KIT419778234JN</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-LAK-POC-36.html">
+        <div class="sub-name">Cueibet POC Site</div>
+        <div class="sub-loc">KIT599708182LU</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-JON-POC-18.html">
+        <div class="sub-name">Duk Padiet POC Site</div>
+        <div class="sub-loc">KIT566186631HC</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-FIE-43.html">
+        <div class="sub-name">Ezo Field Base</div>
+        <div class="sub-loc">KIT976205431SG</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WAR-FIE-62.html">
+        <div class="sub-name">Gogrial Field Base</div>
+        <div class="sub-loc">KIT875379544YW</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-EAS-POC-33.html">
+        <div class="sub-name">Ikotos POC Site</div>
+        <div class="sub-loc">KIT567930513VD</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-FIE-57.html">
+        <div class="sub-name">Jur River Field Base</div>
+        <div class="sub-loc">KIT589998761TZ</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-EAS-FIE-31.html">
+        <div class="sub-name">Kajo Keji Field Base</div>
+        <div class="sub-loc">KIT984095277IF</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-EAS-FIE-28.html">
+        <div class="sub-name">Kapoeta Field Base</div>
+        <div class="sub-loc">KIT696776692JF</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UPP-POC-26.html">
+        <div class="sub-name">Kodok POC Site</div>
+        <div class="sub-loc">KIT965055833CN</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WAR-FIE-59.html">
+        <div class="sub-name">Kuajok Field Base</div>
+        <div class="sub-loc">KIT600281010TW</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-EAS-POC-32.html">
+        <div class="sub-name">Lafon POC Site</div>
+        <div class="sub-loc">KIT696442646SR</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-CEN-FIE-48.html">
+        <div class="sub-name">Lainya Field Base</div>
+        <div class="sub-loc">KIT320972273YS</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UNI-POC-64.html">
+        <div class="sub-name">Leer POC Site</div>
+        <div class="sub-loc">KIT313169872SJ</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UPP-FIE-23.html">
+        <div class="sub-name">Maban Field Base</div>
+        <div class="sub-loc">KIT302314313MI</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-EAS-FIE-29.html">
+        <div class="sub-name">Magwi Field Base</div>
+        <div class="sub-loc">KIT411225158EI</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UPP-FIE-24.html">
+        <div class="sub-name">Maiwut Field Base</div>
+        <div class="sub-loc">KIT618587604GB</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UPP-FIE-21.html">
+        <div class="sub-name">Malakal Field Base</div>
+        <div class="sub-loc">KIT504235259RO</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-LAK-FIE-37.html">
+        <div class="sub-name">Maper Field Base</div>
+        <div class="sub-loc">KIT585042337BD</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-POC-41.html">
+        <div class="sub-name">Maridi POC Site</div>
+        <div class="sub-loc">KIT774765466VG</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-CEN-POC-49.html">
+        <div class="sub-name">Morobo POC Site</div>
+        <div class="sub-loc">KIT886405096ZT</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-CEN-POC-46.html">
+        <div class="sub-name">Mundri East POC Site</div>
+        <div class="sub-loc">KIT556888294IO</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-FIE-44.html">
+        <div class="sub-name">Mundri Field Base</div>
+        <div class="sub-loc">KIT534978881FZ</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UPP-FIE-25.html">
+        <div class="sub-name">Nasir Field Base</div>
+        <div class="sub-loc">KIT845276696CF</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-EAS-FIE-30.html">
+        <div class="sub-name">Nimule Field Base</div>
+        <div class="sub-loc">KIT583450553QP</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-JON-FIE-20.html">
+        <div class="sub-name">Old Fangak Field Base</div>
+        <div class="sub-loc">KIT807850824ZN</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-JON-FIE-14.html">
+        <div class="sub-name">Pibor Field Base</div>
+        <div class="sub-loc">KIT971410971JU</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-JON-FIE-16.html">
+        <div class="sub-name">Pochalla Field Base</div>
+        <div class="sub-loc">KIT821828280CY</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-POC-56.html">
+        <div class="sub-name">Raja POC Site</div>
+        <div class="sub-loc">KIT751034639PD</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UPP-POC-22.html">
+        <div class="sub-name">Renk POC Site</div>
+        <div class="sub-loc">KIT880451872AC</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-LAK-FIE-34.html">
+        <div class="sub-name">Rumbek Field Base</div>
+        <div class="sub-loc">KIT742073642ZV</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-FIE-42.html">
+        <div class="sub-name">Tambura Field Base</div>
+        <div class="sub-loc">KIT552188235VJ</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-CEN-FIE-47.html">
+        <div class="sub-name">Terekeka Field Base</div>
+        <div class="sub-loc">KIT464073400WG</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WAR-POC-60.html">
+        <div class="sub-name">Tonj East POC Site</div>
+        <div class="sub-loc">KIT811201082UW</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-FIE-58.html">
+        <div class="sub-name">Tonj North Field Base</div>
+        <div class="sub-loc">KIT393053577IO</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WAR-FIE-61.html">
+        <div class="sub-name">Tonj South Field Base</div>
+        <div class="sub-loc">KIT870073085LN</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-EAS-FIE-27.html">
+        <div class="sub-name">Torit Field Base</div>
+        <div class="sub-loc">KIT310002396OT</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-JON-POC-17.html">
+        <div class="sub-name">Twic East POC Site</div>
+        <div class="sub-loc">KIT527416584RY</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-FIE-55.html">
+        <div class="sub-name">Wau Field Base</div>
+        <div class="sub-loc">KIT944687060ZD</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-LAK-FIE-39.html">
+        <div class="sub-name">Wulu Field Base</div>
+        <div class="sub-loc">KIT654549587TK</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-WES-FIE-40.html">
+        <div class="sub-name">Yambio Field Base</div>
+        <div class="sub-loc">KIT486860433TS</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-CEN-FIE-45.html">
+        <div class="sub-name">Yei Field Base</div>
+        <div class="sub-loc">KIT888273030OF</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-LAK-POC-35.html">
+        <div class="sub-name">Yirol POC Site</div>
+        <div class="sub-loc">KIT794246837LJ</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(34,197,94,.15);color:#4ade80;border-color:#4ade80">Active</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UNI-FIE-65.html">
+        <div class="sub-name">Mayendit Field Base</div>
+        <div class="sub-loc">KIT379545125SU</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(212,28,28,.15);color:#FFA8A8;border-color:#FFA8A8">Paused</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UNI-FIE-66.html">
+        <div class="sub-name">Pariang Field Base</div>
+        <div class="sub-loc">KIT951028618TZ</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(155,155,155,.15);color:#9B9B9B;border-color:#9B9B9B">Inactive</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+      <a class="sub-row" href="sub-UN-UNI-FIE-67.html">
+        <div class="sub-name">Rubkona Field Base</div>
+        <div class="sub-loc">KIT966823010BT</div>
+        <div class="sub-status"><span class="sub-pill" style="background:rgba(155,155,155,.15);color:#9B9B9B;border-color:#9B9B9B">Inactive</span></div>
+        <div class="sub-chev">›</div>
+      </a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+// DishNet Demo — lightweight session gate
+// Uses localStorage (works on file:// and web servers, unlike cookies)
+(function(){
+  var KEY = 'dn_demo_ok';
+
+  window._demoLogin = function(returnUrl){
+    try { localStorage.setItem(KEY, '1'); } catch(e){}
+    window.location.href = returnUrl || 'home.html';
+  };
+
+  window._demoCheck = function(loginUrl){
+    var ok = false;
+    try { ok = localStorage.getItem(KEY) === '1'; } catch(e){ ok = true; }
+    if(!ok){
+      window.location.replace(loginUrl || 'login.html');
+    }
+  };
+})();
+
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>DishNet Africa — Demo Login</title>
+<meta name="theme-color" content="#141414">
+<link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23D41C1C'/><text x='50' y='72' font-family='Arial Black' font-size='50' font-weight='900' fill='white' text-anchor='middle'>DN</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#D41C1C;--dark:#141414;--gray:#888;--line:#e5e5e5;--swoosh:linear-gradient(110deg,#D41C1C 0%,#E8521A 60%,#FF7A35 100%)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;background:#fff;font-family:'Barlow',sans-serif;color:var(--dark);-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;min-height:100vh}
+.wrap{max-width:400px;margin:0 auto;padding:60px 28px 24px;flex:1;width:100%}
+
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;letter-spacing:-.5px;color:var(--dark);position:relative;display:inline-block;margin-bottom:8px}
+.logo::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:3px;background:var(--swoosh);border-radius:2px}
+.tag{display:inline-block;background:var(--dark);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:10px;letter-spacing:.12em;padding:4px 10px;border-radius:4px;margin-left:10px;vertical-align:4px}
+.title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;letter-spacing:-.3px;margin:36px 0 8px;color:var(--dark)}
+.sub{font-size:14px;color:#888;line-height:1.6;margin-bottom:28px}
+
+.field{margin-bottom:18px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--dark);margin-bottom:6px}
+.field input{width:100%;padding:14px 16px;border:1.5px solid #ddd;border-radius:12px;font-size:16px;font-family:inherit;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--red)}
+.field input::placeholder{color:#bbb}
+
+.phone-wrap{position:relative}
+.phone-hint{position:absolute;top:calc(100% + 6px);left:2px;font-size:11px;color:#aaa;font-family:'Barlow',sans-serif}
+.phone-hint strong{color:var(--dark);font-weight:600}
+
+.btn{width:100%;padding:15px;background:var(--red);color:#fff;border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:.02em;cursor:pointer;transition:background .15s}
+.btn:hover{background:#b81818}
+.btn:disabled{background:#ccc;cursor:not-allowed}
+.err{background:#fff0f0;color:#c00;padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none}
+.err.show{display:block}
+
+.note{text-align:center;font-size:12px;color:#aaa;margin-top:16px;line-height:1.6}
+.note a{color:var(--red);text-decoration:none;font-weight:600}
+.back{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:#888;text-decoration:none;margin-bottom:24px;cursor:pointer;border:none;background:none;font-family:inherit;padding:0}
+.back:hover{color:var(--dark)}
+.otp-input{letter-spacing:8px;text-align:center;font-size:24px;font-family:'Barlow Condensed',sans-serif;font-weight:800}
+
+#step-phone,#step-otp{display:none}
+#step-phone.active,#step-otp.active{display:block}
+
+.spin-small{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.login-tabs{display:flex;gap:2px;margin:0 0 18px;background:#f5f5f5;border-radius:10px;padding:4px}
+.login-tab{flex:1;background:transparent;border:none;border-radius:8px;padding:10px 6px;font-family:'Barlow',sans-serif;font-weight:600;font-size:13px;color:#888;cursor:pointer;transition:all .15s}
+.login-tab:hover{color:var(--dark)}
+.login-tab.active{background:#fff;color:var(--dark);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.login-pane{display:none}
+.login-pane.active{display:block}
+.login-fallback{font-size:11px;color:#888;background:#fafafa;border-radius:8px;padding:9px 12px;margin-top:14px;line-height:1.5;border:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.login-fallback a{color:var(--red);font-weight:600;text-decoration:none;flex-shrink:0;cursor:pointer}
+
+.login-foot{border-top:1px solid var(--line);padding:20px 28px 24px;text-align:center;font-family:'Barlow',sans-serif}
+.login-foot-links{display:inline-flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:10px;font-size:12px}
+.login-foot-links a{color:#888;text-decoration:none;transition:color .15s}
+.login-foot-links a:hover{color:var(--red)}
+.login-foot-meta{font-family:'JetBrains Mono','Menlo',monospace;font-size:10px;color:#c5c5c5;letter-spacing:.05em}
+.login-foot-meta span{display:inline-block;padding:0 8px}
+.login-foot-meta span+span{border-left:1px solid var(--line)}
+
+/* DEMO-specific banner */
+.demo-banner{background:#FEF6E6;border-bottom:1px solid #F4DBB0;padding:8px 20px;text-align:center;font-size:11px;color:#854F0B;font-weight:600;line-height:1.4}
+.demo-banner b{font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:1px;text-transform:uppercase;background:#854F0B;color:#FEF6E6;padding:2px 7px;border-radius:3px;margin-right:6px;font-size:10px}
+
+/* DEMO autofill helper card */
+.demo-help{background:#E6F1FB;border:1px solid #B6D4F0;border-radius:10px;padding:14px 16px;margin-top:16px;margin-bottom:18px;font-size:12px;line-height:1.55;color:#0F3F8F}
+.demo-help-tt{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#1A4DB5;margin-bottom:6px}
+.demo-help b{font-family:'Barlow Condensed',sans-serif;font-weight:800;color:#0F3F8F}
+.demo-help-fill{display:inline-block;background:#fff;border:1px solid #B6D4F0;color:#1A4DB5;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:.5px;text-transform:uppercase;padding:5px 10px;border-radius:6px;margin-top:8px;cursor:pointer;text-decoration:none}
+.demo-help-fill:hover{background:#1A4DB5;color:#fff}
+
+/* Tenant pill at top of login */
+.tenant-strip{background:#0D7A4E;color:#fff;padding:10px 28px;display:flex;align-items:center;gap:12px;font-size:13px}
+.tenant-strip-ic{width:30px;height:30px;border-radius:8px;background:#fff;color:#0D7A4E;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;letter-spacing:-.3px}
+.tenant-strip b{font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:.3px}
+.tenant-strip-back{margin-left:auto;color:rgba(255,255,255,.8);text-decoration:none;font-size:12px;font-weight:500}
+.tenant-strip-back:hover{color:#fff}
+</style>
+</head>
+<body>
+
+<!-- DEMO banner -->
+<div class="demo-banner">
+  <b>Demo</b> Bright Future Initiative · tap autofill then click <b>Continue</b>
+</div>
+
+<!-- Tenant strip -->
+<div class="tenant-strip">
+  <div class="tenant-strip-ic">BF</div>
+  <div><b>Bright Future Initiative</b> · Multi-sector NGO</div>
+  <a class="tenant-strip-back" href="../index.html">← Switch tenant</a>
+</div>
+
+<div class="wrap">
+  <div><span class="logo">DishNet</span><span class="tag">AFRICA</span></div>
+
+  <!-- Step 1: Phone or Email entry -->
+  <div id="step-phone" class="active">
+    <div class="title">Log in to DishNet</div>
+    <div class="sub">Choose how you'd like to receive your code</div>
+
+    <!-- Tab switcher -->
+    <div class="login-tabs" role="tablist">
+      <button class="login-tab active" id="tab-phone" role="tab" onclick="switchTab('phone')">📱 Phone</button>
+      <button class="login-tab" id="tab-email" role="tab" onclick="switchTab('email')">✉️ Email</button>
+    </div>
+
+    <div class="err" id="err-phone"></div>
+
+    <!-- Phone input pane -->
+    <div class="login-pane active" id="pane-phone">
+      <div class="field">
+        <label>Phone number</label>
+        <div class="phone-wrap">
+          <input type="tel" id="phone" placeholder="+211 9XX XXX XXX" autofocus>
+          <div class="phone-hint">Include country code. South Sudan: <strong>+211</strong></div>
+        </div>
+      </div>
+      <div class="demo-help">
+        <div class="demo-help-tt">Demo · auto-fill</div>
+        Sarah Achieng (Country Director) · <b>+211 920 555 014</b>
+        <br><a class="demo-help-fill" onclick="autofillPhone()">Tap to autofill</a>
+      </div>
+      <button class="btn" id="btn-phone" onclick="window._demoLogin('home.html')" style="margin-top:12px">Continue</button>
+      <div class="login-fallback">
+        <span>No WhatsApp on this number?</span>
+        <a onclick="switchTab('email')">Use Email instead</a>
+      </div>
+    </div>
+
+    <!-- Email input pane -->
+    <div class="login-pane" id="pane-email">
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        <div class="phone-hint">Use the email you registered with DishNet.</div>
+      </div>
+      <div class="demo-help">
+        <div class="demo-help-tt">Demo · auto-fill</div>
+        Sarah Achieng · <b>sarah.achieng@brightfuture.example</b>
+        <br><a class="demo-help-fill" onclick="autofillEmail()">Tap to autofill</a>
+      </div>
+      <button class="btn" id="btn-email" onclick="window._demoLogin('home.html')" style="margin-top:12px">Continue</button>
+      <div class="login-fallback">
+        <span>Wrong email?</span>
+        <a onclick="switchTab('phone')">Try Phone instead</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: OTP verification (auto-success in demo) -->
+  <div id="step-otp">
+    <button class="back" onclick="showStep('phone')">← Back</button>
+    <div class="title">Enter verification code</div>
+    <div class="sub">We sent a 6-digit code to <b id="otp-phone"></b></div>
+    <div class="err" id="err-otp"></div>
+    <div class="field">
+      <input type="text" id="otp" class="otp-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" value="123456">
+    </div>
+    <div class="demo-help">
+      <div class="demo-help-tt">Demo</div>
+      Use code <b>123456</b> (already filled). In production this comes via WhatsApp or email.
+    </div>
+    <button class="btn" id="btn-otp" onclick="verifyOtp()">Verify &amp; continue</button>
+    <div class="note">
+      <span style="color:#999">Code expires in 5:00</span>
+      &nbsp;·&nbsp;
+      <a href="#" onclick="return false">Resend code</a>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="login-foot">
+  <div class="login-foot-links">
+    <a href="https://wa.me/211921443002" target="_blank" rel="noopener">Need help? WhatsApp us</a>
+    <a href="#" onclick="return false">Terms</a>
+    <a href="#" onclick="return false">Privacy</a>
+  </div>
+  <div class="login-foot-meta">
+    <span>DishNet Africa Ltd.</span>
+    
+    <span>Juba, South Sudan</span>
+  </div>
+</div>
+
+<script>
+var loginMode = 'phone';
+
+function showStep(s){
+  document.getElementById('step-phone').classList.toggle('active', s === 'phone');
+  document.getElementById('step-otp').classList.toggle('active', s === 'otp');
+}
+
+function switchTab(mode){
+  loginMode = mode;
+  document.getElementById('tab-phone').classList.toggle('active', mode === 'phone');
+  document.getElementById('tab-email').classList.toggle('active', mode === 'email');
+  document.getElementById('pane-phone').classList.toggle('active', mode === 'phone');
+  document.getElementById('pane-email').classList.toggle('active', mode === 'email');
+  document.getElementById('err-phone').classList.remove('show');
+  setTimeout(function(){
+    var el = document.getElementById(mode === 'phone' ? 'phone' : 'email');
+    if (el) el.focus();
+  }, 50);
+}
+
+function autofillPhone(){
+  document.getElementById('phone').value = '+211 920 555 014';
+}
+function autofillEmail(){
+  document.getElementById('email').value = 'sarah.achieng@brightfuture.example';
+}
+
+function sendOtp(){
+  var ident = (loginMode === 'phone'
+    ? document.getElementById('phone').value
+    : document.getElementById('email').value).trim();
+  if (!ident){
+    var el = document.getElementById('err-phone');
+    el.textContent = 'Please enter your ' + (loginMode === 'phone' ? 'phone number' : 'email');
+    el.classList.add('show');
+    return;
+  }
+  // Demo: skip real OTP, just advance
+  document.getElementById('otp-phone').textContent = ident;
+  showStep('otp');
+}
+
+function verifyOtp(){
+  // Demo: any code = success, go straight to portal home
+  window._demoLogin('home.html');
+}
+
+// Press Enter in OTP field to submit
+document.getElementById('otp').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') verifyOtp();
+});
+document.getElementById('phone').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') sendOtp();
+});
+document.getElementById('email').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') sendOtp();
+});
+</script>
+
+</body>
+</html>

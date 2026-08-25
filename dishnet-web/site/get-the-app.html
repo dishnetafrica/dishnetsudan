@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get the DishNet App — DishNet Africa Ltd</title>
+    <link rel="icon" type="image/png" href="https://portal.dishnetss.com/uploads/images/1727669803.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .app-hero { padding: 130px 0 60px; background: linear-gradient(160deg, #fff 0%, var(--surface-alt) 100%); position: relative; overflow: hidden; }
+        .app-hero::after { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+        .app-hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; position: relative; z-index: 2; }
+        .app-hero h1 { font-family: var(--font-display); font-size: clamp(34px, 5vw, 52px); font-weight: 800; line-height: 1.05; margin-bottom: 20px; letter-spacing: -0.02em; }
+        .app-hero h1 .accent { color: var(--accent); }
+        .app-hero .lead { font-size: 17px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 28px; max-width: 540px; }
+        .app-hero-meta { display: flex; gap: 22px; font-size: 13px; color: var(--text-secondary); flex-wrap: wrap; margin-bottom: 32px; }
+        .app-hero-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+
+        /* Store buttons */
+        .store-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+        .store-btn { display: flex; align-items: center; gap: 12px; background: #141414; color: #fff; padding: 10px 18px; border-radius: 12px; text-decoration: none; transition: var(--transition); min-width: 180px; }
+        .store-btn:hover { background: #1f1f1f; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+        .store-btn-icon { width: 28px; height: 28px; flex-shrink: 0; }
+        .store-btn-text { display: flex; flex-direction: column; line-height: 1.1; }
+        .store-btn-text small { font-size: 10px; opacity: 0.75; letter-spacing: 0.3px; }
+        .store-btn-text strong { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-top: 2px; }
+
+        /* Phone mockup column */
+        .app-hero-phone { display: flex; justify-content: center; }
+        .phone-frame { width: 280px; height: 580px; background: #141414; border-radius: 38px; padding: 12px; box-shadow: 0 30px 60px rgba(0,0,0,0.18); position: relative; }
+        .phone-frame::before { content: ''; position: absolute; top: 18px; left: 50%; transform: translateX(-50%); width: 100px; height: 24px; background: #141414; border-radius: 100px; z-index: 2; }
+        .phone-screen { width: 100%; height: 100%; background: #FAFAF8; border-radius: 28px; overflow: hidden; position: relative; }
+        .phone-status { background: #141414; color: #fff; height: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; font-size: 11px; font-weight: 600; }
+        .phone-content { padding: 18px; height: calc(100% - 30px); overflow: hidden; }
+        .phone-app-head { padding: 16px 4px 8px; }
+        .phone-app-logo { font-family: var(--font-display); font-weight: 800; font-size: 20px; }
+        .phone-app-logo span { color: var(--accent); }
+        .phone-app-hello { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-top: 14px; }
+        .phone-card { background: #fff; border-radius: 14px; padding: 14px; margin-top: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+        .phone-card-head { font-size: 9px; color: #777; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; }
+        .phone-card-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 32px; color: #141414; margin-top: 4px; line-height: 1; letter-spacing: -1px; }
+        .phone-card-sub { font-size: 11px; color: #999; margin-top: 4px; }
+        .phone-mini-card { background: #fff; border-radius: 12px; padding: 12px; margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+        .phone-mini-ic { width: 32px; height: 32px; border-radius: 9px; background: rgba(212,28,28,0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .phone-mini-t { font-family: var(--font-display); font-size: 13px; font-weight: 600; }
+        .phone-mini-s { font-size: 10px; color: #999; margin-top: 1px; }
+
+        /* Web alternative section */
+        .web-alt { padding: 70px 0; background: var(--surface-alt); }
+        .web-alt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 980px; margin: 0 auto; }
+        .web-alt-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 36px; transition: var(--transition); display: flex; flex-direction: column; }
+        .web-alt-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .web-alt-num { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 14px; }
+        .web-alt-num .dot { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-glow); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 13px; }
+        .web-alt-card h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin-bottom: 12px; line-height: 1.25; }
+        .web-alt-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 18px; }
+        .web-alt-card ul { font-size: 13px; color: var(--text-secondary); line-height: 1.7; padding-left: 18px; margin-bottom: 22px; flex: 1; }
+        .web-alt-card ul li { margin-bottom: 6px; }
+        .web-alt-cta { display: inline-flex; align-items: center; gap: 6px; padding: 12px 20px; background: var(--accent); color: #fff; border-radius: 12px; font-family: var(--font-display); font-weight: 600; font-size: 14px; text-decoration: none; align-self: flex-start; transition: var(--transition); }
+        .web-alt-cta:hover { background: var(--accent-dark); transform: translateY(-1px); }
+        .web-alt-cta.ghost { background: var(--surface); color: var(--text); border: 1.5px solid var(--border); }
+        .web-alt-cta.ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--surface); }
+
+        /* Features */
+        .app-features { padding: 70px 0; }
+        .app-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1080px; margin: 0 auto; }
+        .feat-card { padding: 28px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: var(--transition); }
+        .feat-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .feat-ic { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-glow); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+        .feat-ic svg { width: 22px; height: 22px; }
+        .feat-card h3 { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .feat-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+
+        /* APK install warning */
+        .install-note { background: #FFF8E1; border: 1px solid #F4D03F; border-radius: 12px; padding: 16px 20px; margin-top: 18px; font-size: 13px; color: #8B6914; line-height: 1.6; max-width: 540px; }
+        .install-note strong { color: #5D4500; display: block; margin-bottom: 4px; }
+
+        @media (max-width: 880px) {
+            .app-hero-grid { grid-template-columns: 1fr; gap: 40px; }
+            .app-hero-phone { display: none; }
+            .web-alt-grid { grid-template-columns: 1fr; }
+            .app-features-grid { grid-template-columns: 1fr; gap: 14px; }
+            #iphone-install > .container > div > div:nth-child(2) { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 600px) {
+            section[style*="grid-template-columns:64px"] > div { grid-template-columns: 1fr !important; gap: 16px !important; }
+        }
+    </style>
+<meta name="description" content="Get the DishNet customer app for Android, install on iPhone via the web portal, or sign in from any browser. Manage your Starlink, fiber, and LTE service from your phone.">
+<link rel="canonical" href="https://dishnetafrica.com/get-the-app.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Get the DishNet App — DishNet Africa Ltd">
+<meta property="og:description" content="Get the DishNet customer app for Android, or sign in via the web portal.">
+<meta property="og:url" content="https://dishnetafrica.com/get-the-app.html">
+<meta property="og:site_name" content="DishNet Africa">
+</head>
+<body>
+
+<header class="header"><div class="container"><div class="header-inner"><a href="index.html" class="logo"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet Africa"></a><nav class="nav"><a href="index.html#products">Products</a><a href="fiber.html">Fiber</a><a href="services.html">Services</a><a href="coverage.html">Coverage</a><a href="about.html">About</a><a href="tutorials/index.html">Tutorials</a><a href="portal-preview.html">Live Demo</a><a href="get-the-app.html">App</a><a href="contact.html">Contact</a></nav><div class="nav-actions"><a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" class="btn btn-outline" style="padding:10px 20px;font-size:14px;">Customer Login</a><a href="https://wa.me/211923400000" class="header-cta">Get a Quote</a></div><button class="mobile-toggle" onclick="document.getElementById('mobileNav').classList.add('open')"><span></span></button></div></div></header>
+<div class="mobile-nav" id="mobileNav"><button class="mobile-nav-close" onclick="this.parentElement.classList.remove('open')">&times;</button><a href="index.html">Home</a><a href="fiber.html">Fiber</a><a href="services.html">Services</a><a href="coverage.html">Coverage</a><a href="about.html">About</a><a href="tutorials/index.html">Tutorials</a><a href="portal-preview.html">Live Demo</a><a href="get-the-app.html">App</a><a href="contact.html">Contact</a><a href="faq.html">FAQ</a><a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></div>
+
+<section class="app-hero">
+    <div class="container">
+        <div class="app-hero-grid">
+            <div>
+                <span class="badge-label badge-accent">DishNet customer app</span>
+                <h1>Manage your <span class="accent">DishNet service</span> from your phone.</h1>
+                <p class="lead">See your data usage, change your Wi-Fi password, pay invoices, run a speed test, and check if your dish is online — all from one app. No tech skills needed.</p>
+                <div class="app-hero-meta">
+                    <span class="app-hero-meta-item">⚡ Fast &amp; light</span>
+                    <span class="app-hero-meta-item">🔐 WhatsApp OTP login</span>
+                    <span class="app-hero-meta-item">💸 Free for DishNet customers</span>
+                </div>
+
+                <div class="store-buttons">
+                    <a href="https://wa.me/211923400000?text=Please%20send%20me%20the%20DishNet%20app%20APK" class="store-btn">
+                        <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814 13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893 2.302 2.302-10.937 6.333 8.635-8.635zm3.612-3.612 2.55 1.475a1 1 0 0 1 0 1.74l-2.55 1.474-2.673-2.673 2.673-2.016zm-1.31-1.31L5.864 1.451 16.8 7.784l-2.302 2.302-3.687-3.687z"/></svg>
+                        <div class="store-btn-text">
+                            <small>DOWNLOAD FOR</small>
+                            <strong>Android (APK)</strong>
+                        </div>
+                    </a>
+                    <a href="#iphone-install" class="store-btn">
+                        <svg class="store-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                        <div class="store-btn-text">
+                            <small>Install on</small>
+                            <strong>iPhone</strong>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="install-note" id="android-download">
+                    <strong>📱 Installing the APK on Android</strong>
+                    Tap <b>Download for Android (APK)</b> above. After it downloads, open the file from your Notifications or Downloads folder. Android will ask permission to install apps from your browser the first time &mdash; tap <b>Settings</b>, allow it, then go back and tap <b>Install</b>. The whole thing takes under a minute.
+                </div>
+            </div>
+
+            <div class="app-hero-phone">
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <div class="phone-status">
+                            <span>9:41</span>
+                            <span style="display:flex;gap:5px"><span>📶</span><span>📡</span><span>100%</span></span>
+                        </div>
+                        <div class="phone-content" style="background:linear-gradient(180deg,#141414 0%,#1f1f1f 240px,#FAFAF8 240px);padding:0">
+                            <div class="phone-app-head" style="padding:18px 18px 8px;color:#fff">
+                                <div class="phone-app-logo" style="color:#fff">DishNet<span style="color:#FCA5A5">.</span></div>
+                                <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:14px">Hi Daniel 👋</div>
+                                <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">Residential · Juba</div>
+                            </div>
+                            <div style="padding:0 18px">
+                                <div class="phone-card" style="margin-top:8px">
+                                    <div class="phone-card-head">Data this cycle</div>
+                                    <div style="display:flex;align-items:baseline;gap:5px;margin-top:4px">
+                                        <span class="phone-card-num">487</span>
+                                        <span style="font-size:11px;color:#999">GB used</span>
+                                    </div>
+                                    <div class="phone-card-sub">28 Mar – 27 Apr 2026</div>
+                                </div>
+                                <div class="phone-mini-card">
+                                    <div class="phone-mini-ic">
+                                        <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                                    </div>
+                                    <div>
+                                        <div class="phone-mini-t">Change Wi-Fi password</div>
+                                        <div class="phone-mini-s">Tap to update</div>
+                                    </div>
+                                </div>
+                                <div class="phone-mini-card">
+                                    <div class="phone-mini-ic" style="background:rgba(34,197,94,0.1);color:#1F9D55">
+                                        <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    </div>
+                                    <div>
+                                        <div class="phone-mini-t">Run speed test</div>
+                                        <div class="phone-mini-s">Test your connection</div>
+                                    </div>
+                                </div>
+                                <div class="phone-mini-card">
+                                    <div class="phone-mini-ic" style="background:rgba(14,165,233,0.1);color:#0EA5E9">
+                                        <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div>
+                                        <div class="phone-mini-t">View invoices</div>
+                                        <div class="phone-mini-s">3 outstanding</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────────────
+     iPhone PWA Install — replaces the iOS coming-soon experience
+     until the native iOS app launches.
+───────────────────────────────────────────────────────────────────── -->
+<section id="iphone-install" style="padding:70px 0;background:#fff">
+    <div class="container">
+        <div style="max-width:1000px;margin:0 auto">
+            <div style="text-align:center;margin-bottom:42px">
+                <span class="badge-label badge-accent">iPhone &amp; iPad</span>
+                <h2 style="font-family:var(--font-display);font-size:clamp(28px,4vw,38px);font-weight:800;margin:14px 0 12px;letter-spacing:-0.02em">Install on iPhone in 3 taps</h2>
+                <p style="font-size:16px;color:var(--text-secondary);max-width:620px;margin:0 auto;line-height:1.7">Our native iOS app is on the way. In the meantime, iPhone users get the full DishNet experience by adding the web portal to their home screen. It looks and feels like a real app &mdash; same icon, full screen, no Safari chrome.</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:32px">
+                <!-- Step 1 -->
+                <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:18px;padding:28px 24px;position:relative">
+                    <div style="position:absolute;top:-14px;left:24px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:13px">1</div>
+                    <h3 style="font-family:var(--font-display);font-size:17px;font-weight:600;margin:0 0 10px;line-height:1.3">Open the portal in Safari</h3>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin:0 0 12px">In Safari (not Chrome &mdash; this only works in Safari on iPhone), open:</p>
+                    <a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" style="display:block;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'Barlow',monospace;font-size:11px;color:var(--accent);word-break:break-all;text-decoration:none;font-weight:600">crm.dishnetafrica.com/crm/_plugins/&hellip;customer_portal</a>
+                    <p style="font-size:12px;color:var(--text-secondary);line-height:1.65;margin:12px 0 0">Or just tap the <b>Customer Login</b> button at the top of any DishNet page.</p>
+                </div>
+                <!-- Step 2 -->
+                <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:18px;padding:28px 24px;position:relative">
+                    <div style="position:absolute;top:-14px;left:24px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:13px">2</div>
+                    <h3 style="font-family:var(--font-display);font-size:17px;font-weight:600;margin:0 0 10px;line-height:1.3">Tap the <b>Share</b> button</h3>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin:0 0 14px">At the bottom of Safari, tap the share icon &mdash; the square with an upward arrow:</p>
+                    <div style="display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px;color:#0EA5E9"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                    </div>
+                    <p style="font-size:11px;color:var(--text-secondary);line-height:1.65;margin:12px 0 0;text-align:center">On older iPhones the share button is at the top right.</p>
+                </div>
+                <!-- Step 3 -->
+                <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:18px;padding:28px 24px;position:relative">
+                    <div style="position:absolute;top:-14px;left:24px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:13px">3</div>
+                    <h3 style="font-family:var(--font-display);font-size:17px;font-weight:600;margin:0 0 10px;line-height:1.3">Tap "Add to Home Screen"</h3>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.65;margin:0 0 12px">Scroll the share sheet down. You'll see "Add to Home Screen" with a + icon. Tap it. Confirm the name (default: <b>DishNet</b>) and tap <b>Add</b>.</p>
+                    <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px">
+                        <div style="width:34px;height:34px;border-radius:8px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:13px;flex-shrink:0">+</div>
+                        <div style="flex:1;font-size:12px;color:var(--text);font-weight:600">Add to Home Screen</div>
+                    </div>
+                    <p style="font-size:12px;color:var(--text-secondary);line-height:1.65;margin:12px 0 0">A DishNet icon now lives on your home screen. Tap it any time &mdash; the portal opens full-screen with no browser bars, just like a regular app.</p>
+                </div>
+            </div>
+
+            <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:14px;padding:18px 22px;font-size:13px;color:var(--text-secondary);line-height:1.7;max-width:760px;margin:0 auto">
+                <b style="color:var(--text)">A quick note on what works and what doesn't:</b> the home-screen install gives you the same UI, login, and features as the Android app. <b>What's different right now:</b> push notifications don't work on iPhone home-screen apps unless you're on iOS 16.4 or newer (released March 2023), and the icon may show a generic screenshot until our dedicated PWA icons are deployed (we're rolling these out shortly). Everything else &mdash; the dashboard, Wi-Fi controls, invoices, speed test, hotspot mode &mdash; works identically.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────────────────────
+     "Just got your kit?" — Activation summary, links to full tutorial
+───────────────────────────────────────────────────────────────────── -->
+<section style="padding:60px 0;background:linear-gradient(160deg,#fff 0%,rgba(34,197,94,0.04) 100%)">
+    <div class="container">
+        <div style="max-width:880px;margin:0 auto;background:#fff;border:1px solid rgba(34,197,94,0.25);border-radius:22px;padding:36px 40px;display:grid;grid-template-columns:64px 1fr;gap:22px;box-shadow:0 6px 24px rgba(34,197,94,0.06)">
+            <div style="width:64px;height:64px;border-radius:18px;background:rgba(34,197,94,0.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0">📍</div>
+            <div>
+                <div style="font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px">New customer? Read this first</div>
+                <h2 style="font-family:var(--font-display);font-size:clamp(22px,3vw,28px);font-weight:700;margin:0 0 12px;letter-spacing:-0.02em;line-height:1.25">First, send your location to activate Starlink.</h2>
+                <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin:0 0 16px">Just collected your Starlink kit? Before the app is useful (or before the dish even connects), our team needs to know <b>where the dish is installed</b>. Send your GPS location on WhatsApp and we'll activate your service in 5&ndash;15 minutes.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:18px;margin-bottom:18px;font-size:13px;color:var(--text-secondary)">
+                    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">1️⃣</span> Open WhatsApp chat with <b style="color:var(--text)">+211 921 443 002</b></div>
+                    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">2️⃣</span> Tap 📎 → <b style="color:var(--text)">Location</b></div>
+                    <div style="display:flex;align-items:center;gap:6px"><span style="font-size:16px">3️⃣</span> Tap <b style="color:var(--text)">Send your current location</b></div>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px">
+                    <a href="tutorials/activate-starlink-send-location.html" style="display:inline-flex;align-items:center;gap:6px;padding:11px 20px;background:var(--accent);color:#fff;border-radius:11px;font-family:var(--font-display);font-weight:600;font-size:14px;text-decoration:none;transition:var(--transition)">
+                        Read the full tutorial
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                    </a>
+                    <a href="https://wa.me/211921443002?text=Hi%20DishNet%2C%20I%20just%20got%20my%20Starlink%20kit%20and%20need%20to%20activate%20it" style="display:inline-flex;align-items:center;gap:6px;padding:11px 20px;background:#25D366;color:#fff;border-radius:11px;font-family:var(--font-display);font-weight:600;font-size:14px;text-decoration:none;transition:var(--transition)">
+                        💬 Open WhatsApp now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="web-alt">
+    <div class="container">
+        <div style="text-align:center;margin-bottom:42px">
+            <span class="badge-label badge-accent">Two ways to access</span>
+            <h2 style="font-family:var(--font-display);font-size:clamp(28px,4vw,38px);font-weight:800;margin:14px 0 12px;letter-spacing:-0.02em">Don't want to install an app?</h2>
+            <p style="font-size:16px;color:var(--text-secondary);max-width:580px;margin:0 auto;line-height:1.7">No problem. Everything in the app is also available in your browser through our web portal.</p>
+        </div>
+        <div class="web-alt-grid">
+            <div class="web-alt-card">
+                <div class="web-alt-num"><span class="dot">A</span> Recommended</div>
+                <h2>Use the mobile app</h2>
+                <p>Best experience for daily use. Works offline for cached data, and you can save your login so you don't have to re-verify every time.</p>
+                <ul>
+                    <li>Faster, more responsive</li>
+                    <li>Push notifications for outages and invoices</li>
+                    <li>Saves login — no OTP every time</li>
+                    <li>Works smoothly on slower connections</li>
+                </ul>
+                <a href="https://wa.me/211923400000?text=Please%20send%20me%20the%20DishNet%20app%20APK" class="web-alt-cta">Download APK
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                </a>
+            </div>
+            <div class="web-alt-card">
+                <div class="web-alt-num"><span class="dot">B</span> Browser</div>
+                <h2>Use the web portal</h2>
+                <p>Sign in from any phone or computer browser. Same features as the app, no install needed. Just enter your phone number and we'll WhatsApp you a code.</p>
+                <ul>
+                    <li>No download or install</li>
+                    <li>Works on iPhone (until our iOS app launches)</li>
+                    <li>Works on a desktop or laptop</li>
+                    <li>Same login flow — phone + WhatsApp code</li>
+                </ul>
+                <a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" class="web-alt-cta ghost">Open web portal
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="app-features">
+    <div class="container">
+        <div style="text-align:center;margin-bottom:38px">
+            <h2 style="font-family:var(--font-display);font-size:clamp(28px,4vw,36px);font-weight:800;margin-bottom:10px;letter-spacing:-0.02em">What's inside</h2>
+            <p style="font-size:15px;color:var(--text-secondary)">17 things you can do without calling support.</p>
+        </div>
+        <div class="app-features-grid">
+            <div class="feat-card">
+                <div class="feat-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+                </div>
+                <h3>Track your usage</h3>
+                <p>See your data usage with a daily chart. Spot the days someone was streaming heavily.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <h3>Run speed tests</h3>
+                <p>Measure download, upload, and ping right from your phone. Share results with support.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                </div>
+                <h3>Manage Wi-Fi</h3>
+                <p>Change your password, rename your network, and share Wi-Fi via QR code &mdash; all in seconds.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/></svg>
+                </div>
+                <h3>See connected devices</h3>
+                <p>See every phone, laptop, and TV using your Wi-Fi. Spot piggybackers and pause them.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <h3>Pay invoices</h3>
+                <p>View invoices, get our bank details, and forward PDFs to your accountant via WhatsApp.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h3>Diagnose issues</h3>
+                <p>Check if your dish is online before calling support. Saves time when something goes wrong.</p>
+            </div>
+        </div>
+        <div style="text-align:center;margin-top:36px">
+            <a href="tutorials/index.html" class="btn btn-outline" style="padding:14px 28px;font-size:14px;display:inline-flex;align-items:center;gap:6px;text-decoration:none">
+                See all 17 tutorials
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="background:var(--surface-alt);padding:60px 0">
+    <div class="container">
+        <div style="max-width:780px;margin:0 auto;text-align:center">
+            <h2 style="font-family:var(--font-display);font-size:clamp(24px,3.5vw,32px);font-weight:700;margin-bottom:14px;letter-spacing:-0.02em">Need help getting started?</h2>
+            <p style="font-size:15px;color:var(--text-secondary);line-height:1.7;margin-bottom:24px">If you're a new customer and haven't received your login details yet, message us and we'll get you set up. If you have the app but can't log in, message us your phone number — we'll check it's linked to an active account.</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                <a href="https://wa.me/211923400000" class="btn btn-primary" style="padding:14px 26px;font-size:14px">WhatsApp +211 923 400 000</a>
+                <a href="contact.html" class="btn btn-outline" style="padding:14px 26px;font-size:14px">Other ways to contact us</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet"><p>Connecting South Sudan since 2013. Starlink, fiber, and LTE internet across all major cities.</p></div><div><h4>Services</h4><ul class="footer-links"><li><a href="index.html#products">Starlink Kits</a></li><li><a href="fiber.html">Fiber Internet</a></li><li><a href="services.html">All Services</a></li><li><a href="coverage.html">Coverage Map</a></li></ul></div><div><h4>Company</h4><ul class="footer-links"><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact</a></li><li><a href="faq.html">FAQ</a></li><li><a href="blog.html">Blog</a></li><li><a href="testimonials.html">Reviews</a></li><li><a href="gallery.html">Gallery</a></li><li><a href="careers.html">Careers</a></li></ul></div><div><h4>Support &amp; Legal</h4><ul class="footer-links"><li><a href="get-the-app.html">Get the App</a></li><li><a href="portal-preview.html"><strong style="color:#fff">▸ Live Portal Demo</strong></a></li><li><a href="tutorials/index.html">App Tutorials</a></li><li><a href="guides.html">Help Guides</a></li><li><a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></li><li><a href="https://wa.me/211923400000">WhatsApp Support</a></li><li><a href="terms.html">Terms of Use</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div></div><div class="footer-bottom"><span>&copy; 2026 DishNet Africa Ltd. All rights reserved.</span></div></div></footer>
+
+</body>
+</html>

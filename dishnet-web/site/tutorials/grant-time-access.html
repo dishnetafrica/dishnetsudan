@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>How to grant time access to a customer — DishNet Africa Tutorials</title>
+<meta name="description" content="Charge for Wi-Fi by the hour. Grant a customer 30 minutes, 1 hour, 4 hours, or any custom time. The app cuts them off automatically when the timer runs out.">
+<link rel="canonical" href="https://dishnetafrica.com/tutorials/grant-time-access.html">
+<link rel="icon" type="image/png" href="https://portal.dishnetss.com/uploads/images/1727669803.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Outfit:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@800;900&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="tutorial-shared.css">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to grant time access to a customer — DishNet Africa">
+<meta property="og:description" content="Charge for Wi-Fi by the hour. Grant a customer 30 minutes, 1 hour, 4 hours, or any custom time. The app cuts them off automatically when the timer runs out.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"HowTo","name":"How to grant time access to a customer","description":"Charge for Wi-Fi by the hour. Grant a customer 30 minutes, 1 hour, 4 hours, or any custom time. The app cuts them off automatically when the timer runs out.","totalTime":"PT2M","tool":[{"@type":"HowToTool","name":"DishNet customer app"}]}
+</script>
+</head>
+<body>
+
+<!-- DishNet customer app icon sprite — matches portal.php icons exactly.
+     Include once per tutorial page. Use via <svg><use href="#i-NAME"/></svg>. -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M17.5 14c-.3-.2-1.7-.8-2-.9s-.5-.2-.7.1-.8 1-1 1.2-.3.2-.6 0-1.3-.5-2.4-1.5c-.9-.8-1.5-1.8-1.7-2.1s0-.4.1-.6c.1-.1.3-.3.4-.5s.2-.3.3-.5.1-.4 0-.5-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5H7.6c-.2 0-.5.1-.8.4s-1 1-1 2.4 1.1 2.8 1.2 3 2.1 3.2 5.1 4.5c.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.2-.3-.3-.6-.4M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.4 1.3 4.9L2 22l5.3-1.3c1.4.8 3 1.2 4.7 1.2 5.5 0 10-4.5 10-10S17.5 2 12 2"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5a10 10 0 0 1 14 0M2 8.5a15 15 0 0 1 20 0M8.5 16.5a5 5 0 0 1 7 0M12 20h.01"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18.4 6.6a9 9 0 1 1-12.8 0M12 2v10"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 2v20l3-2 3 2 3-2 3 2 3-2 1 2V2zM8 7h8M8 11h8M8 15h6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path fill="currentColor" d="M14 14h2v2h-2zM18 14h3v2h-3zM14 18h2v3h-2zM18 18h3v3h-3z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 0 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 0 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3 1.6 1.6 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 0 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8 1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/></symbol>
+    <symbol id="i-router" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/></symbol>
+    <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M8 21h8M12 17v4"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 16v-4M12 8h.01"/></symbol>
+    <symbol id="i-support" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 17h.01"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+    <symbol id="i-cell" viewBox="0 0 24 24"><rect x="2" y="6" width="6" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="9" y="3" width="6" height="18" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="9" width="6" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-batt" viewBox="0 0 22 11"><rect x="0.5" y="0.5" width="19" height="10" rx="2.5" fill="none" stroke="currentColor"/><rect x="2" y="2" width="14" height="7" rx="1"/><rect x="20" y="3.5" width="1.5" height="4" rx="0.5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-speed" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 14l4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-ether" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 8h14v8H5zM7 8V6h2v2M11 8V6h2v2M15 8V6h2v2M7 16v2h2v-2M11 16v2h2v-2M15 16v2h2v-2"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 4l13 8-13 8z"/></symbol>
+</svg>
+
+
+<header class="header" id="header">
+    <div class="container">
+        <div class="header-inner">
+            <a href="../index.html" class="logo"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet Africa"></a>
+            <nav class="nav">
+                <a href="../index.html#products">Products</a>
+                <a href="../fiber.html">Fiber</a>
+                <a href="../services.html">Services</a>
+                <a href="../coverage.html">Coverage</a>
+                <a href="../about.html">About</a>
+                <a href="index.html" class="active">Tutorials</a>
+                <a href="../portal-preview.html">Live Demo</a>
+                <a href="../get-the-app.html">App</a>
+                <a href="../contact.html">Contact</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" class="btn btn-outline" style="padding:10px 20px;font-size:14px">Customer Login</a>
+                <a href="https://wa.me/211923400000" class="header-cta">Get a Quote</a>
+            </div>
+            <button class="mobile-toggle" onclick="document.getElementById('mobileNav').classList.add('open')"><span></span></button>
+        </div>
+    </div>
+</header>
+<div class="mobile-nav" id="mobileNav">
+    <button class="mobile-nav-close" onclick="this.parentElement.classList.remove('open')">&times;</button>
+    <a href="../index.html">Home</a>
+    <a href="../fiber.html">Fiber</a>
+    <a href="../services.html">Services</a>
+    <a href="../coverage.html">Coverage</a>
+    <a href="../about.html">About</a>
+    <a href="index.html">Tutorials</a>
+    <a href="../portal-preview.html">Live Portal Demo</a>
+    <a href="../get-the-app.html">App</a><a href="../contact.html">Contact</a>
+    <a href="../faq.html">FAQ</a>
+</div>
+
+
+<section class="tut-hero">
+    <div class="container">
+        <div class="tut-hero-inner">
+            <span class="badge-label badge-accent">Hotspot Mode</span>
+            <h1>How to grant time access to a customer</h1>
+            <p>Run a café, lodge, or shop? Grant a customer Wi-Fi for a set amount of time. When the timer runs out, they're auto-disconnected. Charge whatever you want.</p>
+            <div class="tut-meta">
+                <div class="tut-meta-item"><svg><use href="#i-clock"/></svg> About 3 min to complete</div>
+                <div class="tut-meta-item"><svg><use href="#i-router"/></svg> 4 steps</div>
+                <div class="tut-meta-item"><svg><use href="#i-phone"/></svg> Works on Android &amp; iOS</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="tut-steps"><div class="container">
+
+<div class="tut-step">
+    <div class="tut-step-text">
+        <div class="tut-step-num">1</div>
+        <h2>Open Hotspot Mode and tap "Connected"</h2>
+        <p>Make sure Hotspot Mode is on (see the <a href="enable-hotspot-mode.html" style="color:var(--accent);font-weight:600">previous tutorial</a> if it's not).</p>
+        <p>On the Hotspot dashboard, you'll see a <b>Connected</b> count showing how many devices are on your Wi-Fi right now. Tap it.</p>
+        <div class="tut-step-tip"><b>How customers join in the first place:</b> they connect to your Wi-Fi with the password (you can give it to them, write it on a board, or use the <b>Share Wi-Fi</b> QR code). Once they're on, you'll see them in the connected list.</div>
+    </div>
+    <div class="tut-step-mock"><div class="phone"><div class="phone-screen">
+<div class="phone-status">
+    <span>10:42</span>
+    <div class="phone-status-icons">
+        <svg width="22" height="11" viewBox="0 0 22 11"><use href="#i-batt"/></svg>
+    </div>
+</div>
+<div class="scr-head" style="padding-bottom:32px">
+    <div class="scr-head-row">
+        <button class="scr-btn"><svg><use href="#i-back"/></svg></button>
+        <div class="scr-title">Hotspot</div>
+        <button class="scr-btn"><svg><use href="#i-gear"/></svg></button>
+    </div>
+    <div class="scr-eyebrow">Cinema Café <span style="background:rgba(0,0,0,0.18);padding:2px 6px;border-radius:3px;font-size:9px;letter-spacing:0.4px;text-transform:uppercase;font-weight:700">Starlink router</span></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;position:relative;z-index:2">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:#fff">Hotspot mode</span>
+        <span class="pill green" style="background:rgba(74,222,128,0.18);color:#4ade80"><span style="width:4px;height:4px;border-radius:50%;background:currentColor;display:inline-block;margin-right:3px"></span>LIVE</span>
+    </div>
+</div>
+<div class="scr-body">
+    <div class="sl-pw-card">
+        <div class="sl-pw-top">
+            <div>
+                <div class="sl-pw-k">Location</div>
+                <div class="sl-pw-ssid">Cinema Café</div>
+            </div>
+            <span class="pill green"><span style="width:4px;height:4px;border-radius:50%;background:currentColor;display:inline-block;margin-right:3px"></span>Active</span>
+        </div>
+    </div>
+    <div class="hs-stats">
+        <div class="hs-stat" style="background:rgba(212,28,28,0.06);border:1px solid rgba(212,28,28,0.2);position:relative">
+            <div class="hs-stat-top"><div class="hs-stat-ic blue"><svg><use href="#i-users"/></svg></div><div class="hs-stat-k">Connected</div></div>
+            <div class="hs-stat-main"><span class="hs-stat-num" style="color:var(--app-red)">5</span><span class="hs-stat-unit">devices</span></div>
+            <div class="hs-stat-sub">Right now</div>
+            <div class="tap-pulse" style="right:4px;top:4px;width:32px;height:32px"></div>
+        </div>
+        <div class="hs-stat">
+            <div class="hs-stat-top"><div class="hs-stat-ic amber"><svg><use href="#i-pause"/></svg></div><div class="hs-stat-k">Paused</div></div>
+            <div class="hs-stat-main"><span class="hs-stat-num">0</span><span class="hs-stat-unit">devices</span></div>
+            <div class="hs-stat-sub">By you</div>
+        </div>
+    </div>
+    <div class="sec-lbl">Manage</div>
+    <div class="hs-acts">
+        <button class="hs-act"><div class="hs-act-ic"><svg><use href="#i-users"/></svg></div><div><div class="hs-act-tt">Connected devices</div><div class="hs-act-ts">See who's online</div></div></button>
+        <button class="hs-act"><div class="hs-act-ic"><svg><use href="#i-qr"/></svg></div><div><div class="hs-act-tt">Share Wi-Fi</div><div class="hs-act-ts">Show a QR code</div></div></button>
+    </div>
+</div>
+</div></div></div>
+</div>
+
+
+<div class="tut-step reverse">
+    <div class="tut-step-text">
+        <div class="tut-step-num">2</div>
+        <h2>Find the customer's device and tap the clock icon</h2>
+        <p>Every device on your Wi-Fi shows up here. The list shows the device name, the IP address, and a small <b>clock icon</b> on the right.</p>
+        <p>Find the customer who just paid you. Their phone usually shows up as something like <b>Samsung-A15</b>, <b>Tecno-Spark-9</b>, <b>iPhone</b>, etc.</p>
+        <p>Tap the <b>clock icon</b> on their row.</p>
+        <div class="tut-step-tip"><b>Multiple devices look the same?</b> Look at the IP address. Each device has a unique one ending in a different number (.42, .55, .48). Ask the customer "what's your phone called" if you need to be sure.</div>
+    </div>
+    <div class="tut-step-mock"><div class="phone"><div class="phone-screen">
+<div class="phone-status">
+    <span>10:42</span>
+    <div class="phone-status-icons">
+        <svg width="22" height="11" viewBox="0 0 22 11"><use href="#i-batt"/></svg>
+    </div>
+</div>
+<div class="scr-head">
+    <div class="scr-head-row">
+        <button class="scr-btn"><svg><use href="#i-back"/></svg></button>
+        <div class="scr-title">Connected Devices</div>
+        <button class="scr-btn"><svg><use href="#i-info"/></svg></button>
+    </div>
+    <div class="scr-eyebrow">Cinema Café &middot; 5 devices online</div>
+</div>
+<div class="scr-body">
+    <div class="list-card" style="margin-top:-22px;position:relative;z-index:3">
+        <div class="cd-row">
+            <div class="cd-ic"><svg><use href="#i-phone"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">iPhone-Daniel</div>
+                <div class="cd-meta">My phone &middot; 192.168.1.42</div>
+            </div>
+            <button class="cd-grant" style="opacity:0.3"><svg><use href="#i-clock"/></svg></button>
+        </div>
+        <div class="cd-row" style="background:rgba(212,28,28,0.04);position:relative">
+            <div class="cd-ic"><svg><use href="#i-phone"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name" style="color:var(--app-red)">Samsung-A15</div>
+                <div class="cd-meta">Walk-in &middot; 192.168.1.55</div>
+            </div>
+            <button class="cd-grant" style="opacity:1;background:rgba(212,28,28,0.1);color:var(--app-red)"><svg><use href="#i-clock"/></svg></button>
+            <div class="tap-pulse" style="right:8px;top:50%;margin-top:-18px;width:36px;height:36px"></div>
+        </div>
+        <div class="cd-row">
+            <div class="cd-ic"><svg><use href="#i-phone"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">Tecno-Spark-9</div>
+                <div class="cd-meta">Unknown &middot; 192.168.1.48</div>
+            </div>
+            <button class="cd-grant"><svg><use href="#i-clock"/></svg></button>
+        </div>
+        <div class="cd-row">
+            <div class="cd-ic"><svg><use href="#i-laptop"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">MacBook-Sara</div>
+                <div class="cd-meta">Staff &middot; 192.168.1.61</div>
+            </div>
+            <button class="cd-grant"><svg><use href="#i-clock"/></svg></button>
+        </div>
+        <div class="cd-row">
+            <div class="cd-ic"><svg><use href="#i-router"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">Smart-TV</div>
+                <div class="cd-meta">Living room &middot; 192.168.1.70</div>
+            </div>
+            <button class="cd-grant"><svg><use href="#i-clock"/></svg></button>
+        </div>
+    </div>
+</div>
+</div></div></div>
+</div>
+
+
+<div class="tut-step">
+    <div class="tut-step-text">
+        <div class="tut-step-num">3</div>
+        <h2>Pick how long, optionally log the cash</h2>
+        <p>A sheet pops up. Pick how much time the customer paid for:</p>
+        <p><b>30 min</b> &middot; <b>1 hour</b> &middot; <b>4 hours</b> &middot; <b>24 hours</b></p>
+        <p>Or type a <b>custom</b> number of minutes (1 to 10,080 &mdash; that's 7 days). Tap <b>Go</b> for custom.</p>
+        <p><b>Cash collected (optional):</b> if the customer paid you in cash, type the amount in SSP and a quick note like <i>"Table 4"</i> or <i>"Walk-in"</i>. This logs the sale. You can leave both blank if you're tracking money another way.</p>
+        <div class="tut-step-tip"><b>Suggested pricing:</b> 500 SSP per hour is what most cafés charge. Adjust to your market.</div>
+    </div>
+    <div class="tut-step-mock"><div class="phone"><div class="phone-screen">
+<div class="phone-status">
+    <span>10:42</span>
+    <div class="phone-status-icons">
+        <svg width="22" height="11" viewBox="0 0 22 11"><use href="#i-batt"/></svg>
+    </div>
+</div>
+<div class="scr-head" style="filter:brightness(0.55)">
+    <div class="scr-head-row">
+        <button class="scr-btn"><svg><use href="#i-back"/></svg></button>
+        <div class="scr-title">Connected Devices</div>
+        <div style="width:32px"></div>
+    </div>
+</div>
+<div class="scr-body" style="filter:brightness(0.55)"></div>
+<div class="app-sheet">
+    <div class="app-sheet-card">
+        <h3>Grant time access</h3>
+        <p>Give <b style="color:var(--app-dark)">Samsung-A15</b> internet for a set time. After the timer expires the device will be auto-paused.</p>
+
+        <div class="grant-chips">
+            <button class="grant-chip">30 min</button>
+            <button class="grant-chip active">1 hour</button>
+            <button class="grant-chip">4 hours</button>
+            <button class="grant-chip">24 hours</button>
+        </div>
+
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px">
+            <label style="font-size:9px;color:var(--app-gray-2);font-weight:700;letter-spacing:0.3px;text-transform:uppercase">Custom</label>
+            <input class="app-input" placeholder="minutes" value="" readonly style="margin:0;flex:1;padding:7px 9px;font-size:11px">
+            <button class="grant-chip" style="padding:7px 12px">Go</button>
+        </div>
+
+        <div class="grant-cash-row">
+            <div class="grant-cash-k">Cash collected (optional)</div>
+            <div class="grant-cash-inputs">
+                <input value="500" placeholder="SSP" readonly style="font-weight:600">
+                <input value="Table 4" placeholder="Note (e.g. Table 4)" readonly>
+            </div>
+        </div>
+
+        <button class="cta-alt" style="margin-top:12px">Cancel</button>
+    </div>
+</div>
+</div></div></div>
+</div>
+
+
+<div class="tut-step reverse">
+    <div class="tut-step-text">
+        <div class="tut-step-num">4</div>
+        <h2>The timer ticks down — auto-cut at zero</h2>
+        <p>Once you tap the time chip, the customer is granted internet. Their device row now shows a <b>green countdown badge</b> (<i>59:47</i>) and the clock icon turns green.</p>
+        <p>You don't need to do anything else. When the timer hits zero, the app <b>auto-pauses</b> the device. The customer's phone will say "no internet" and they'll need to come back to you (and pay again) for more time.</p>
+        <p>If they pay for more time before the timer ends, just tap the <b>clock icon</b> again on their row to <b>extend</b> the grant.</p>
+        <p>If you want to cut them off early, <b>long-press</b> the green clock icon to revoke.</p>
+        <div class="tut-step-tip"><b>What's important to know:</b> this works on the device's MAC address. A tech-savvy customer could "spoof" their MAC address and get free Wi-Fi after their time runs out. For real cybercafés that need anti-spoofing, vouchers, and speed caps, ask us about <b>fiber + MikroTik</b> instead.</div>
+    </div>
+    <div class="tut-step-mock"><div class="phone"><div class="phone-screen">
+<div class="phone-status">
+    <span>10:42</span>
+    <div class="phone-status-icons">
+        <svg width="22" height="11" viewBox="0 0 22 11"><use href="#i-batt"/></svg>
+    </div>
+</div>
+<div class="scr-head">
+    <div class="scr-head-row">
+        <button class="scr-btn"><svg><use href="#i-back"/></svg></button>
+        <div class="scr-title">Connected Devices</div>
+        <button class="scr-btn"><svg><use href="#i-info"/></svg></button>
+    </div>
+    <div class="scr-eyebrow">Cinema Café &middot; 1 active grant</div>
+</div>
+<div class="scr-body">
+    <div style="background:rgba(31,157,85,0.08);border:1px solid rgba(31,157,85,0.2);border-radius:11px;padding:10px 12px;margin-top:-22px;position:relative;z-index:3;font-size:11px;color:var(--app-green-mid);display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <svg style="width:14px;height:14px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <div>
+            <b style="display:block;font-weight:700">Time access granted</b>
+            Samsung-A15 has 1 hour of internet (500 SSP collected, "Table 4")
+        </div>
+    </div>
+    <div class="list-card">
+        <div class="cd-row">
+            <div class="cd-ic"><svg><use href="#i-phone"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">iPhone-Daniel</div>
+                <div class="cd-meta">My phone &middot; 192.168.1.42</div>
+            </div>
+            <button class="cd-grant" style="opacity:0.3"><svg><use href="#i-clock"/></svg></button>
+        </div>
+        <div class="cd-row" style="background:rgba(31,157,85,0.04)">
+            <div class="cd-ic" style="background:var(--app-green-light);color:var(--app-green-mid)"><svg><use href="#i-phone"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">Samsung-A15</div>
+                <div class="cd-meta">Walk-in &middot; 192.168.1.55</div>
+            </div>
+            <span class="cd-timer">59:47</span>
+            <button class="cd-grant active"><svg><use href="#i-clock"/></svg></button>
+        </div>
+        <div class="cd-row">
+            <div class="cd-ic"><svg><use href="#i-phone"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">Tecno-Spark-9</div>
+                <div class="cd-meta">Unknown &middot; 192.168.1.48</div>
+            </div>
+            <button class="cd-grant"><svg><use href="#i-clock"/></svg></button>
+        </div>
+        <div class="cd-row">
+            <div class="cd-ic"><svg><use href="#i-laptop"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">MacBook-Sara</div>
+                <div class="cd-meta">Staff &middot; 192.168.1.61</div>
+            </div>
+            <button class="cd-grant"><svg><use href="#i-clock"/></svg></button>
+        </div>
+        <div class="cd-row">
+            <div class="cd-ic"><svg><use href="#i-router"/></svg></div>
+            <div class="cd-t">
+                <div class="cd-name">Smart-TV</div>
+                <div class="cd-meta">Living room &middot; 192.168.1.70</div>
+            </div>
+            <button class="cd-grant"><svg><use href="#i-clock"/></svg></button>
+        </div>
+    </div>
+</div>
+</div></div></div>
+</div>
+
+</div></section>
+<section class="tut-foot"><div class="container"><div class="tut-foot-grid">
+        <a class="tut-foot-card" href="enable-hotspot-mode.html">
+            <div class="tut-foot-arrow"><svg style="transform:rotate(180deg)"><use href="#i-arrow"/></svg></div>
+            <div><div class="tut-foot-k">Previous</div><div class="tut-foot-t">How to turn on Hotspot Mode</div></div>
+        </a>
+        <a class="tut-foot-card next" href="view-pay-invoice.html">
+            <div class="tut-foot-arrow"><svg><use href="#i-arrow"/></svg></div>
+            <div><div class="tut-foot-k">Next up</div><div class="tut-foot-t">How to view and pay an invoice</div></div>
+        </a></div></div></section>
+
+<section class="tut-help">
+    <div class="container">
+        <div class="tut-help-inner">
+            <div>
+                <div class="tut-help-t">Stuck on something?</div>
+                <div class="tut-help-s">Our team in Juba is on WhatsApp 7 days a week.</div>
+            </div>
+            <a href="https://wa.me/211923400000" class="btn btn-primary">
+                <svg style="width:16px;height:16px"><use href="#i-wa"/></svg>
+                Message support
+            </a>
+        </div>
+    </div>
+</section>
+
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet">
+                <p>Connecting South Sudan since 2013. Starlink, fiber, and LTE internet across all major cities.</p>
+            </div>
+            <div>
+                <h4>Internet</h4>
+                <ul class="footer-links">
+                    <li><a href="../index.html#products">Starlink Kits</a></li>
+                    <li><a href="../fiber.html">Fiber Internet</a></li>
+                    <li><a href="../services.html">All Services</a></li>
+                    <li><a href="../coverage.html">Coverage Map</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Company</h4>
+                <ul class="footer-links">
+                    <li><a href="../about.html">About Us</a></li>
+                    <li><a href="../contact.html">Contact</a></li>
+                    <li><a href="../faq.html">FAQ</a></li>
+                    <li><a href="../testimonials.html">Reviews</a></li>
+                    <li><a href="../careers.html">Careers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Support &amp; Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="../get-the-app.html">Get the App</a></li>
+                    <li><a href="../portal-preview.html"><strong style="color:#fff">▸ Live Portal Demo</strong></a></li>
+                    <li><a href="index.html">Tutorials</a></li>
+                    <li><a href="../guides.html">Help Guides</a></li>
+                    <li><a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></li>
+                    <li><a href="https://wa.me/211923400000">WhatsApp Support</a></li>
+                    <li><a href="../terms.html">Terms of Use</a></li>
+                    <li><a href="../privacy.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom"><span>&copy; 2026 DishNet Africa Ltd. All rights reserved.</span></div>
+    </div>
+</footer>
+<a href="https://wa.me/211923400000" class="wa-float" target="_blank" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+<script>
+window.addEventListener('scroll', () => {
+    document.getElementById('header').classList.toggle('scrolled', window.scrollY > 40);
+});
+</script>
+</body>
+</html>

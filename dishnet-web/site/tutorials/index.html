@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>App Tutorials — DishNet Africa</title>
+<meta name="description" content="Step-by-step tutorials for the DishNet customer app. Learn how to log in, change your Wi-Fi password, turn on hotspot mode, grant time access, and pay invoices.">
+<link rel="icon" type="image/png" href="https://portal.dishnetss.com/uploads/images/1727669803.png">
+<link rel="canonical" href="https://dishnetafrica.com/tutorials/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<meta property="og:type" content="website">
+<meta property="og:title" content="App Tutorials — DishNet Africa">
+<meta property="og:description" content="Step-by-step tutorials for the DishNet customer app.">
+<style>
+.tutorials-hero { padding: 130px 0 50px; background: linear-gradient(160deg, #fff 0%, var(--surface-alt) 100%); position: relative; overflow: hidden; }
+.tutorials-hero::after { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
+.tutorials-hero-inner { position: relative; z-index: 2; text-align: center; max-width: 720px; margin: 0 auto; }
+.tutorials-hero h1 { font-family: var(--font-display); font-size: clamp(34px, 5vw, 52px); font-weight: 800; line-height: 1.05; margin-bottom: 16px; letter-spacing: -0.02em; }
+.tutorials-hero h1 .accent { color: var(--accent); }
+.tutorials-hero p { font-size: 18px; color: var(--text-secondary); line-height: 1.7; margin: 0 auto 28px; }
+.tutorials-hero-meta { display: inline-flex; gap: 24px; font-size: 13px; color: var(--text-secondary); flex-wrap: wrap; justify-content: center; }
+.tutorials-hero-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+
+.tutorials-grid-section { padding: 60px 0 100px; }
+.tutorials-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+.tut-link {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 28px 24px;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+.tut-link::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle at top right, var(--glow), transparent 70%);
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+.tut-link:hover {
+    transform: translateY(-4px);
+    border-color: transparent;
+    box-shadow: 0 12px 36px rgba(26, 24, 20, 0.10);
+}
+.tut-link:hover::before { opacity: 0.85; }
+.tut-link-num {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+}
+.tut-link h2 {
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+    color: var(--text);
+    position: relative;
+    z-index: 1;
+}
+.tut-link p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 18px;
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+.tut-link-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+}
+.tut-link-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+.tut-link-meta-item svg { width: 12px; height: 12px; flex-shrink: 0; }
+.tut-link-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-top: auto;
+    position: relative;
+    z-index: 1;
+    transition: gap 0.2s;
+}
+.tut-link:hover .tut-link-cta { gap: 9px; }
+.tut-link-cta svg { width: 12px; height: 12px; }
+
+.tutorials-help {
+    background: var(--surface-alt);
+    padding: 70px 0;
+}
+.tutorials-help-inner {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto;
+}
+.tutorials-help h2 {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+}
+.tutorials-help p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+.tutorials-help-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .tutorials-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="header" id="header">
+    <div class="container">
+        <div class="header-inner">
+            <a href="../index.html" class="logo"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet Africa"></a>
+            <nav class="nav">
+                <a href="../index.html#products">Products</a>
+                <a href="../fiber.html">Fiber</a>
+                <a href="../services.html">Services</a>
+                <a href="../coverage.html">Coverage</a>
+                <a href="../about.html">About</a>
+                <a href="index.html" class="active">Tutorials</a>
+                <a href="../portal-preview.html">Live Demo</a>
+                <a href="../get-the-app.html">App</a>
+                <a href="../contact.html">Contact</a>
+            </nav>
+            <div class="nav-actions">
+                <a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" class="btn btn-outline" style="padding:10px 20px;font-size:14px">Customer Login</a>
+                <a href="https://wa.me/211923400000" class="header-cta">Get a Quote</a>
+            </div>
+            <button class="mobile-toggle" onclick="document.getElementById('mobileNav').classList.add('open')"><span></span></button>
+        </div>
+    </div>
+</header>
+<div class="mobile-nav" id="mobileNav">
+    <button class="mobile-nav-close" onclick="this.parentElement.classList.remove('open')">&times;</button>
+    <a href="../index.html">Home</a>
+    <a href="../fiber.html">Fiber</a>
+    <a href="../services.html">Services</a>
+    <a href="../coverage.html">Coverage</a>
+    <a href="../about.html">About</a>
+    <a href="index.html">Tutorials</a>
+    <a href="../portal-preview.html">Live Portal Demo</a>
+    <a href="../get-the-app.html">App</a><a href="../contact.html">Contact</a>
+    <a href="../faq.html">FAQ</a>
+</div>
+
+<section class="tutorials-hero">
+    <div class="container">
+        <div class="tutorials-hero-inner">
+            <span class="badge-label badge-accent">Customer app guides</span>
+            <h1>Learn the <span class="accent">DishNet app</span><br>in a few minutes.</h1>
+            <p>Step-by-step tutorials with screenshots from the actual app. Pick what you want to learn and follow along.</p>
+            <div class="tutorials-hero-meta">
+                <span class="tutorials-hero-meta-item">⚡ Fast pages, light data use</span>
+                <span class="tutorials-hero-meta-item">📱 Real screens from the app</span>
+                <span class="tutorials-hero-meta-item">🔄 Updated when the app changes</span>
+            </div>
+            <div style="margin-top:28px;display:inline-flex;flex-wrap:wrap;gap:10px;justify-content:center">
+                <a href="../get-the-app.html" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:var(--accent);color:#fff;border-radius:11px;font-family:var(--font-display);font-weight:600;font-size:14px;text-decoration:none;transition:var(--transition)">
+                    📱 Get the app
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </a>
+                <a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:#fff;color:var(--text);border:1.5px solid var(--border);border-radius:11px;font-family:var(--font-display);font-weight:600;font-size:14px;text-decoration:none;transition:var(--transition)">
+                    🌐 Or use the web portal
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="tutorials-grid-section">
+    <div class="container">
+        <div class="tutorials-grid">
+
+            <a href="login-to-dishnet.html" class="tut-link" style="--glow: rgba(200, 16, 46, 0.12)">
+                <div class="tut-link-num">Tutorial 1 &middot; Getting started</div>
+                <h2>How to log in to DishNet</h2>
+                <p>The DishNet app uses your phone number and a WhatsApp code to sign you in &mdash; no passwords to remember.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 4 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="change-wifi-password.html" class="tut-link" style="--glow: rgba(14, 165, 233, 0.12)">
+                <div class="tut-link-num">Tutorial 2 &middot; Wi-Fi management</div>
+                <h2>How to change your Wi-Fi password</h2>
+                <p>Forgot your password? Or worried about who's connected? Change it from the app in under a minute.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="enable-hotspot-mode.html" class="tut-link" style="--glow: rgba(255, 122, 53, 0.14)">
+                <div class="tut-link-num">Tutorial 3 &middot; Hotspot Mode</div>
+                <h2>How to turn on Hotspot Mode</h2>
+                <p>Hotspot Mode is a dashboard for your Wi-Fi: see who's connected, share access via QR code, change the password, and grant time access.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 3 min</span>
+                    <span class="tut-link-meta-item">📋 4 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="grant-time-access.html" class="tut-link" style="--glow: rgba(34, 197, 94, 0.14)">
+                <div class="tut-link-num">Tutorial 4 &middot; Hotspot Mode</div>
+                <h2>How to grant time access to a customer</h2>
+                <p>Charge for Wi-Fi by the hour. Grant 30 min, 1 hour, 4 hours or any custom time. The app cuts customers off automatically when the timer runs out.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 3 min</span>
+                    <span class="tut-link-meta-item">📋 4 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="view-pay-invoice.html" class="tut-link" style="--glow: rgba(180, 107, 0, 0.14)">
+                <div class="tut-link-num">Tutorial 5 &middot; Invoices</div>
+                <h2>How to view and pay an invoice</h2>
+                <p>See every invoice, view the PDF, get our bank details, and notify our accounts team when you've paid &mdash; all from the app.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 4 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="check-data-usage.html" class="tut-link" style="--glow: rgba(14, 165, 233, 0.12)">
+                <div class="tut-link-num">Tutorial 6 &middot; Data &amp; usage</div>
+                <h2>How to check your data usage</h2>
+                <p>See how much data you've used this cycle, plus a daily chart that shows your big-data days. Useful for spotting bandwidth hogs.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="run-speed-test.html" class="tut-link" style="--glow: rgba(34, 197, 94, 0.14)">
+                <div class="tut-link-num">Tutorial 7 &middot; Diagnostics</div>
+                <h2>How to run a speed test</h2>
+                <p>Test your DishNet connection speed. The app measures download, upload, and ping using Cloudflare's nearest server.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 4 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="check-starlink-online.html" class="tut-link" style="--glow: rgba(200, 16, 46, 0.12)">
+                <div class="tut-link-num">Tutorial 8 &middot; Diagnostics</div>
+                <h2>How to check if Starlink is online</h2>
+                <p>Internet feels slow or dead? Check your dish status from the app. The Refresh button asks your dish directly whether it's online.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 4 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="manage-multiple-sites.html" class="tut-link" style="--glow: rgba(14, 165, 233, 0.12)">
+                <div class="tut-link-num">Tutorial 9 &middot; Multi-site</div>
+                <h2>How to manage multiple sites</h2>
+                <p>If your business has more than one Starlink, the app shows them all in one place. See active and inactive sites and jump between them.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="see-connected-devices.html" class="tut-link" style="--glow: rgba(255, 122, 53, 0.14)">
+                <div class="tut-link-num">Tutorial 10 &middot; Hotspot Mode</div>
+                <h2>How to see who is connected to your Wi-Fi</h2>
+                <p>See every device on your network &mdash; phones, laptops, TVs &mdash; with names, IP addresses, and live link speeds. Spot piggybackers.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 3 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="pause-a-device.html" class="tut-link" style="--glow: rgba(180, 107, 0, 0.14)">
+                <div class="tut-link-num">Tutorial 11 &middot; Hotspot Mode</div>
+                <h2>How to pause a device on your Wi-Fi</h2>
+                <p>Block a specific device from your Wi-Fi without changing the password. Useful for piggybackers or kids' tablets at bedtime.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="share-wifi-qr-code.html" class="tut-link" style="--glow: rgba(34, 197, 94, 0.14)">
+                <div class="tut-link-num">Tutorial 12 &middot; Hotspot Mode</div>
+                <h2>How to share Wi-Fi via QR code</h2>
+                <p>Show a guest a QR code, they scan it with their camera, they're connected. No typing the password, no spelling it out.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="disable-hotspot-mode.html" class="tut-link" style="--glow: rgba(200, 16, 46, 0.12)">
+                <div class="tut-link-num">Tutorial 13 &middot; Hotspot Mode</div>
+                <h2>How to turn off Hotspot Mode</h2>
+                <p>Done with the Hotspot dashboard? Turning it off is one tap. Your Wi-Fi network and password don't change &mdash; only the dashboard.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="switch-between-accounts.html" class="tut-link" style="--glow: rgba(14, 165, 233, 0.12)">
+                <div class="tut-link-num">Tutorial 14 &middot; Account</div>
+                <h2>How to switch between accounts</h2>
+                <p>If you have a personal account and a business account on the same phone number, the app keeps both. Switch between them in two taps.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="get-help-on-whatsapp.html" class="tut-link" style="--glow: rgba(34, 197, 94, 0.14)">
+                <div class="tut-link-num">Tutorial 15 &middot; Support</div>
+                <h2>How to get help on WhatsApp</h2>
+                <p>The fastest way to reach DishNet support. The app opens WhatsApp with our number and a pre-filled message &mdash; you just hit send.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="send-invoice-to-whatsapp.html" class="tut-link" style="--glow: rgba(180, 107, 0, 0.14)">
+                <div class="tut-link-num">Tutorial 16 &middot; Invoices</div>
+                <h2>How to send an invoice to WhatsApp</h2>
+                <p>Need to share an invoice with your accountant? One tap sends the PDF straight to WhatsApp with a pre-filled message.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="change-network-name.html" class="tut-link" style="--glow: rgba(14, 165, 233, 0.12)">
+                <div class="tut-link-num">Tutorial 17 &middot; Wi-Fi</div>
+                <h2>How to change your Wi-Fi network name</h2>
+                <p>Want to rename your Wi-Fi from the default to something personal? The Advanced option in the password screen lets you set a new SSID.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 2 min</span>
+                    <span class="tut-link-meta-item">📋 3 steps</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <a href="activate-starlink-send-location.html" class="tut-link" style="--glow: rgba(34, 197, 94, 0.18); grid-column: 1 / -1">
+                <div class="tut-link-num">Tutorial 18 &middot; New customer activation &middot; <span style="background:rgba(34,197,94,0.12);color:var(--accent);padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:0.5px">START HERE IF YOU JUST GOT YOUR KIT</span></div>
+                <h2>How to send your location to activate Starlink</h2>
+                <p>Just collected your Starlink kit? You need to send your GPS location on WhatsApp before our team can activate the service. Three ways to do it &mdash; pick whichever is easiest. Most customers complete this in under 2 minutes.</p>
+                <div class="tut-link-meta">
+                    <span class="tut-link-meta-item">⏱ 3 min</span>
+                    <span class="tut-link-meta-item">📋 4 steps</span>
+                    <span class="tut-link-meta-item">📍 Day 1 setup</span>
+                </div>
+                <span class="tut-link-cta">Read tutorial
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+<section class="tutorials-help">
+    <div class="container">
+        <div class="tutorials-help-inner">
+            <h2>Can't find what you're looking for?</h2>
+            <p>More tutorials are on the way. In the meantime, message our team in Juba on WhatsApp &mdash; we're online 7 days a week and we'll walk you through anything.</p>
+            <div class="tutorials-help-actions">
+                <a href="https://wa.me/211923400000" class="btn btn-primary">Message support on WhatsApp</a>
+                <a href="../contact.html" class="btn btn-outline">Contact page</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet">
+                <p>Connecting South Sudan since 2013. Starlink, fiber, and LTE internet across all major cities.</p>
+            </div>
+            <div>
+                <h4>Internet</h4>
+                <ul class="footer-links">
+                    <li><a href="../index.html#products">Starlink Kits</a></li>
+                    <li><a href="../fiber.html">Fiber Internet</a></li>
+                    <li><a href="../services.html">All Services</a></li>
+                    <li><a href="../coverage.html">Coverage Map</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Company</h4>
+                <ul class="footer-links">
+                    <li><a href="../about.html">About Us</a></li>
+                    <li><a href="../contact.html">Contact</a></li>
+                    <li><a href="../faq.html">FAQ</a></li>
+                    <li><a href="../testimonials.html">Reviews</a></li>
+                    <li><a href="../careers.html">Careers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Support &amp; Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="../get-the-app.html">Get the App</a></li>
+                    <li><a href="../portal-preview.html"><strong style="color:#fff">▸ Live Portal Demo</strong></a></li>
+                    <li><a href="index.html">Tutorials</a></li>
+                    <li><a href="../guides.html">Help Guides</a></li>
+                    <li><a href="https://crm.dishnetafrica.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></li>
+                    <li><a href="https://wa.me/211923400000">WhatsApp Support</a></li>
+                    <li><a href="../terms.html">Terms of Use</a></li>
+                    <li><a href="../privacy.html">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom"><span>&copy; 2026 DishNet Africa Ltd. All rights reserved.</span></div>
+    </div>
+</footer>
+
+<a href="https://wa.me/211923400000" class="wa-float" target="_blank" aria-label="WhatsApp">
+    <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<script>
+window.addEventListener('scroll', () => {
+    document.getElementById('header').classList.toggle('scrolled', window.scrollY > 40);
+});
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ItemList","name":"DishNet App Tutorials","itemListElement":[
+{"@type":"HowTo","position":1,"name":"How to log in to DishNet","url":"https://dishnetafrica.com/tutorials/login-to-dishnet.html"},
+{"@type":"HowTo","position":2,"name":"How to change your Wi-Fi password","url":"https://dishnetafrica.com/tutorials/change-wifi-password.html"},
+{"@type":"HowTo","position":3,"name":"How to turn on Hotspot Mode","url":"https://dishnetafrica.com/tutorials/enable-hotspot-mode.html"},
+{"@type":"HowTo","position":4,"name":"How to grant time access to a customer","url":"https://dishnetafrica.com/tutorials/grant-time-access.html"},
+{"@type":"HowTo","position":5,"name":"How to view and pay an invoice","url":"https://dishnetafrica.com/tutorials/view-pay-invoice.html"}
+]}
+</script>
+
+</body>
+</html>

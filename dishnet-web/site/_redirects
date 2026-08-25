@@ -1,0 +1,24 @@
+/device /index.html#products 301
+/device/1/view /device-mini.html 301
+/device/2/view /device-v4.html 301
+/device/4/view /device-hp.html 301
+/device/6/view /device-actuated.html 301
+/business /index.html#order 301
+/faqs /faq.html 301
+/about-us /about.html 301
+/contact-us /contact.html 301
+/terms-of-use /terms.html 301
+/services /services.html 301
+/fiber /fiber.html 301
+/application /contact.html 301
+
+# Block directory listing on demo subfolders
+/demo/ngo/sites /demo/ngo/sites.html 301
+/demo/embassy/sites /demo/embassy/sites.html 301
+/demo/un/sites /demo/un/sites.html 301
+
+# Block directory listing on demo root
+/demo /demo/index.html 301
+
+# Catch-all 404 -> home
+/* /index.html 200
