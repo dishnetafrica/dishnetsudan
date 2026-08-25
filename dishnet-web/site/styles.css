@@ -134,7 +134,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .wa-float svg { width: 28px; height: 28px; fill: #fff; }
 
 /* ── Page Hero (generic) ── */
-.page-hero { padding: 130px 0 60px; background: linear-gradient(160deg, #fff 0%, var(--surface-alt) 100%); text-align: center; position: relative; }
+.page-hero { padding: 130px 0 60px; background: linear-gradient(160deg, #fff 0%, var(--surface-alt) 100%); text-align: center; position: relative; overflow: hidden; }
 .page-hero::after { content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); pointer-events: none; }
 .page-hero h1 { font-family: var(--font-display); font-size: clamp(32px, 4.5vw, 48px); font-weight: 800; line-height: 1.1; margin-bottom: 16px; position: relative; z-index: 2; }
 .page-hero h1 .accent { color: var(--accent); }

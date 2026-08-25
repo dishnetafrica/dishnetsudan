@@ -216,6 +216,7 @@ PRICES = [
     (r"DishNet offers professional installation for \$50\.",
      "DishNet offers professional installation.", "unconfirmed install fee"),
     (r"Plans from \$65/mo", "Plans from \$142/mo", "old starting price"),
+    (r"quick answers about Starlink, fiber, billing", "quick answers about Starlink, billing", "fibre in support scope"),
     # The country rename turned "South Sudanese Pounds (SSP)" into "Sudanese
     # Pounds (SSP)" -- but SSP is South Sudan's currency; Sudan's is SDG, and
     # whether local-currency payment is accepted has not been decided. Claim
