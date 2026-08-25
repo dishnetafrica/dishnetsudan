@@ -152,6 +152,10 @@ PYCHK
 # An absolute image URL on our own domain means the domain rename rewrote a
 # path that only exists in the South Sudan CMS. It 404s in production and the
 # local-link crawl above cannot see it, because it only checks relative refs.
+ext=$(grep -rloE '(src|content)="https://(dishnetafrica\.com|portal\.dishnetss\.com)[^"]*"' "$HERE/site" --include='*.html' \
+      | grep -vE 'gallery|testimonials|fiber|pay\.|hotspot|security|reseller|blog-starlink-south|404' | head -3 || true)
+[ -n "$ext" ] && { echo "  remote South Sudan image host referenced: $ext"; fail=1; } \
+              || echo "  no South Sudan image hosts referenced anywhere"
 selfabs=$(grep -rhoE 'src="https://dishnetsudan\.com/[^"]+"' "$HERE/site" --include='*.html' | sort -u || true)
 [ -n "$selfabs" ] && { echo "  absolute self-URL will 404: $selfabs"; fail=1; }
 [ $fail -eq 0 ] && echo "  no South-Sudan-only claims, sitemap well-formed, no self-404 images"

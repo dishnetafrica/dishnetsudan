@@ -453,6 +453,25 @@ function toggleFaq(btn) {
     for i, s in enumerate(PROTECT):
         text = text.replace(f"\x00P{i}\x00", s)
 
+    # self-contained: no remote images on published pages. Runs AFTER the
+    # protect-restore so the upload URLs are visible to it; gallery.html is
+    # held (noindexed South Sudan photos awaiting real Sudan ones) and its
+    # src attributes are left alone until those photos exist.
+    text, n = re.subn(r'<img src="https://portal\.dishnetss\.com/uploads/images/1727669803\.png"[^>]*>',
+                      '<span class="logo-text">DishNet<small>SUDAN</small></span>', text)
+    if n: notes.append(f"{n}x remote logo -> text")
+    text, n = re.subn(r'content="https://(?:portal\.dishnetss\.com|dishnetafrica\.com)/[^"]*\.(?:png|jpe?g|avif|webp)"',
+                      'content="https://dishnetsudan.com/assets/img/og-dishnet.png"', text)
+    if n: notes.append(f"{n}x og image -> own")
+    text, n = re.subn(r'"(logo|image)":"https://(?:portal\.dishnetss\.com|dishnetafrica\.com)/[^"]*"',
+                      r'"\1":"https://dishnetsudan.com/assets/img/og-dishnet.png"', text)
+    if n: notes.append(f"{n}x schema image -> own")
+    text, n = re.subn(r'<link rel="(icon|apple-touch-icon|shortcut icon)"[^>]*href="https://(?:portal\.dishnetss\.com|dishnetafrica\.com)[^"]*"[^>]*>',
+                      '<link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">'
+                      '<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">', text)
+    if n: notes.append(f"{n}x favicon -> own")
+
+
     u = f"https://{DOMAIN}{url_path(path)}"
     text = re.sub(r'(<link rel="canonical" href=")[^"]*(")', lambda m: m.group(1)+u+m.group(2), text)
     text = re.sub(r'(<meta property="og:url" content=")[^"]*(")', lambda m: m.group(1)+u+m.group(2), text)
