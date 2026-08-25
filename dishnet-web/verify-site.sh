@@ -41,12 +41,22 @@ fail=0
 echo "== _redirects (Netlify rules reproduced in nginx) =="
 while read -r from to _; do
   case "$from" in ''|'#'*|'/*') continue;; esac
-  got=$(curl -s -o /dev/null -w '%{redirect_url}' "$B$from"); got=${got#$B}
-  if [ "$got" = "$to" ]; then
+  # Read the raw Location header, not curl's resolved target. Stripping the
+  # base URL off a resolved target hides an absolute Location -- and an
+  # absolute one is a production bug: nginx builds it from the scheme and port
+  # IT sees (http, 8080) rather than the ones the visitor used, so the redirect
+  # points somewhere unreachable behind a TLS-terminating proxy.
+  loc=$(curl -sI "$B$from" | tr -d '\r' | awk 'tolower($1)=="location:"{print $2}')
+  case "$loc" in
+    /*) : ;;
+    '') echo "  $from -> no Location header"; fail=1; continue ;;
+     *) echo "  $from -> $loc  (absolute Location; must be relative)"; fail=1; continue ;;
+  esac
+  if [ "$loc" = "$to" ]; then
     tgt=$(curl -s -o /dev/null -w '%{http_code}' "$B${to%%#*}")
     [ "$tgt" = 200 ] || { echo "  $from -> $to but target is HTTP $tgt"; fail=1; }
   else
-    echo "  $from -> ${got:-<none>}  (expected $to)"; fail=1
+    echo "  $from -> $loc  (expected $to)"; fail=1
   fi
 done < "$HERE/site/_redirects"
 [ $fail -eq 0 ] && echo "  all rules fire, all targets resolve"

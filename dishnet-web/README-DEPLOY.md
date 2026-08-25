@@ -64,7 +64,21 @@ catch-all below: the site answers **200 with the homepage** instead of 404, so
 nothing looks wrong until a customer reports it. The script resolves each link
 relative to its own page and flags any that silently lands on the homepage.
 
-Two bugs it caught here, neither visible by reading the config:
+A third only appeared in production, and is the reason the redirect check now
+reads the raw `Location` header rather than curl's resolved target:
+
+- **Every redirect pointed at `http://dishnetsudan.com:8080/...`** — wrong
+  scheme, wrong port, publicly unreachable. nginx builds an absolute `Location`
+  from what *it* sees, and behind a TLS-terminating proxy that is plain http on
+  8080, not what the visitor used. All 18 legacy URLs were broken. Fixed with
+  `absolute_redirect off`, which emits a relative `Location` the browser
+  resolves against the URL it actually requested.
+
+  The old check stripped the base URL off the target before comparing, so an
+  absolute Location and a relative one looked identical. It now rejects any
+  absolute Location outright.
+
+Two more it caught before deployment, neither visible by reading the config:
 
 - **The security headers reached no page at all.** nginx discards every
   inherited `add_header` in any block that declares one of its own, and both
