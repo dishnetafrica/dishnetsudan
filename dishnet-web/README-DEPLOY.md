@@ -45,6 +45,40 @@ for p in /faqs /about-us /contact-us /services /fiber /terms-of-use \
 done
 ```
 
+## Verified before handover
+
+`./verify-site.sh` serves `site/` with this exact `nginx.conf` and drives real
+HTTP through it. Current result:
+
+```
+_redirects        all 17 rules fire, all targets resolve 200
+headers           3/3 security headers, exactly one Cache-Control, on every path type
+pages             271 pages, 0 non-200
+links and assets  137 references, 0 broken, 0 masked
+PASS
+```
+
+Worth re-running after the localisation pass, which will rewrite hundreds of
+links. A broken link is invisible in production precisely because of the
+catch-all below: the site answers **200 with the homepage** instead of 404, so
+nothing looks wrong until a customer reports it. The script resolves each link
+relative to its own page and flags any that silently lands on the homepage.
+
+Two bugs it caught here, neither visible by reading the config:
+
+- **The security headers reached no page at all.** nginx discards every
+  inherited `add_header` in any block that declares one of its own, and both
+  the `.html` and asset blocks did. Fixed by letting `expires` carry the
+  caching, so those blocks declare no `add_header`.
+- **Two competing `Cache-Control` headers** on every page, because `expires`
+  already emits one alongside the explicit `add_header`.
+
+`expires` now sits at server level so extensionless URLs (`/faq`, `/about`) are
+covered too — they are served through `try_files`, which bypasses location
+matching, so they previously had no cache header and fell back to browser
+heuristics. On a site about to be re-localised that could pin a stale page for
+days.
+
 ## The `_redirects` conversion
 
 The source was built for Netlify. Its `_redirects` file does nothing under
