@@ -646,6 +646,16 @@ if ($page === 'wa_webhook') {
     exit;
 }
 
+// ── DishNet AI tool API (Sudan edition) ──────────────────────────
+// URL: public.php?page=ai_tools&tool=products
+// Same reason as the webhook below: uCRM serves only public.php from a plugin
+// directory, so ai_tools.php cannot be reached at its own path.
+if ($page === 'ai_tools') {
+    while (ob_get_level() > 0) ob_end_clean();
+    require __DIR__ . '/ai_tools.php';
+    exit;
+}
+
 //  Evolution API Webhook 
 // URL: public.php?page=evo_webhook
 if ($page === 'evo_webhook') {

@@ -131,8 +131,12 @@ if ($_hPub === '') {
 } elseif (strpos($_hPub, ':8443') !== false) {
     $row('WhatsApp', 'Plugin address', 'bad',
          $_hPub . ' — port 8443 bypasses Traefik and serves a self-signed certificate; Evolution will refuse it');
+} elseif (substr($_hPub, -11) === '/public.php') {
+    $row('WhatsApp', 'Plugin address', 'warn',
+         $_hPub . ' — drop the /public.php; paste the folder only');
 } else {
-    $row('WhatsApp', 'Plugin address', 'ok', $_hPub);
+    $row('WhatsApp', 'Plugin address', 'ok',
+         $_hPub . '/public.php?page=evo_webhook');
 }
 
 $_hSeen = 0;

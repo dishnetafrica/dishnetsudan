@@ -28,9 +28,30 @@ function wa_ai_public_base(array $cfg): string
     $saved = rtrim(trim((string)($cfg['plugin_public_url'] ?? '')), '/');
     if ($saved !== '') return $saved;
 
-    $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
+    // uCRM terminates TLS and proxies to the plugin over plain HTTP, so
+    // $_SERVER['HTTPS'] is unset here even when the browser is on https.
+    // Trust the forwarded header, and otherwise assume https -- an http guess
+    // is always wrong for a uCRM install.
+    $fwd    = strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+    $scheme = $fwd !== '' ? $fwd
+            : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'https');
     return $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? '')
          . rtrim(str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? ''))), '/');
+}
+
+/**
+ * The address Evolution must POST to.
+ *
+ * uCRM does NOT serve arbitrary PHP files from a plugin directory -- only
+ * public.php. Asking for evo_webhook.php directly returns uCRM's own "Page not
+ * found", which is why webhook registration appeared to work and then nothing
+ * ever arrived. The original Hybrid plugin solved this the same way and says so
+ * in public.php: routes go through public.php?page=... instead.
+ */
+function wa_ai_webhook_url(array $cfg, string $secret): string
+{
+    return wa_ai_public_base($cfg)
+         . '/public.php?page=evo_webhook&token=' . rawurlencode($secret);
 }
 
 $_wRoot = dirname(__DIR__, 2);
@@ -121,8 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         } elseif ($secret === '') {
             $_wMsg = ['ok' => false, 'text' => 'Could not create a webhook secret — is the data directory writable?'];
         } else {
-            $base = wa_ai_public_base($_wCfg);
-            $r = $_wEvo->setWebhook($inst, $base . '/evo_webhook.php?token=' . rawurlencode($secret));
+            $r = $_wEvo->setWebhook($inst, wa_ai_webhook_url($_wCfg, $secret));
             $_wMsg = ['ok' => $r['ok'], 'text' => $r['ok']
                 ? 'Evolution will now send ' . $ch . ' messages to this plugin.'
                 : 'Evolution refused: ' . $r['error']];
@@ -280,7 +300,7 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     </form>
     <div class="wa-note" style="padding:8px 0 0">
       Currently sending Evolution to:<br>
-      <code style="word-break:break-all"><?= h(wa_ai_public_base($_wCfg)) ?>/evo_webhook.php</code>
+      <code style="word-break:break-all"><?= h(wa_ai_public_base($_wCfg)) ?>/public.php?page=evo_webhook</code>
       <?php if (empty($_wCfg['plugin_public_url'])): ?>
         <br><b>That is a guess</b> from your browser address, and is very likely wrong while this
         page is open inside UISP. Paste the real one above.
