@@ -43,7 +43,10 @@ class DishNetAiBrain
     public function __construct(array $config)
     {
         $this->config   = $config;
-        $this->provider = trim((string)($config['ai_provider'] ?? 'claude')) === 'openai' ? 'openai' : 'claude';
+        // Case-insensitive: the uCRM Configuration screen stored 'OpenAI' after
+        // a re-save, and a strict compare silently fell back to claude with no
+        // key -- every message escalated. Normalise whatever the form stores.
+        $this->provider = strtolower(trim((string)($config['ai_provider'] ?? 'claude'))) === 'openai' ? 'openai' : 'claude';
 
         if ($this->provider === 'openai') {
             $this->apiKey = trim((string)($config['openai_api_key'] ?? ''));

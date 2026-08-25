@@ -150,5 +150,9 @@ $acctOnly = new EvolutionApiService([
 ]);
 t('account-only mapping still works', $acctOnly->channelFor('dishnet_acct'), 'account');
 
+// ── 9. Provider name survives whatever case the config screen stores ────
+$caps = new DishNetAiBrain(['ai_provider' => 'OpenAI', 'openai_api_key' => 'k']);
+t('OpenAI (capitalised) finds the openai key', $caps->isConfigured(), true);
+
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail === 0 ? 0 : 1);

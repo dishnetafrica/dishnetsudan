@@ -72,7 +72,7 @@ echo "DishNet production preflight — plugin v" . ($manifest['information']['ve
 echo "== configuration ==\n";
 $aiOn = PluginConfig::toBool($config['ai_enabled'] ?? false);
 $aiOn ? ok('ai_enabled = true') : bad('ai_enabled is OFF — the AI will not answer anyone');
-$provider = (string)($config['ai_provider'] ?? 'claude');
+$provider = strtolower(trim((string)($config['ai_provider'] ?? 'claude')));
 $aiKey = (string)($config[$provider === 'openai' ? 'openai_api_key' : 'claude_api_key'] ?? '');
 $aiKey !== '' ? ok("AI provider '{$provider}', key " . mask($aiKey)) : bad("no key for provider '{$provider}'");
 $evoUrl = (string)($config['evo_api_url'] ?? '');
