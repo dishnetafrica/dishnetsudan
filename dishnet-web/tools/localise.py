@@ -58,6 +58,7 @@ PROTECT = [
 HOLD = {
   "fiber.html":      "fibre in Sudan undecided; page is Juba coverage and South Sudan prices",
   "testimonials.html":"named South Sudan customers",
+  "gallery.html":    "photographs of South Sudan installations",
   "blog-starlink-south-sudan.html": "post is South Sudan market analysis",
   # Ported from the Uganda build. Each describes a service or a payment rail
   # that nobody has confirmed for Sudan.
@@ -153,6 +154,9 @@ UGANDA = [
     (r"uganda@dishnetafrica\.com", "info@dishnetafrica.com", "placeholder mailbox"),
     (r"https://uganda\.dishnetafrica\.com", "https://dishnetsudan.com", "domain"),
     # "Ugandans" first: a \b rule on "Ugandan" would leave the plural behind.
+    # The logo strap is uppercase, which a rule on "Uganda" never matched.
+    # It sat on 34 live pages, right under the DishNet logo.
+    (r"\bUGANDA\b", "SUDAN", "uppercase country strap"),
     (r"\bUgandans\b", "Sudanese", "country"),
     (r"\bUgandan\b", "Sudanese", "country"),
     # Payment rails, on a page that does get published. MTN and Airtel Money
@@ -171,6 +175,61 @@ UGANDA = [
      "with professional installation.", "unverified nationwide claim"),
     (r"%20Uganda", "%20Sudan", "encoded country"),
     (r"\bUganda\b", "Sudan", "country"),
+]
+
+# ── 2c. WhatsApp and login wiring ────────────────────────────────────────────
+# Every conversation CTA goes to the number the AI actually answers
+# (dishnet_sales, 211924332000). The site was split three ways: the South
+# Sudan office number, the AI number nowhere, and 74 links stripped down to
+# a bare wa.me/ that opens an error. One number, everywhere, changed in one
+# place when a +249 number exists.
+SALES_WA = "211924332000"
+WIRING = [
+    (r'href="https://wa\.me/"', f'href="https://wa.me/{SALES_WA}"', "empty wa.me link"),
+    (r'wa\.me/\?text=', f'wa.me/{SALES_WA}?text=', "empty wa.me link"),
+    (r'wa\.me/211923400000', f'wa.me/{SALES_WA}', "wa.me to South Sudan office"),
+    (r'phone=\+?211923400000', f'phone={SALES_WA}', "form JS to South Sudan office"),
+    (r'\+211 923 400 000', '+211 924 332 000', "displayed number matches the link"),
+    (r'211923400000', SALES_WA, "remaining old-number references"),
+    # Customer Login pointed at the SOUTH SUDAN plugin's portal path on the
+    # Sudan CRM — a plugin that is not installed there, so every click 404'd.
+    (r'https://crm\.dishnetsudan\.com/crm/_plugins/dishnet-hybrid-telecom/public\.php\?page=customer_portal',
+     'https://crm.dishnetsudan.com/', "login to nonexistent plugin path"),
+]
+
+# ── 2d. Prices that belonged to South Sudan ─────────────────────────────────
+# The Sudan lineup is the five Priority plans from the 25 Aug sales sheet, in
+# USD. Hardware and installation fees have no confirmed Sudan price yet, so
+# the numbers come out and the service stays.
+PRICES = [
+    (r"Residential \(\$80/mo unlimited\), Priority plans from \$112&ndash;\$336/mo with faster peak speeds, and Roam \(\$65/mo for 50GB mobile use\)\. All plans include unlimited standard data\.",
+     "Starlink Priority plans: 500GB at $142, 1TB at $218, 2TB at $366, 3TB at $513 and 5TB at $814 per month (USD). Every plan includes unlimited standard data after the priority allowance.",
+     "old plan lineup in FAQ"),
+    (r"Residential \(\$80/mo unlimited\), Priority plans from \$112\S{0,8}\$336/mo with faster peak speeds, and Roam \(\$65/mo for 50GB mobile use\)\. All plans include unlimited standard data\.",
+     "Starlink Priority plans: 500GB at $142, 1TB at $218, 2TB at $366, 3TB at $513 and 5TB at $814 per month (USD). Every plan includes unlimited standard data after the priority allowance.",
+     "old plan lineup in FAQ"),
+    (r"For most homes: the Mini Kit \(\$299\) or V4 Standard \(\$550\)\. For businesses needing maximum performance: the Flat High Performance \(\$2,600\)\. The Standard Actuated \(\$650\) is great for permanent outdoor installations\.",
+     "For most homes: the Mini or the V4 Standard. For businesses needing maximum performance: the Flat High Performance. The Standard Actuated suits permanent outdoor installations. Kit pricing changes with supply, so ask us for today's price.",
+     "South Sudan hardware prices in FAQ"),
+    (r"we offer professional installation \(\$50\) to ensure",
+     "we offer professional installation to ensure", "unconfirmed install fee"),
+    (r"DishNet offers professional installation for \$50\.",
+     "DishNet offers professional installation.", "unconfirmed install fee"),
+    (r"Plans from \$65/mo", "Plans from \$142/mo", "old starting price"),
+    # The country rename turned "South Sudanese Pounds (SSP)" into "Sudanese
+    # Pounds (SSP)" -- but SSP is South Sudan's currency; Sudan's is SDG, and
+    # whether local-currency payment is accepted has not been decided. Claim
+    # nothing beyond the USD pricing.
+    (r"Can I pay in Sudanese Pounds \(SSP\)\?", "Can I pay in Sudanese pounds?", "wrong currency"),
+    (r"Yes\. We accept payments in both USD and SSP at the current exchange rate\. Payment methods include cash, bank transfer, and mobile money\.",
+     "Our plans are priced in US dollars. Message us on WhatsApp to ask about paying in Sudanese pounds and which payment methods are available in your city.",
+     "unconfirmed currency and payment methods"),
+    (r"Pay in USD or SSP\. We accept cash, bank transfer, and mobile money\.",
+     "Plans are priced in USD. Ask us on WhatsApp about local payment options.",
+     "unconfirmed currency and payment methods"),
+    (r"All prices are quoted in US Dollars \(USD\)\. Sudanese Pound \(SSP\) equivalents[^<]*",
+     "All prices are quoted in US Dollars (USD). ",
+     "wrong currency in terms"),
 ]
 
 # ── 3. Straight renames ──────────────────────────────────────────────────────
@@ -224,6 +283,26 @@ SEO_HEAD = """<meta name="robots" content="index,follow,max-image-preview:large"
 <link rel="alternate" hreflang="x-default" href="https://{d}{p}">
 """
 
+def rebuild_faq_schema(text):
+    items = re.findall(
+        r'<div class="faq-item"><button[^>]*>(.*?)</button><div class="faq-a"><div class="faq-a-inner">(.*?)</div></div></div>',
+        text, re.S)
+    if not items:
+        return text, False
+    qa = []
+    for q, a in items:
+        q = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', q)).strip()
+        a = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', a)).strip()
+        qa.append({"@type": "Question", "name": q,
+                   "acceptedAnswer": {"@type": "Answer", "text": a}})
+    block = ('<script type="application/ld+json">'
+             + json.dumps({"@context": "https://schema.org", "@type": "FAQPage",
+                           "mainEntity": qa}, ensure_ascii=False)
+             + '</script>')
+    new = re.sub(r'<script type="application/ld\+json">[^<]*"@type":\s*"FAQPage".*?</script>',
+                 lambda m: block, text, count=1, flags=re.S)
+    return new, new != text
+
 def url_path(f):
     rel = os.path.relpath(f, SITE).replace(os.sep, '/')
     return '/' if rel == 'index.html' else '/' + rel
@@ -274,10 +353,36 @@ def localise(text, path):
         text = re.sub(r'(<a href="' + up + r'tutorials/index\.html">Tutorials</a>)',
                       r'<a href="' + up + r'coverage.html">Coverage</a>\1', text, count=1)
 
+    # Held pages are noindexed; leaving them in the navigation defeats that.
+    if os.path.basename(path) not in HOLD:
+        new, n = re.subn(r'<a[^>]*href="[^"]*\b(security|hotspot|pay|reseller)\.html"[^>]*>.*?</a>',
+                         '', text, flags=re.S)
+        if n: notes.append(f"{n}x removed nav link to a held page"); text = new
+
+    # The Uganda shell calls toggleFaq() but never defines it, so the FAQ
+    # accordions on the coverage and city pages were dead buttons.
+    if 'toggleFaq(' in text and 'function toggleFaq' not in text:
+        text = text.replace('</body>', """<script>
+function toggleFaq(btn) {
+  const item = btn.parentElement;
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+</script>
+</body>""", 1)
+        notes.append("injected missing toggleFaq")
+
     # portal-preview.html existed only to showcase the demo tenants, which are
     # gone with demo/. Its "Live Demo" nav entry sits on 41 pages.
     new, n = re.subn(r'<a[^>]*href="[^"]*portal-preview[^"]*"[^>]*>.*?</a>', '', text, flags=re.S)
     if n: notes.append(f"{n}x removed Live Demo nav link"); text = new
+    for pat, rep, why in PRICES:
+        new, n = re.subn(pat, rep, text)
+        if n: notes.append(f"{n}x {why}"); text = new
+    for pat, rep, why in WIRING:
+        new, n = re.subn(pat, rep, text)
+        if n: notes.append(f"{n}x {why}"); text = new
     for pat, rep, why in UGANDA:
         new, n = re.subn(pat, rep, text)
         if n: notes.append(f"{n}x {why}"); text = new
@@ -309,6 +414,10 @@ def localise(text, path):
         "Starlink satellite internet for homes, businesses and organisations across Sudan.")
     if 'LocalBusiness' not in text and '/tutorials/' not in path:
         text = text.replace('</head>', LOCALBUSINESS.replace('{d}', DOMAIN) + '</head>', 1)
+
+    if os.path.basename(path) == 'faq.html':
+        text, did = rebuild_faq_schema(text)
+        if did: notes.append("rebuilt FAQPage schema from visible questions")
 
     # keywords meta is ignored by Google and was on one page only
     text = re.sub(r'\s*<meta name="keywords"[^>]*>', '', text)
