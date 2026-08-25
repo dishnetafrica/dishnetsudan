@@ -191,7 +191,9 @@ for f in glob.glob(os.path.join(root,'**','*.html'), recursive=True):
     MONEY = ('index.html','faq.html','services.html','starlink-price-sudan.html',
              'starlink-plans-sudan.html','starlink-priority-500gb-sudan.html',
              'starlink-priority-1tb-sudan.html','starlink-priority-2tb-sudan.html',
-             'starlink-priority-3tb-sudan.html','starlink-priority-5tb-sudan.html')
+             'starlink-priority-3tb-sudan.html','starlink-priority-5tb-sudan.html',
+             'starlink-home-sudan.html','starlink-business-sudan.html',
+             'starlink-for-hotels-sudan.html','starlink-rural-sudan.html')
     if base in MONEY:
         for p in re.findall(r'\$([0-9][0-9,]*)(?=\s*(?:<small>)?\s*/mo)', t):
             seen_prices.setdefault(p.replace(',',''), set()).add(base)

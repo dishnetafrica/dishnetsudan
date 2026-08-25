@@ -113,6 +113,14 @@ def distance(c):
         return f"minutes {c['dir']}"
     return f"roughly {c['km']:,} km {c['dir']}"
 
+def neighbours_line(c, cities):
+    same = [x for x in cities if x['region'] == c['region'] and x['slug'] != c['slug']]
+    if not same:
+        return f"{c['name']} is our reach into the {c['region']} — the full list of cities is on the <a href=\"coverage.html\">coverage page</a>."
+    links = ' &middot; '.join(f'<a href="starlink-{x["slug"]}.html">{x["name"]}</a>' for x in same[:5])
+    return (f"Also in the {c['region']}: {links}. "
+            f"The full directory is on the <a href=\"coverage.html\">coverage page</a>.")
+
 def page(c):
     n, ar, st = c['name'], c['ar'], c['state']
     # "Starlink in Khartoum, Khartoum" read as a bug in the tab. When the city
@@ -163,6 +171,16 @@ def page(c):
 </section>
 
 <section class="section-sm">
+  <div class="container">
+    <h2>Nearby, and next steps</h2>
+    <p style="max-width:720px;">{{neighbours}}</p>
+    <p style="max-width:720px;">See <a href="starlink-plans-sudan.html">the five plans compared</a>,
+       <a href="starlink-price-sudan.html">every price on one page</a>, and
+       <a href="starlink-installation-sudan.html">what professional installation includes</a>.</p>
+  </div>
+</section>
+
+<section class="section-sm">
   <div class="container" style="text-align:center;">
     <h2>Get connected in {n}</h2>
     <p style="max-width:560px;margin:0 auto 20px;">Tell us where you are and what you need it for,
@@ -172,6 +190,7 @@ def page(c):
 </section>
 
 '''
+    body = body.replace('{neighbours}', neighbours_line(c, CFG['cities']))
     return head(top, c, title, desc) + body + bottom
 
 def main():

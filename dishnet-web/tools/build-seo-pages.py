@@ -186,6 +186,10 @@ body += f'''<section class="section-sm"><div class="container">
   on a roof or pole, when the cable has to cross a building properly, or when an office network
   needs to come up right the first time.</p>
   {UPFRONT_NOTE}
+  <h2 style="margin-top:34px;">Installation, city by city</h2>
+  <p style="max-width:70ch;">Every city below has its own page — what makes satellite fit that place,
+  and the questions we hear there most:</p>
+  <p style="max-width:75ch;margin:4px 0;"><strong>Blue nile valley:</strong> <a href="starlink-ed-damazin.html">Ed Damazin</a> &middot; <a href="starlink-sennar.html">Sennar</a> &middot; <a href="starlink-singa.html">Singa</a></p><p style="max-width:75ch;margin:4px 0;"><strong>Darfur:</strong> <a href="starlink-ed-daein.html">Ed Daein</a> &middot; <a href="starlink-el-fasher.html">El Fasher</a> &middot; <a href="starlink-el-geneina.html">El Geneina</a> &middot; <a href="starlink-nyala.html">Nyala</a> &middot; <a href="starlink-zalingei.html">Zalingei</a></p><p style="max-width:75ch;margin:4px 0;"><strong>Gezira:</strong> <a href="starlink-wad-madani.html">Wad Madani</a></p><p style="max-width:75ch;margin:4px 0;"><strong>Kordofan:</strong> <a href="starlink-el-fula.html">El Fula</a> &middot; <a href="starlink-el-obeid.html">El Obeid</a> &middot; <a href="starlink-kadugli.html">Kadugli</a></p><p style="max-width:75ch;margin:4px 0;"><strong>Nile confluence:</strong> <a href="starlink-bahri.html">Bahri</a> &middot; <a href="starlink-khartoum.html">Khartoum</a> &middot; <a href="starlink-omdurman.html">Omdurman</a></p><p style="max-width:75ch;margin:4px 0;"><strong>Nubia:</strong> <a href="starlink-dongola.html">Dongola</a> &middot; <a href="starlink-merowe.html">Merowe</a> &middot; <a href="starlink-wadi-halfa.html">Wadi Halfa</a></p><p style="max-width:75ch;margin:4px 0;"><strong>Red sea coast:</strong> <a href="starlink-port-sudan.html">Port Sudan</a></p><p style="max-width:75ch;margin:4px 0;"><strong>White nile:</strong> <a href="starlink-kosti.html">Kosti</a> &middot; <a href="starlink-rabak.html">Rabak</a></p><p style="max-width:75ch;margin:4px 0;"><strong>Eastern sudan:</strong> <a href="starlink-gedaref.html">Gedaref</a> &middot; <a href="starlink-kassala.html">Kassala</a></p><p style="max-width:75ch;margin:4px 0;"><strong>Northern nile valley:</strong> <a href="starlink-atbara.html">Atbara</a> &middot; <a href="starlink-ed-damer.html">Ed Damer</a> &middot; <a href="starlink-shendi.html">Shendi</a></p>
   <p style="max-width:70ch;">See where we work most: <a href="coverage.html">coverage and cities</a>.
   Full pricing is on the <a href="starlink-price-sudan.html">prices page</a>.</p>
 </div></section>
@@ -320,6 +324,222 @@ for slug, name, price, data in PLANS:
         f'{name} Sudan — ${price}/month | DishNet',
         f'{name} in Sudan: {data} priority data then unlimited standard, ${price}/month. Kit from $350 one-time, installation $50. Order on WhatsApp.',
         crumb_ld + prod_ld + faq_ld, body)
+
+
+
+# ══════════════════════════ PHASE 2: AUDIENCE PAGES ══════════════════════════
+AUD = {}
+
+AUD['starlink-home-sudan.html'] = dict(
+    badge='For your home', crumb='Starlink for homes',
+    title='Starlink for Your Home in Sudan — Which Plan Fits | DishNet',
+    desc='Starlink home internet in Sudan: which Priority plan fits your household, what the kit costs, and how installation works. From $112/month.',
+    h1='Home internet that depends on nothing local',
+    sub=('A dish on your roof, a clear view of the sky, and your home is online — no cable to '
+         'wait for, no local network to depend on. Here is how to size it honestly.'),
+    cta=('Hello DishNet, I need Starlink for my home.', 'Ask about your home on WhatsApp'),
+    sections=[
+        ('Sizing a household without guesswork',
+         'Count the people who stream or sit on video calls daily. A light household — browsing, '
+         'messaging, some evening streaming — lives comfortably on <a href="starlink-priority-500gb-sudan.html">500GB at $112/month</a>. '
+         'A family where several people stream and study online fits <a href="starlink-priority-1tb-sudan.html">1TB at $189/month</a>, '
+         'our most recommended plan. At a typical ~3&nbsp;GB per hour of HD video — an assumption, '
+         'not a promise — 1TB is roughly 330 hours of watching, which is a lot of household.'),
+        ('The power-cut question, answered first',
+         'The Standard kit runs on the inverter-and-battery setups many homes already have; it '
+         'draws 75–100&nbsp;W. The <a href="starlink-kits.html">Mini</a> draws 25–40&nbsp;W — less than a laptop charger — and '
+         'runs from a power bank or small solar setup with the right cable. Power cuts do not '
+         'have to mean internet cuts.'),
+        ('What starting actually costs',
+         'One-time: a kit ($350 Mini or $600 Standard) plus $50 <a href="starlink-installation-sudan.html">professional installation</a>. '
+         'Monthly: your plan, from $112. The two never mix, and there are no charges we have not '
+         'listed on the <a href="starlink-price-sudan.html">prices page</a>.'),
+    ],
+    faqs=[
+        ('Which kit should a home get?',
+         'The Standard kit, for almost every home: stronger WiFi (covers up to 297 m², up to 235 devices) and a dish built to live permanently on a roof. The Mini suits homes that also want to travel with their internet.'),
+        ('Do I need a technician?',
+         'Starlink is designed for self-installation, and the kickstand setup is genuinely simple. The $50 professional visit is worth it for roof mounting, clean cabling and getting the whole household connected properly on day one.'),
+        ('What if my plan turns out too small?',
+         'Nothing switches off when you pass your priority allowance — you continue on unlimited standard data. If that keeps happening, we move you up a plan.'),
+    ])
+
+AUD['starlink-business-sudan.html'] = dict(
+    badge='For business', crumb='Starlink for business',
+    title='Starlink for Business in Sudan — Offices, Teams &amp; Sites | DishNet',
+    desc='Starlink business internet in Sudan: Priority plans to 5TB, WiFi 6 for 235 devices, professional installation and proper invoicing. Talk on WhatsApp.',
+    h1='Business internet for Sudan, from orbit',
+    sub=('Connectivity that does not share the fate of any local infrastructure, sized for teams '
+         'and billed properly, with quotes and invoices from our CRM.'),
+    cta=('Hello DishNet, I need Starlink for my business.', 'Describe your business on WhatsApp'),
+    sections=[
+        ('Sizing by team, honestly',
+         'Roughly: a handful of staff on email, documents and calls fits <a href="starlink-priority-1tb-sudan.html">1TB</a>; '
+         'a team of about twenty with daily video meetings fits 1TB to <a href="starlink-priority-2tb-sudan.html">2TB</a>; '
+         'multi-team offices belong at <a href="starlink-priority-3tb-sudan.html">3TB</a> and institutions at '
+         '<a href="starlink-priority-5tb-sudan.html">5TB</a>. The WhatsApp assistant applies this same logic and quotes '
+         'live prices — its recommendation is the one we stand behind.'),
+        ('The network side',
+         'The Standard kit&rsquo;s Gen&nbsp;3 router is WiFi&nbsp;6 with two Ethernet LAN ports — it feeds a wired '
+         'office network directly and serves up to 235 devices across 297&nbsp;m&sup2;. Larger or '
+         'multi-building sites: ask us — sometimes two kits beat one big plan, and we will say so '
+         'even when it is the cheaper sale.'),
+        ('Continuity, stated carefully',
+         'A satellite link is independent of local exchanges, long-haul routes and terrestrial '
+         'outages — when they have problems, your dish does not inherit them. We do not promise '
+         'uptime figures; we state the architecture and let it speak.'),
+        ('Procurement without friction',
+         'Formal quotes, proper invoices, and account history — all from the same billing system '
+         'that prices this website. Starlink <a href="starlink-kits.html">Performance kits</a> for higher-throughput sites are '
+         'available on request.'),
+    ],
+    faqs=[
+        ('Can we get a formal quotation?',
+         'Yes — say so on WhatsApp and we issue a proper quote and invoice from our billing system.'),
+        ('What does a business pay to start?',
+         'The same honest arithmetic as everyone: kit ($350 or $600) plus $50 installation one-time, then the plan monthly. Multi-site orders are quoted per site.'),
+        ('Do you serve NGOs and hotels specifically?',
+         'Yes — see the dedicated pages for <a href="starlink-for-ngos-sudan.html">NGOs</a> and <a href="starlink-for-hotels-sudan.html">hotels and guesthouses</a>.'),
+    ])
+
+AUD['starlink-for-ngos-sudan.html'] = dict(
+    badge='For NGOs &amp; agencies', crumb='Starlink for NGOs',
+    title='Starlink for NGOs in Sudan — Field &amp; Office Connectivity | DishNet',
+    desc='Starlink for NGOs and agencies in Sudan: office plans to 5TB, portable Mini kits for field teams, formal quotes and invoices. Request a quote on WhatsApp.',
+    h1='Connectivity for organisations that work where networks fail',
+    sub=('Offices on the Standard kit, field teams on the Mini, procurement handled with proper '
+         'paperwork — this is the setup we quote most for NGOs and agencies.'),
+    cta=('Hello DishNet, our organisation needs a Starlink quote.', 'Request a formal quote on WhatsApp'),
+    sections=[
+        ('The HQ-plus-field pattern',
+         'A fixed <a href="starlink-kits.html">Standard kit</a> at the office on <a href="starlink-priority-3tb-sudan.html">3TB</a> or '
+         '<a href="starlink-priority-5tb-sudan.html">5TB</a>, and <a href="starlink-kits.html">Mini kits</a> that travel with field teams — '
+         '1.1&nbsp;kg, backpack-sized, 25–40&nbsp;W from a power bank or solar. Each Mini carries its own '
+         'plan, so field connectivity does not drain the office allowance.'),
+        ('Procurement, the unexciting part done right',
+         'Formal quotations, itemised invoices, one-time hardware separated from recurring service '
+         '— all issued from our billing system. Multi-kit orders are quoted per site with the '
+         'one-time and monthly lines kept apart, the way finance teams need them.'),
+        ('Why satellite for this work',
+         'A dish with a clear sky view has no dependency on any local infrastructure — which is '
+         'precisely the property that matters where networks are damaged or absent. That is an '
+         'architectural fact, not an availability promise: tell us your locations and we confirm '
+         'arrangements honestly.'),
+    ],
+    faqs=[
+        ('Can you supply multiple kits at once?',
+         'Yes — multi-kit orders are quoted per site, with hardware and monthly service itemised separately on the invoice.'),
+        ('Can field kits move between locations?',
+         'Yes. The kit is yours and portable; the Mini is built for exactly that. Teams move between sites with the same dish.'),
+        ('Who answers when something breaks?',
+         'Message the same WhatsApp number — a human takes over the moment a conversation needs one, and your account history is in our system, not in someone&rsquo;s memory.'),
+    ])
+
+AUD['starlink-for-hotels-sudan.html'] = dict(
+    badge='For hotels &amp; guesthouses', crumb='Starlink for hotels',
+    title='Starlink for Hotels in Sudan — Guest WiFi That Works | DishNet',
+    desc='Starlink for hotels and guesthouses in Sudan: guest WiFi from one dish, WiFi 6 coverage, plans sized by occupancy. Ask on WhatsApp.',
+    h1='Guest WiFi that actually works',
+    sub=('Guests judge a hotel by its WiFi within the first hour. One dish, sized honestly to your '
+         'rooms, changes that review.'),
+    cta=('Hello DishNet, I run a hotel and need Starlink.', 'Ask about your property on WhatsApp'),
+    sections=[
+        ('Sizing by occupancy, not optimism',
+         'Guests stream. A small guesthouse fits <a href="starlink-priority-2tb-sudan.html">2TB</a>; larger properties with '
+         'full rooms belong at <a href="starlink-priority-3tb-sudan.html">3TB</a> or above. When guests pass the priority '
+         'allowance the connection continues on unlimited standard data — busy months degrade '
+         'gracefully instead of cutting off.'),
+        ('One dish, a whole property',
+         'The Gen&nbsp;3 router covers up to 297&nbsp;m&sup2; and 235 devices — a strong start for a compact '
+         'property. Larger buildings need additional access points wired from the router&rsquo;s two '
+         'Ethernet ports; tell us the layout on WhatsApp and we will spec it with you.'),
+        ('The arithmetic for a property',
+         'One-time: kit ($600 Standard) + $50 <a href="starlink-installation-sudan.html">installation</a>. Monthly: the plan. '
+         'All of it on one page: <a href="starlink-price-sudan.html">prices</a>.'),
+    ],
+    faqs=[
+        ('Can guests overwhelm the connection?',
+         'The plan&rsquo;s priority allowance is the lever: size it to your occupancy and heavy months continue on unlimited standard data rather than stopping.'),
+        ('Can we have separate staff and guest networks?',
+         'The router supports the essentials; proper multi-network setups for larger properties are specced per site — describe yours on WhatsApp.'),
+        ('What about power cuts?',
+         'The Standard kit runs on the inverter systems most properties already operate; it draws 75–100 W.'),
+    ])
+
+AUD['starlink-remote-sites-sudan.html'] = dict(
+    badge='For remote sites', crumb='Starlink for remote sites',
+    title='Starlink for Remote Sites in Sudan — Field-Ready Internet | DishNet',
+    desc='Starlink for remote sites and field teams in Sudan: the Mini kit at 25–40 W runs from power banks or solar, moves between sites, and needs only sky.',
+    h1='Internet for places the map calls empty',
+    sub=('Field camps, survey teams, project sites: if it has sky, it can have internet — and the '
+         'kit fits in a backpack.'),
+    cta=('Hello DishNet, I need Starlink for a remote site.', 'Describe your site on WhatsApp'),
+    sections=[
+        ('Built around the Mini',
+         'The <a href="starlink-kits.html">Starlink Mini</a> weighs 1.1&nbsp;kg, is IP67-sealed against dust and rain, and '
+         'draws 25–40&nbsp;W from a 12–48&nbsp;V DC source — a decent power bank or a small solar '
+         'panel keeps it running. Rated −30&deg;C to 50&deg;C and operational in 96+&nbsp;kph wind, per '
+         'Starlink&rsquo;s own specification sheets.'),
+        ('Sites that move',
+         'The kit is not tied to an address. Teams carry one dish between camps; the connection '
+         'comes up wherever there is sky. Pair it with a plan sized to the team — '
+         '<a href="starlink-priority-500gb-sudan.html">500GB</a> for comms and reporting, more for data-heavy work.'),
+        ('The fixed-site option',
+         'A longer-lived site earns the <a href="starlink-kits.html">Standard kit</a>: stronger WiFi for a larger camp and '
+         'a dish built for a permanent mount, with $50 <a href="starlink-installation-sudan.html">professional installation</a> '
+         'when the site justifies it.'),
+    ],
+    faqs=[
+        ('Does it work everywhere in Sudan?',
+         'Starlink is a satellite service: the question is a clear view of the sky, not whether a network reaches the place. Tell us where the site is and we confirm the practical arrangements honestly.'),
+        ('How much power does it really need?',
+         'The Mini averages 25–40 W — comparable to a laptop. The Standard kit draws 75–100 W and suits generator or inverter power.'),
+        ('Can one kit serve rotating teams?',
+         'Yes. The kit belongs to the organisation, not a location; whoever is on site uses it.'),
+    ])
+
+AUD['starlink-rural-sudan.html'] = dict(
+    badge='For rural areas', crumb='Starlink in rural Sudan',
+    title='Starlink in Rural Sudan — Internet Without the Tower | DishNet',
+    desc='Starlink brings internet to rural Sudan without towers or cables: a dish, a clear sky view, and a plan from $112/month. Order from anywhere on WhatsApp.',
+    h1='No tower. No cable. Just sky.',
+    sub=('Rural connectivity has always waited for infrastructure to arrive. A satellite dish ends '
+         'the waiting: if you can see the sky, you can be online.'),
+    cta=('Hello DishNet, I need Starlink in a rural area.', 'Tell us where you are on WhatsApp'),
+    sections=[
+        ('Why satellite fits rural Sudan',
+         'Terrestrial networks reach towns first and villages late or never. A Starlink dish needs '
+         'no tower and no cable — the signal comes from orbit, the same service in a village as in '
+         '<a href="starlink-khartoum.html">Khartoum</a>. See <a href="coverage.html">the cities we are asked about most</a> — and note the '
+         'point of that page: absence from the list has never meant absence of service.'),
+        ('Power, solved simply',
+         'Many rural sites run on solar already. The <a href="starlink-kits.html">Mini</a>&rsquo;s 25–40&nbsp;W works with modest '
+         'solar-and-battery setups; the Standard kit&rsquo;s 75–100&nbsp;W suits a household inverter. '
+         'Ask us and we will size the power alongside the kit.'),
+        ('Ordering from far away',
+         'The whole process runs on WhatsApp — plan advice, exact prices from our billing system, '
+         'and delivery arrangements confirmed per order, honestly, for your location.'),
+    ],
+    faqs=[
+        ('Is the speed worse in remote areas?',
+         'Distance from the city makes no difference to a satellite link — the signal goes up and comes down, it does not travel overland.'),
+        ('What does it cost to start?',
+         'The same as anywhere: kit ($350 or $600) plus $50 installation where we arrange it, one-time; then the plan from $112/month. Delivery for distant locations is confirmed per order — we quote it before you commit, never after.'),
+        ('Can a village share one connection?',
+         'One kit can serve a compound or small cluster within WiFi range; beyond that, ask us — shared setups are specced honestly per site.'),
+    ])
+
+for fname, a in AUD.items():
+    crumb_vis, crumb_ld = breadcrumbs([('Home', '/'), (a['crumb'], None)])
+    svc_ld = ('<script type="application/ld+json">{"@context":"https://schema.org","@type":"Service",'
+              f'"serviceType":"{a["crumb"]}","provider":{{"@type":"Organization","name":"DishNet Africa Ltd",'
+              f'"url":"https://{DOMAIN}/"}},"areaServed":{{"@type":"Country","name":"Sudan"}}}}</script>')
+    faq_html, faq_ld = faq_block('Questions we hear', a['faqs'])
+    body = hero(a['badge'], a['h1'], a['sub'], a['cta'][0], a['cta'][1], crumb_vis)
+    mids = '\n'.join(
+        f'<h2 style="margin-top:30px;">{h}</h2>\n<p style="max-width:70ch;">{t}</p>' for h, t in a['sections'])
+    body += f'<section class="section-sm"><div class="container">\n{mids}\n</div></section>\n' + faq_html
+    pages[fname] = (a['title'], a['desc'], crumb_ld + svc_ld + faq_ld, body)
 
 # ══════════════════════════ WRITE ══════════════════════════
 for fname, (title, desc, schema, body) in pages.items():
