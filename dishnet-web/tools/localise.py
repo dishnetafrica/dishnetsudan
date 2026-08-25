@@ -57,7 +57,6 @@ PROTECT = [
 # South Sudan customers. Delete a line here to publish that page.
 HOLD = {
   "fiber.html":      "fibre in Sudan undecided; page is Juba coverage and South Sudan prices",
-  "coverage.html":   "coverage checker is Juba fibre areas",
   "testimonials.html":"named South Sudan customers",
   "blog-starlink-south-sudan.html": "post is South Sudan market analysis",
   # Ported from the Uganda build. Each describes a service or a payment rail
@@ -237,6 +236,44 @@ def localise(text, path):
     for pat, rep, why in CLAIMS:
         new, n = re.subn(pat, rep, text)
         if n: notes.append(f"{n}x {why}"); text = new
+    # No fibre in Sudan, so every fibre OFFER goes: the homepage section, the
+    # nav entries, the plan CTAs, the product lists. Comparative mentions stay
+    # -- "Starlink reaches where fibre does not" is a reason to buy Starlink.
+    new, n = re.subn(r'<!-- Fiber CTA -->.*?(?=<!-- How to Order -->)', '', text, flags=re.S)
+    if n: notes.append("removed homepage fibre section"); text = new
+    new, n = re.subn(r'<a[^>]*href="[^"]*(fiber\.html|blog-fiber-vs-starlink\.html)[^"]*"[^>]*>.*?</a>', '', text, flags=re.S)
+    if n: notes.append(f"{n}x removed fibre link"); text = new
+    new, n = re.subn(r'<a[^>]*>[^<]*Request Fiber in My Area[^<]*</a>', '', text)
+    if n: notes.append("removed fibre request CTA"); text = new
+    for a, b in [
+        ("Starlink satellite internet, fiber, and LTE connectivity", "Starlink satellite internet"),
+        ("Buy Starlink kits, fiber internet, and LTE services", "Buy Starlink kits and professional installation"),
+        ("Buy Starlink kits, fiber broadband from $50/mo, and LTE services.", "Buy Starlink kits with professional installation."),
+        ("Starlink kits, fiber internet, and LTE services", "Starlink kits and professional installation"),
+        ("Starlink, fiber, and LTE internet", "Starlink satellite internet"),
+        ("from a $50/month fiber plan in Juba to a portable Starlink Mini for field operations in Jonglei",
+         "from a fixed rooftop install to a portable Starlink Mini for field operations"),
+    ]:
+        if a in text: text = text.replace(a, b); notes.append("trimmed fibre from a product list")
+
+    # Fibre service card, and any FAQ entry that quotes a fibre price. Both are
+    # fixed structures, so they come out whole rather than leaving orphan markup.
+    new, n = re.subn(r'<!-- Fiber -->.*?(?=\n\s*<!-- )', '', text, flags=re.S)
+    if n: notes.append("removed fibre service card"); text = new
+    def drop_fiber_faq(m):
+        return '' if re.search(r'[Ff]iber', m.group(0)) else m.group(0)
+    new, n2 = re.subn(
+        r'<div class="faq-item"><button[^>]*>.*?</button><div class="faq-a"><div class="faq-a-inner">.*?</div></div></div>',
+        drop_fiber_faq, text, flags=re.S)
+    if new != text: notes.append("removed fibre FAQ entries"); text = new
+
+    # Nav entry for the coverage page, which indexes the 26 city pages. Without
+    # it they are reachable only from the sitemap, which is not a real link.
+    if 'href="coverage.html"' not in text and 'href="../coverage.html"' not in text:
+        up = '../' if '/tutorials/' in path else ''
+        text = re.sub(r'(<a href="' + up + r'tutorials/index\.html">Tutorials</a>)',
+                      r'<a href="' + up + r'coverage.html">Coverage</a>\1', text, count=1)
+
     # portal-preview.html existed only to showcase the demo tenants, which are
     # gone with demo/. Its "Live Demo" nav entry sits on 41 pages.
     new, n = re.subn(r'<a[^>]*href="[^"]*portal-preview[^"]*"[^>]*>.*?</a>', '', text, flags=re.S)

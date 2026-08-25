@@ -1,0 +1,482 @@
+{
+  "_README": [
+    "Geography only. State, region, terrain and economy are verifiable facts;",
+    "distances are approximate and rounded, and should be sanity-checked.",
+    "Nothing here asserts a DishNet install time, office, or customer count.",
+    "'conflict_affected' marks cities heavily affected by the war since 2023.",
+    "Set publish:false on any city to drop its page and its directory entry."
+  ],
+  "cities": [
+    {
+      "slug": "khartoum",
+      "name": "Khartoum",
+      "ar": "الخرطوم",
+      "state": "Khartoum",
+      "region": "Nile confluence",
+      "km": 0,
+      "dir": "",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "Sudan's capital, at the meeting of the Blue and White Nile",
+      "why": "Terrestrial networks in the capital have been repeatedly disrupted, and a dish with a clear view of the sky does not depend on any of the local infrastructure that goes down with them.",
+      "areas": [
+        "Khartoum 2",
+        "Amarat",
+        "Riyadh",
+        "Burri",
+        "Jabra",
+        "Kafouri"
+      ],
+      "local_note": "The capital's districts vary enormously in what is available street to street — one block has a working line and the next has nothing. A dish sidesteps that lottery entirely, which is why so many enquiries here come from people who already have a connection on paper."
+    },
+    {
+      "slug": "omdurman",
+      "name": "Omdurman",
+      "ar": "أم درمان",
+      "state": "Khartoum",
+      "region": "Nile confluence",
+      "km": 5,
+      "dir": "west of central Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "Sudan's most populous city, on the west bank of the Nile",
+      "why": "Omdurman sprawls well beyond the reach of the fixed-line network, and the outer districts have always been the hardest to serve from the exchange.",
+      "areas": [
+        "Al Thawra",
+        "Al Mulazmin",
+        "Umbadda",
+        "Karari",
+        "Beit Al Mal"
+      ],
+      "local_note": "Omdurman is old, dense and enormous, and much of it grew faster than any fixed network followed. The souq and the older quarters are particularly badly served relative to how many people work there."
+    },
+    {
+      "slug": "bahri",
+      "name": "Bahri",
+      "ar": "بحري",
+      "state": "Khartoum",
+      "region": "Nile confluence",
+      "km": 5,
+      "dir": "north of central Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "Khartoum North, the capital's industrial district",
+      "why": "Industrial and warehouse sites here sit away from the residential exchanges, and a rooftop dish avoids waiting on a last-mile build.",
+      "areas": [
+        "Kafouri",
+        "Shambat",
+        "Halfaya",
+        "Droushab"
+      ],
+      "local_note": "Bahri's industrial estates were laid out for freight, not fibre. Sites here often sit a few hundred metres from a usable line and a very long way from anyone willing to run one."
+    },
+    {
+      "slug": "port-sudan",
+      "name": "Port Sudan",
+      "ar": "بورتسودان",
+      "state": "Red Sea",
+      "region": "Red Sea coast",
+      "km": 800,
+      "dir": "north-east of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "Sudan's principal seaport and its main link to international shipping",
+      "why": "Port operations, freight agents and the organisations now based here need connectivity that does not depend on a single long-haul route across the desert.",
+      "areas": [
+        "Deim Arab",
+        "Transit",
+        "Salboona",
+        "Port area"
+      ],
+      "local_note": "Everything in Port Sudan runs to the ships' schedule. Clearing agents, freight forwarders and the organisations that have relocated here need a link that is not sharing one long desert route with the whole city."
+    },
+    {
+      "slug": "kassala",
+      "name": "Kassala",
+      "ar": "كسلا",
+      "state": "Kassala",
+      "region": "eastern Sudan",
+      "km": 600,
+      "dir": "east of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "an eastern trading city beneath the Taka Mountains, near the Eritrean border",
+      "why": "The granite hills that make Kassala distinctive also break line-of-sight for terrestrial links, which satellite simply does not care about.",
+      "areas": [
+        "Khatmiyya",
+        "Kadugli district",
+        "Town centre"
+      ],
+      "local_note": "The Taka Mountains rise straight out of the town, which is spectacular and unhelpful for anything that needs line of sight. Satellite is indifferent to the geology."
+    },
+    {
+      "slug": "gedaref",
+      "name": "Gedaref",
+      "ar": "القضارف",
+      "state": "Al Qadarif",
+      "region": "eastern Sudan",
+      "km": 400,
+      "dir": "south-east of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "the centre of Sudan's sorghum and sesame belt",
+      "why": "Farms and grain stores sit well outside town, where running a line is uneconomic but a dish is not.",
+      "areas": [
+        "Town centre",
+        "Al Sug Al Kabir"
+      ],
+      "local_note": "Gedaref's business is grain, and grain happens outside town — at the stores, the weighbridges and the farms. That is precisely where a fixed line stops making commercial sense."
+    },
+    {
+      "slug": "wad-madani",
+      "name": "Wad Madani",
+      "ar": "ود مدني",
+      "state": "Al Jazirah",
+      "region": "Gezira",
+      "km": 180,
+      "dir": "south-east of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "the heart of the Gezira irrigation scheme, one of the largest in the world",
+      "why": "The scheme spreads across a vast grid of canals and villages, most of them far from any exchange.",
+      "areas": [
+        "Town centre",
+        "Hantoub",
+        "Al Hasahisa"
+      ],
+      "local_note": "The Gezira scheme is a grid of canals and villages covering millions of feddans. Any connectivity that has to follow that grid on a cable is expensive; one that arrives from above is not."
+    },
+    {
+      "slug": "kosti",
+      "name": "Kosti",
+      "ar": "كوستي",
+      "state": "White Nile",
+      "region": "White Nile",
+      "km": 320,
+      "dir": "south of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "a river port and rail junction on the White Nile",
+      "why": "River freight and rail logistics run to a timetable, and a link that does not share a congested regional backhaul keeps them running.",
+      "areas": [
+        "Town centre",
+        "River port"
+      ],
+      "local_note": "Kosti is a transfer point — river to rail, rail to road. Transfer points run on paperwork and communication, and both stop when the link does."
+    },
+    {
+      "slug": "rabak",
+      "name": "Rabak",
+      "ar": "ربك",
+      "state": "White Nile",
+      "region": "White Nile",
+      "km": 320,
+      "dir": "south of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "capital of White Nile state, facing Kosti across the river",
+      "why": "State offices and the agricultural businesses around them need a connection that is independent of the crossing.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "Rabak faces Kosti across the White Nile, and the two are often treated as one market. In practice a connection on one bank tells you nothing about service on the other."
+    },
+    {
+      "slug": "el-obeid",
+      "name": "El Obeid",
+      "ar": "الأبيض",
+      "state": "North Kordofan",
+      "region": "Kordofan",
+      "km": 570,
+      "dir": "south-west of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "the historic centre of the gum arabic trade",
+      "why": "El Obeid is the gateway to Kordofan, and everything west of it is served by long terrestrial routes that satellite bypasses entirely.",
+      "areas": [
+        "Town centre",
+        "Market district"
+      ],
+      "local_note": "El Obeid has been the staging post for everything heading west for over a century, gum arabic especially. It is also where the reliable terrestrial capacity starts to run out."
+    },
+    {
+      "slug": "nyala",
+      "name": "Nyala",
+      "ar": "نيالا",
+      "state": "South Darfur",
+      "region": "Darfur",
+      "km": 1050,
+      "dir": "south-west of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "the largest city in Darfur and its commercial centre",
+      "why": "At this distance from the capital, terrestrial capacity is thin and contended. A dish delivers the same speed in Nyala as it does anywhere else.",
+      "areas": [
+        "Town centre",
+        "Al Wadi",
+        "Al Jeer"
+      ],
+      "local_note": "Nyala is a city of well over half a million people that has spent years at the far end of every supply line, including the digital one. Bandwidth here has always been contended and expensive."
+    },
+    {
+      "slug": "el-fasher",
+      "name": "El Fasher",
+      "ar": "الفاشر",
+      "state": "North Darfur",
+      "region": "Darfur",
+      "km": 800,
+      "dir": "west of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "the historic capital of Darfur",
+      "why": "Aid organisations and businesses here have long treated satellite as the primary link rather than the backup.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "El Fasher has been the administrative centre of Darfur since long before Sudan's independence, and the aid and government presence here has treated satellite as the primary connection, not the backup, for a very long time."
+    },
+    {
+      "slug": "el-geneina",
+      "name": "El Geneina",
+      "ar": "الجنينة",
+      "state": "West Darfur",
+      "region": "Darfur",
+      "km": 1200,
+      "dir": "west of Khartoum, near the Chad border",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "Sudan's westernmost city, on the Chad border",
+      "why": "This is about as far from the national backbone as Sudan gets, which is exactly where satellite stops being a compromise.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "El Geneina sits on the Chad border, about as far from Sudan's national backbone as it is possible to be. Cross-border trade and the organisations working here have never had a terrestrial option worth relying on."
+    },
+    {
+      "slug": "ed-daein",
+      "name": "Ed Daein",
+      "ar": "الضعين",
+      "state": "East Darfur",
+      "region": "Darfur",
+      "km": 900,
+      "dir": "south-west of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "capital of East Darfur and a stop on the western rail line",
+      "why": "Rail and livestock trade run through here, both of which need connectivity that does not stop at the town boundary.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "Ed Daein is a railhead and a livestock market — two businesses that depend on knowing prices and schedules elsewhere. It is also a long way down a single rail and road corridor."
+    },
+    {
+      "slug": "zalingei",
+      "name": "Zalingei",
+      "ar": "زالنجي",
+      "state": "Central Darfur",
+      "region": "Darfur",
+      "km": 1100,
+      "dir": "west of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "capital of Central Darfur, in the foothills of Jebel Marra",
+      "why": "Mountain terrain blocks terrestrial line-of-sight; a satellite dish only needs sky.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "Zalingei sits in the foothills of Jebel Marra, Sudan's highest massif. Terrain that dramatic defeats microwave links and makes cable routes expensive; a dish only has to see straight up."
+    },
+    {
+      "slug": "kadugli",
+      "name": "Kadugli",
+      "ar": "كادقلي",
+      "state": "South Kordofan",
+      "region": "Kordofan",
+      "km": 600,
+      "dir": "south-west of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "capital of South Kordofan, in the Nuba Mountains",
+      "why": "The Nuba Mountains are the definition of hard-to-reach by cable, and straightforward by satellite.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "The Nuba Mountains are a series of isolated ranges with communities tucked between them. It is difficult country to serve by any means that has to travel along the ground."
+    },
+    {
+      "slug": "el-fula",
+      "name": "El Fula",
+      "ar": "الفولة",
+      "state": "West Kordofan",
+      "region": "Kordofan",
+      "km": 700,
+      "dir": "south-west of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "capital of West Kordofan, in the oil-producing belt",
+      "why": "Field sites and camps move; a Starlink kit moves with them.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "West Kordofan's work happens at field sites and camps that move with the season and the project. Fixed infrastructure and moving worksites have never got on; a portable kit solves it."
+    },
+    {
+      "slug": "atbara",
+      "name": "Atbara",
+      "ar": "عطبرة",
+      "state": "River Nile",
+      "region": "northern Nile valley",
+      "km": 310,
+      "dir": "north of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "Sudan's railway city, where the Atbara river meets the Nile",
+      "why": "Rail and industrial operations need a link that is not competing with the town for the same backhaul.",
+      "areas": [
+        "Town centre",
+        "Railway quarter"
+      ],
+      "local_note": "Atbara built Sudan's railways and still runs on industrial time. Workshops and yards here need a link that is not competing with the residential town for the same backhaul in the evening."
+    },
+    {
+      "slug": "ed-damer",
+      "name": "Ed Damer",
+      "ar": "الدامر",
+      "state": "River Nile",
+      "region": "northern Nile valley",
+      "km": 320,
+      "dir": "north of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "capital of River Nile state",
+      "why": "State administration and the farms along the river both sit outside the reach of a dense fixed network.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "Ed Damer is a state capital that stayed small — enough administration to need real bandwidth, not enough population to attract serious fixed investment. That gap is exactly where satellite fits."
+    },
+    {
+      "slug": "shendi",
+      "name": "Shendi",
+      "ar": "شندي",
+      "state": "River Nile",
+      "region": "northern Nile valley",
+      "km": 180,
+      "dir": "north of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "a Nile market town on the road north, near the Meroë pyramids",
+      "why": "Close enough to the capital to be overlooked, far enough that fixed service thins out quickly past the town.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "Shendi is close enough to Khartoum to be assumed well served, and far enough that coverage thins noticeably once you leave the main road. The farms along the river feel it most."
+    },
+    {
+      "slug": "dongola",
+      "name": "Dongola",
+      "ar": "دنقلا",
+      "state": "Northern",
+      "region": "Nubia",
+      "km": 500,
+      "dir": "north of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "capital of the Northern state, in the Nubian Nile valley",
+      "why": "Settlement here follows a thin ribbon along the river with desert either side, which is expensive to cable and simple to cover from orbit.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "Settlement in the Northern state is a thin green ribbon along the Nile with desert on both sides. Cabling that shape is expensive per subscriber; covering it from orbit costs the same as anywhere."
+    },
+    {
+      "slug": "merowe",
+      "name": "Merowe",
+      "ar": "مروي",
+      "state": "Northern",
+      "region": "Nubia",
+      "km": 330,
+      "dir": "north of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "a Nile town beside the Merowe Dam",
+      "why": "Dam, airport and agricultural projects sit apart from the town centre and each other.",
+      "areas": [
+        "Town centre",
+        "Dam area"
+      ],
+      "local_note": "The dam, the airport and the agricultural schemes around Merowe are separate sites, tens of kilometres apart, each needing its own connection. That is four last miles, or four dishes."
+    },
+    {
+      "slug": "wadi-halfa",
+      "name": "Wadi Halfa",
+      "ar": "وادي حلفا",
+      "state": "Northern",
+      "region": "Nubia",
+      "km": 900,
+      "dir": "north of Khartoum, on the Egyptian border",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "Sudan's northern border town, on Lake Nubia",
+      "why": "The border crossing and ferry traffic run on their own schedule, hundreds of kilometres from the nearest sizeable exchange.",
+      "areas": [
+        "Town centre",
+        "Ferry terminal"
+      ],
+      "local_note": "Wadi Halfa is the Egyptian border crossing and the ferry terminal on Lake Nubia, several hundred kilometres from the next town of any size. Traffic here does not wait for a network to recover."
+    },
+    {
+      "slug": "sennar",
+      "name": "Sennar",
+      "ar": "سنار",
+      "state": "Sennar",
+      "region": "Blue Nile valley",
+      "km": 280,
+      "dir": "south-east of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "a Blue Nile town beside the Sennar Dam",
+      "why": "Irrigated agriculture spreads far from the town, and the sugar estates further still.",
+      "areas": [
+        "Town centre",
+        "Dam area"
+      ],
+      "local_note": "The Sennar Dam and the sugar estates around it spread far beyond the town. Estate offices and pump stations are the classic case of needing good bandwidth in a place no line will ever reach."
+    },
+    {
+      "slug": "singa",
+      "name": "Singa",
+      "ar": "سنجة",
+      "state": "Sennar",
+      "region": "Blue Nile valley",
+      "km": 350,
+      "dir": "south-east of Khartoum",
+      "publish": true,
+      "conflict_affected": false,
+      "character": "capital of Sennar state, on the Blue Nile",
+      "why": "A state capital small enough that fixed investment has been limited, and connected enough to need the bandwidth.",
+      "areas": [
+        "Town centre"
+      ],
+      "local_note": "Singa is a state capital on the Blue Nile with a modest footprint and real administrative demands. Small towns with government functions are consistently underserved by fixed networks."
+    },
+    {
+      "slug": "ed-damazin",
+      "name": "Ed Damazin",
+      "ar": "الدمازين",
+      "state": "Blue Nile",
+      "region": "Blue Nile valley",
+      "km": 500,
+      "dir": "south-east of Khartoum",
+      "publish": true,
+      "conflict_affected": true,
+      "character": "capital of Blue Nile state, beside the Roseires Dam",
+      "why": "Remote from the capital and close to the border, with terrain and distance both working against terrestrial links.",
+      "areas": [
+        "Town centre",
+        "Roseires"
+      ],
+      "local_note": "Ed Damazin sits beside the Roseires Dam near the Ethiopian border — remote, strategically important, and at the end of a long road. Distance and terrain both work against anything terrestrial."
+    }
+  ]
+}

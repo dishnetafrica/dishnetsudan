@@ -1,184 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coverage Map — DishNet Africa Ltd | Check Availability</title>
-    <meta name="description" content="Check DishNet fiber and Starlink coverage in Sudan. Fiber available in Juba. Starlink works nationwide.">
-    <link rel="icon" type="image/png" href="https://portal.dishnetss.com/uploads/images/1727669803.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .cov-hero{padding:130px 0 50px;background:var(--dark-bg);color:#fff;text-align:center;position:relative;overflow:hidden;}
-        .cov-hero::before{content:'';position:absolute;top:-100px;right:-100px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(14,165,233,0.12) 0%,transparent 60%);pointer-events:none;}
-        .cov-hero h1{font-family:var(--font-display);font-size:clamp(32px,4.5vw,46px);font-weight:800;margin-bottom:12px;position:relative;z-index:2;}
-        .cov-hero p{font-size:17px;color:rgba(255,255,255,0.6);max-width:560px;margin:0 auto;position:relative;z-index:2;}
-        .check-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:24px 0;}
-        .check-inner{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-        .check-inner input{flex:1;min-width:200px;padding:14px 18px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:var(--font-body);transition:var(--transition);background:var(--bg);}
-        .check-inner input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
-        .tech-tabs{display:flex;gap:4px;background:var(--surface-alt);border-radius:var(--radius-pill);padding:4px;margin:0 auto 40px;width:fit-content;}
-        .tech-tab{font-family:var(--font-display);font-size:14px;font-weight:500;padding:10px 24px;border-radius:var(--radius-pill);color:var(--text-secondary);transition:var(--transition);}
-        .tech-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm);}
-        .tech-tab:hover:not(.active){color:var(--text);}
-        .tech-panel{display:none;}
-        .tech-panel.active{display:block;}
-        .fiber-zones{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
-        .zone-chip{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);transition:var(--transition);font-size:14px;font-weight:500;}
-        .zone-chip:hover{border-color:var(--accent);}
-        .zone-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-        .zone-dot.live{background:var(--green);}
-        .zone-dot.coming{background:#F59E0B;}
-        .zone-dot.planned{background:var(--blue);}
-        .zone-legend{display:flex;gap:20px;margin-bottom:24px;font-size:13px;color:var(--text-secondary);}
-        .zone-legend span{display:flex;align-items:center;gap:6px;}
-        .offices-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:40px;}
-        .office-card{padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:var(--transition);}
-        .office-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-md);}
-        .office-card h4{font-family:var(--font-display);font-size:16px;font-weight:600;margin-bottom:4px;}
-        .office-card p{font-size:13px;color:var(--text-secondary);line-height:1.6;}
-        .office-card .office-type{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
-        .starlink-info{max-width:700px;margin:0 auto;}
-        .starlink-info h3{font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:12px;text-align:center;}
-        .starlink-info p{font-size:15px;color:var(--text-secondary);line-height:1.8;text-align:center;margin-bottom:24px;}
-        .sl-features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-        .sl-feat{text-align:center;padding:24px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:var(--transition);}
-        .sl-feat:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm);}
-        .sl-feat-val{font-family:var(--font-display);font-size:28px;font-weight:700;margin-bottom:2px;}
-        .sl-feat-lbl{font-size:12px;color:var(--text-secondary);}
-        @media(max-width:768px){.check-inner{flex-direction:column;align-items:stretch;}.sl-features{grid-template-columns:1fr;max-width:300px;margin:0 auto;}}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starlink Coverage in Sudan &mdash; Every City | DishNet Sudan</title>
+<meta name="description" content="Starlink covers all of Sudan. Kit supply, professional installation and support in 26 cities across all 18 states, from Khartoum to Wadi Halfa.">
 <link rel="canonical" href="https://dishnetsudan.com/coverage.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Coverage Map — DishNet Africa Ltd">
-<meta property="og:description" content="Check DishNet internet coverage. Fiber available in Juba neighborhoods. Starlink works anywhere in Sudan with a clear view of the sky.">
-<meta property="og:image" content="https://dishnetafrica.com/admin/public/uploads/images/1751541009.jpg">
-<meta property="og:url" content="https://dishnetsudan.com/coverage.html">
 <meta property="og:site_name" content="DishNet Sudan">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Coverage Map — DishNet Africa Ltd">
-<meta name="twitter:description" content="Check DishNet internet coverage. Fiber available in Juba neighborhoods. Starlink works anywhere in Sudan with a clear view of the sky.">
-
-
-
-
-
-
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"LocalBusiness",
-"name":"DishNet Africa Ltd — Sudan","url":"https://dishnetsudan.com/",
-"image":"https://portal.dishnetss.com/uploads/images/1727669803.png",
-"email":"info@dishnetafrica.com",
-"address":{"@type":"PostalAddress","addressCountry":"SD"},
-"areaServed":"SD",
-"description":"Starlink satellite internet for homes, businesses and organisations across Sudan."}
-</script>
-
-
-
-<meta name="robots" content="noindex,follow">
+<meta property="og:title" content="Starlink Coverage in Sudan &mdash; Every City | DishNet Sudan">
+<meta property="og:description" content="Starlink covers all of Sudan. Kit supply, professional installation and support in 26 cities across all 18 states, from Khartoum to Wadi Halfa.">
+<meta property="og:url" content="https://dishnetsudan.com/coverage.html">
+<meta property="og:image" content="https://portal.dishnetss.com/uploads/images/1727669803.png">
+<meta property="og:locale" content="en_UG">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Starlink Coverage in Sudan &mdash; Every City | DishNet Sudan">
+<meta name="twitter:description" content="Starlink covers all of Sudan. Kit supply, professional installation and support in 26 cities across all 18 states, from Khartoum to Wadi Halfa.">
+<link rel="icon" type="image/png" href="https://portal.dishnetss.com/uploads/images/1727669803.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "LocalBusiness", "name": "DishNet Africa Ltd \u2014 Sudan", "url": "https://dishnetsudan.com", "logo": "https://portal.dishnetss.com/uploads/images/1727669803.png", "image": "https://portal.dishnetss.com/uploads/images/1727669803.png",  "email": "info@dishnetafrica.com", "address": {"@type": "PostalAddress", "addressCountry": "SD"}, "areaServed": "SD", "description": "Starlink satellite internet for homes, businesses and organisations across Sudan.", "sameAs": ["https://dishnetsudan.com"]}</script>
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="geo.region" content="SD">
+<meta name="geo.placename" content="Sudan">
+<link rel="alternate" hreflang="en" href="https://dishnetsudan.com/coverage.html">
+<link rel="alternate" hreflang="x-default" href="https://dishnetsudan.com/coverage.html">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","serviceType":"Starlink satellite internet installation","provider":{"@type":"Organization","name":"DishNet Africa Ltd","url":"https://dishnetsudan.com/"},"areaServed":{"@type":"City","name":"Sudan","alternateName":"السودان","containedInPlace":{"@type":"AdministrativeArea","name":"Sudan State"},"address":{"@type":"PostalAddress","addressCountry":"SD"}},"description":"Starlink covers all of Sudan. Kit supply, professional installation and support in 26 cities across all 18 states, from Khartoum to Wadi Halfa."}</script>
 </head>
 <body>
-<header class="header"><div class="container"><div class="header-inner"><a href="index.html" class="logo"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet Africa"></a><nav class="nav"><a href="index.html#products">Products</a><a href="fiber.html">Fiber</a><a href="services.html">Services</a><a href="coverage.html" class="active">Coverage</a><a href="about.html">About</a><a href="tutorials/index.html">Tutorials</a><a href="get-the-app.html">App</a><a href="contact.html">Contact</a></nav><div class="nav-actions"><a href="https://crm.dishnetsudan.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" class="btn btn-outline" style="padding:10px 20px;font-size:14px;">Customer Login</a><a href="https://wa.me/211923400000" class="header-cta">Get a Quote</a></div><button class="mobile-toggle" onclick="document.getElementById('mobileNav').classList.add('open')"><span></span></button></div></div></header>
-<div class="mobile-nav" id="mobileNav"><button class="mobile-nav-close" onclick="this.parentElement.classList.remove('open')">&times;</button><a href="index.html">Home</a><a href="fiber.html">Fiber</a><a href="services.html">Services</a><a href="coverage.html">Coverage</a><a href="about.html">About</a><a href="tutorials/index.html">Tutorials</a><a href="get-the-app.html">App</a><a href="contact.html">Contact</a><a href="https://crm.dishnetsudan.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></div>
-
-<section class="cov-hero">
-    <div class="container">
-        <span class="badge-label badge-blue" style="position:relative;z-index:2;margin-bottom:16px;">Check Availability</span>
-        <h1>Coverage Map</h1>
-        <p>Fiber broadband in Juba. Starlink satellite internet across all of Sudan. Find out what's available at your location.</p>
+<div class="ug-strip"></div>
+<header class="header" id="header" style="top:4px;">
+  <div class="container">
+    <div class="header-inner">
+      <a href="index.html" class="logo logo-lockup">
+        <img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet Sudan — Starlink, Fiber, WiFi & Security">
+        <span class="ug-tag">UGANDA</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="services.html">Internet</a>
+        <a href="security.html">Security</a>
+        <a href="coverage.html">Coverage</a>
+        <a href="get-the-app.html">App</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="https://crm.dishnetsudan.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal" class="btn btn-outline" style="padding:10px 20px;font-size:14px;">Customer Login</a>
+        <a href="https://wa.me/" class="header-cta">Get Connected</a>
+      </div>
+      <button class="mobile-toggle" onclick="document.getElementById('mobileNav').classList.add('open')" aria-label="Menu"><span></span></button>
     </div>
-</section>
-
-<div class="check-bar">
-    <div class="container">
-        <div class="check-inner">
-            <input type="text" id="addrInput" placeholder="Enter your address or area in Juba...">
-            <button class="btn btn-primary" onclick="checkCoverage()">Check via WhatsApp</button>
-        </div>
-    </div>
+  </div>
+</header>
+<div class="mobile-nav" id="mobileNav">
+  <button class="mobile-nav-close" onclick="this.parentElement.classList.remove('open')">&times;</button>
+  <a href="index.html">Home</a><a href="services.html">Internet Services</a><a href="starlink-kits.html">Starlink Kits</a>
+  <a href="hotspot.html">Hotspot Business</a><a href="security.html">CCTV &amp; Security</a>
+  <a href="coverage.html">Coverage</a><a href="get-the-app.html">Get the App</a><a href="tutorials/index.html">App Tutorials</a>
+  <a href="pay.html">Pay a Bill</a><a href="faq.html">FAQ</a><a href="about.html">About</a><a href="contact.html">Contact</a>
+  <a href="https://crm.dishnetsudan.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a>
 </div>
 
-<section class="section">
-    <div class="container">
-        <div class="tech-tabs">
-            <button class="tech-tab active" onclick="showTech('fiber',this)">Fiber Coverage</button>
-            <button class="tech-tab" onclick="showTech('starlink',this)">Starlink Coverage</button>
-            <button class="tech-tab" onclick="showTech('offices',this)">Our Offices</button>
-        </div>
-
-        <div class="tech-panel active" id="tech-fiber">
-            <div style="text-align:center;margin-bottom:32px;">
-                <h2 style="font-family:var(--font-display);font-size:28px;font-weight:700;margin-bottom:8px;">Fiber-to-Home Coverage in Juba</h2>
-                <p style="font-size:15px;color:var(--text-secondary);max-width:500px;margin:0 auto;">FTTH broadband is expanding across Sudan. Coverage areas are approximate — <strong>contact us on WhatsApp to confirm availability at your exact address</strong> before ordering.</p>
-            </div>
-            <div class="zone-legend">
-                <span><span class="zone-dot live"></span> Live — order now</span>
-                <span><span class="zone-dot coming"></span> Coming soon</span>
-                <span><span class="zone-dot planned"></span> Planned expansion</span>
-            </div>
-            <div class="fiber-zones">
-                <div class="zone-chip"><span class="zone-dot live"></span>Thongpiny</div>
-                <div class="zone-chip"><span class="zone-dot live"></span>Hai Malakal</div>
-                <div class="zone-chip"><span class="zone-dot live"></span>Kololo / Tomping</div>
-                <div class="zone-chip"><span class="zone-dot live"></span>Ministries Complex</div>
-                <div class="zone-chip"><span class="zone-dot live"></span>Hai Cinema</div>
-                <div class="zone-chip"><span class="zone-dot live"></span>Juba Town Center</div>
-                <div class="zone-chip"><span class="zone-dot coming"></span>Gudele</div>
-                <div class="zone-chip"><span class="zone-dot coming"></span>Munuki</div>
-                <div class="zone-chip"><span class="zone-dot coming"></span>Kator</div>
-                <div class="zone-chip"><span class="zone-dot coming"></span>Hai Jebel</div>
-                <div class="zone-chip"><span class="zone-dot planned"></span>Nyakuron</div>
-                <div class="zone-chip"><span class="zone-dot planned"></span>Hai Referendum</div>
-                <div class="zone-chip"><span class="zone-dot planned"></span>Custom Market</div>
-                <div class="zone-chip"><span class="zone-dot planned"></span>Rock City</div>
-            </div>
-            <div style="text-align:center;margin-top:32px;">
-                <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">Don't see your area? Request coverage expansion:</p>
-                <a href="https://wa.me/211923400000?text=Hi%2C%20I'd%20like%20to%20request%20fiber%20coverage%20in%20my%20area%3A%20" class="btn btn-primary" target="_blank">Request Fiber in My Area</a>
-            </div>
-        </div>
-
-        <div class="tech-panel" id="tech-starlink">
-            <div class="starlink-info">
-                <h3>Starlink Works Everywhere in Sudan</h3>
-                <p>Starlink satellite internet requires only a clear view of the sky — no towers, no cables, no infrastructure. It works in every state, every county, and every village across Sudan. If you can see the sky, you can get Starlink.</p>
-                <div class="sl-features">
-                    <div class="sl-feat"><div class="sl-feat-val">100%</div><div class="sl-feat-lbl">Country Coverage</div></div>
-                    <div class="sl-feat"><div class="sl-feat-val">220</div><div class="sl-feat-lbl">Mbps Top Speed</div></div>
-                    <div class="sl-feat"><div class="sl-feat-val">10</div><div class="sl-feat-lbl">States Reached</div></div>
-                </div>
-                <div style="text-align:center;margin-top:32px;">
-                    <a href="index.html#products" class="btn btn-primary">Shop Starlink Kits</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="tech-panel" id="tech-offices">
-            <div style="text-align:center;margin-bottom:32px;">
-                <h2 style="font-family:var(--font-display);font-size:28px;font-weight:700;margin-bottom:8px;">Our Offices</h2>
-                <p style="font-size:15px;color:var(--text-secondary);">Support and installation coordinated over WhatsApp, seven days a week.</p>
-            </div>
-            <div class="offices-map">
-                <div class="office-card"><div class="office-type">Headquarters</div><h4>Juba</h4><p>Airport Road, Kololo Area, Tomping<br>Central Equatoria State<br>+211 923 400 000</p></div>
-                <div class="office-card"><div class="office-type">Regional</div><h4>Bor</h4><p>Jonglei State<br>Sales, installation &amp; support</p></div>
-                <div class="office-card"><div class="office-type">Regional</div><h4>Wau</h4><p>Western Bahr el Ghazal<br>Sales, installation &amp; support</p></div>
-                <div class="office-card"><div class="office-type">Regional</div><h4>Malakal</h4><p>Upper Nile State<br>Sales, installation &amp; support</p></div>
-                <div class="office-card"><div class="office-type">Regional</div><h4>Bentiu</h4><p>Unity State<br>Sales, installation &amp; support</p></div>
-                <div class="office-card"><div class="office-type">Regional</div><h4>Rumbek</h4><p>Lakes State<br>Sales, installation &amp; support</p></div>
-                <div class="office-card"><div class="office-type">Regional</div><h4>Aweil</h4><p>Northern Bahr el Ghazal<br>Sales, installation &amp; support</p></div>
-            </div>
-        </div>
+<section class="ug-hero" style="padding:150px 0 40px;">
+  <div class="container">
+    <span class="badge-label">Coverage</span>
+    <h1>Starlink covers<br>all of Sudan</h1>
+    <p style="max-width:660px;">There is no coverage map to check and no waiting list to
+       join. Starlink is a satellite service, so the question is never whether the network
+       reaches your town &mdash; it is whether you have a clear view of the sky. It works the
+       same in Wadi Halfa as it does in Khartoum.</p>
+    <div style="margin-top:22px;">
+      <a href="contact.html" class="btn btn-primary">Ask about your location</a>
+      <a href="starlink-kits.html" class="btn btn-ghost">See the kits</a>
     </div>
+  </div>
 </section>
 
-<section class="cta-banner"><div class="container"><div class="cta-card"><h2>Not Sure What's Available?</h2><p>Tell us your location and we'll recommend the best internet solution for you.</p><div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;"><a href="https://wa.me/211923400000" class="btn btn-primary">WhatsApp Us</a><a href="contact.html" class="btn btn-ghost-white">Contact Page</a></div></div></div></section>
-
-<footer class="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet"><p>Connecting Sudan since 2013. Starlink, fiber, and LTE internet across all major cities.</p></div><div><h4>Services</h4><ul class="footer-links"><li><a href="index.html#products">Starlink Kits</a></li><li><a href="fiber.html">Fiber Internet</a></li><li><a href="services.html">All Services</a></li><li><a href="coverage.html">Coverage Map</a></li></ul></div><div><h4>Company</h4><ul class="footer-links"><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact</a></li><li><a href="faq.html">FAQ</a></li><li><a href="blog.html">Blog</a></li><li><a href="testimonials.html">Reviews</a></li><li><a href="gallery.html">Gallery</a></li><li><a href="careers.html">Careers</a></li></ul></div><div><h4>Support & Legal</h4><ul class="footer-links"><li><a href="get-the-app.html">Get the App</a></li><li></li><li><a href="tutorials/index.html">App Tutorials</a></li><li><a href="guides.html">Help Guides</a></li><li><a href="https://crm.dishnetsudan.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></li><li><a href="https://wa.me/211923400000">WhatsApp Support</a></li><li><a href="terms.html">Terms of Use</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div></div><div class="footer-bottom"><span>&copy; 2026 DishNet Africa Ltd. All rights reserved.</span></div></div></footer>
-<a href="https://wa.me/211923400000" class="wa-float" target="_blank" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+<section class="section-sm"><div class="container">
+<h2>Where we install</h2>
+<p style="max-width:720px;">Starlink covers all of Sudan. These are the cities we are asked about most often — if yours is not listed, it does not mean we cannot reach it.</p>
+<h3 style="margin-top:26px;">Blue nile valley</h3><p>
+<a href="starlink-ed-damazin.html">Ed Damazin</a> <span style="opacity:.6;">الدمازين</span> · <a href="starlink-sennar.html">Sennar</a> <span style="opacity:.6;">سنار</span> · <a href="starlink-singa.html">Singa</a> <span style="opacity:.6;">سنجة</span>
+</p>
+<h3 style="margin-top:26px;">Darfur</h3><p>
+<a href="starlink-ed-daein.html">Ed Daein</a> <span style="opacity:.6;">الضعين</span> · <a href="starlink-el-fasher.html">El Fasher</a> <span style="opacity:.6;">الفاشر</span> · <a href="starlink-el-geneina.html">El Geneina</a> <span style="opacity:.6;">الجنينة</span> · <a href="starlink-nyala.html">Nyala</a> <span style="opacity:.6;">نيالا</span> · <a href="starlink-zalingei.html">Zalingei</a> <span style="opacity:.6;">زالنجي</span>
+</p>
+<h3 style="margin-top:26px;">Gezira</h3><p>
+<a href="starlink-wad-madani.html">Wad Madani</a> <span style="opacity:.6;">ود مدني</span>
+</p>
+<h3 style="margin-top:26px;">Kordofan</h3><p>
+<a href="starlink-el-fula.html">El Fula</a> <span style="opacity:.6;">الفولة</span> · <a href="starlink-el-obeid.html">El Obeid</a> <span style="opacity:.6;">الأبيض</span> · <a href="starlink-kadugli.html">Kadugli</a> <span style="opacity:.6;">كادقلي</span>
+</p>
+<h3 style="margin-top:26px;">Nile confluence</h3><p>
+<a href="starlink-bahri.html">Bahri</a> <span style="opacity:.6;">بحري</span> · <a href="starlink-khartoum.html">Khartoum</a> <span style="opacity:.6;">الخرطوم</span> · <a href="starlink-omdurman.html">Omdurman</a> <span style="opacity:.6;">أم درمان</span>
+</p>
+<h3 style="margin-top:26px;">Nubia</h3><p>
+<a href="starlink-dongola.html">Dongola</a> <span style="opacity:.6;">دنقلا</span> · <a href="starlink-merowe.html">Merowe</a> <span style="opacity:.6;">مروي</span> · <a href="starlink-wadi-halfa.html">Wadi Halfa</a> <span style="opacity:.6;">وادي حلفا</span>
+</p>
+<h3 style="margin-top:26px;">Red sea coast</h3><p>
+<a href="starlink-port-sudan.html">Port Sudan</a> <span style="opacity:.6;">بورتسودان</span>
+</p>
+<h3 style="margin-top:26px;">White nile</h3><p>
+<a href="starlink-kosti.html">Kosti</a> <span style="opacity:.6;">كوستي</span> · <a href="starlink-rabak.html">Rabak</a> <span style="opacity:.6;">ربك</span>
+</p>
+<h3 style="margin-top:26px;">Eastern sudan</h3><p>
+<a href="starlink-gedaref.html">Gedaref</a> <span style="opacity:.6;">القضارف</span> · <a href="starlink-kassala.html">Kassala</a> <span style="opacity:.6;">كسلا</span>
+</p>
+<h3 style="margin-top:26px;">Northern nile valley</h3><p>
+<a href="starlink-atbara.html">Atbara</a> <span style="opacity:.6;">عطبرة</span> · <a href="starlink-ed-damer.html">Ed Damer</a> <span style="opacity:.6;">الدامر</span> · <a href="starlink-shendi.html">Shendi</a> <span style="opacity:.6;">شندي</span>
+</p>
+</div></section><footer class="footer"><div class="container"><div class="footer-grid">
+  <div class="footer-brand"><img src="https://portal.dishnetss.com/uploads/images/1727669803.png" alt="DishNet"><p>Connecting Sudan — Starlink satellite internet with professional installation.</p></div>
+  <div><h4>Services</h4><ul class="footer-links">
+    <li><a href="starlink-kits.html">Starlink Kits</a></li>
+    <li></li>
+    <li><a href="hotspot.html">Hotspot &amp; WiFi Zones</a></li>
+    <li><a href="security.html">CCTV &amp; Firewalls</a></li>
+    <li><a href="services.html">All Services</a></li>
+    <li><a href="coverage.html">Coverage by Town</a></li>
+    <li><a href="reseller.html">Reseller Program</a></li>
+    <li><a href="why-dishnet.html">Why DishNet</a></li>
+  </ul></div>
+  <div><h4>Company</h4><ul class="footer-links">
+    <li><a href="about.html">About Us</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+    <li><a href="blog.html">Blog</a></li>
+    <li><a href="careers.html">Careers</a></li>
+    <li><a href="https://dishnetsudan.com">DishNet Sudan</a></li>
+  </ul></div>
+  <div><h4>Support &amp; Legal</h4><ul class="footer-links">
+    <li><a href="get-the-app.html">Get the App</a></li>
+    <li><a href="tutorials/index.html">App Tutorials</a></li>
+    <li><a href="guides.html">Help Guides</a></li>
+    <li><a href="https://crm.dishnetsudan.com/crm/_plugins/dishnet-hybrid-telecom/public.php?page=customer_portal">Customer Login</a></li>
+    <li><a href="whatsapp.html">Chat on WhatsApp</a></li>
+    <li><a href="pay.html">Pay a Bill</a></li>
+    <li><a href="terms.html">Terms of Use</a></li>
+    <li><a href="privacy.html">Privacy Policy</a></li>
+  </ul></div>
+</div><div class="footer-bottom"><span>&copy; 2026 DishNet Africa Ltd — Sudan. All rights reserved.</span></div></div></footer>
+<a href="https://wa.me/" class="wa-float" target="_blank" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
 <script>
-function showTech(t,b){document.querySelectorAll('.tech-panel').forEach(p=>p.classList.remove('active'));document.getElementById('tech-'+t).classList.add('active');document.querySelectorAll('.tech-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');}
-function checkCoverage(){const addr=document.getElementById('addrInput').value;const msg=`*Coverage Check*\n\n*Address/Area:* ${addr}\n\nPlease let me know what internet services are available at my location.`;window.open('https://api.whatsapp.com/send/?phone=+211923400000&text='+encodeURIComponent(msg),'_blank');}
+window.addEventListener('scroll',()=>{const h=document.getElementById('header');if(h)h.classList.toggle('scrolled',window.scrollY>10);});
 </script>
 </body>
 </html>
