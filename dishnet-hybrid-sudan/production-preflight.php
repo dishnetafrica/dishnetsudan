@@ -125,6 +125,19 @@ if (!$evo->canReachApi()) {
             if ($chan === 'sales') {
                 $found = true;
                 !empty($inst['connected']) ? ok($line) : bad($line . ' — sales number is not connected');
+                // The registration Evolution actually holds — a local token
+                // proves nothing about delivery.
+                $wh   = $evo->getWebhook($name);
+                $whS  = json_encode($wh['data'] ?? []);
+                if (!($wh['ok'] ?? false)) {
+                    bad("cannot read the webhook registration for '{$name}': " . (string)($wh['error'] ?? '?'));
+                } elseif (strpos($whS, 'page=evo_webhook') === false) {
+                    bad("Evolution has NO webhook registered for '{$name}' — inbound messages will never arrive. Register it in Engage → WhatsApp AI.");
+                } elseif ($whToken !== '' && strpos($whS, $whToken) === false) {
+                    bad("Evolution's webhook for '{$name}' carries a DIFFERENT token than ours — inbound will be rejected. Re-register it.");
+                } else {
+                    ok("Evolution webhook registered for '{$name}' with our current token");
+                }
             } else {
                 echo "  info  {$line}\n";
             }

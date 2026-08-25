@@ -293,6 +293,17 @@ class EvolutionApiService
      * not sign webhook payloads — the secret in the URL is the authentication.
      * See EvoWebhookGuard.
      */
+    /**
+     * What Evolution actually has registered for this instance. The local
+     * token existing proves nothing -- on 25 Aug a preflight passed while
+     * Evolution had no webhook at all, because registration had failed after
+     * the secret file was created. Only Evolution can answer this.
+     */
+    public function getWebhook(string $instance): array
+    {
+        return $this->request('GET', '/webhook/find/' . rawurlencode($instance));
+    }
+
     public function setWebhook(string $instance, string $url, array $events = []): array
     {
         if (!$events) {
