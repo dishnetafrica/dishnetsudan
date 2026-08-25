@@ -140,6 +140,45 @@ class EvolutionApiService
         return $this->request('GET', '/instance/fetchInstances');
     }
 
+    /**
+     * Instances as a flat list: name, connection state, phone, profile name.
+     *
+     * Evolution nests these differently across builds -- sometimes under an
+     * "instance" key, sometimes flat -- and names the phone ownerJid, number or
+     * owner depending on version. This normalises all of it so the caller can
+     * just show the operator what is connected.
+     *
+     * @return array<int,array{name:string,state:string,connected:bool,phone:string,profile:string}>
+     */
+    public function listInstances(): array
+    {
+        $r = $this->fetchInstances();
+        if (empty($r['ok']) || !is_array($r['data'])) return [];
+
+        $out = [];
+        foreach ($r['data'] as $row) {
+            if (!is_array($row)) continue;
+            $i = isset($row['instance']) && is_array($row['instance']) ? $row['instance'] : $row;
+
+            $name = (string)($i['name'] ?? ($i['instanceName'] ?? ''));
+            if ($name === '') continue;
+
+            $state = (string)($i['connectionStatus'] ?? ($i['state'] ?? ($i['status'] ?? 'unknown')));
+            $jid   = (string)($i['ownerJid'] ?? ($i['owner'] ?? ($i['number'] ?? '')));
+
+            $out[] = [
+                'name'      => $name,
+                'state'     => $state,
+                // Evolution says 'open' on some builds, 'connected' on others.
+                'connected' => in_array(strtolower($state), ['open', 'connected'], true),
+                'phone'     => self::phoneFromJid($jid) ?: self::normalisePhone($jid),
+                'profile'   => (string)($i['profileName'] ?? ($i['profileStatus'] ?? '')),
+            ];
+        }
+        usort($out, function ($a, $b) { return strcmp($a['name'], $b['name']); });
+        return $out;
+    }
+
     /** 'open' = connected, 'connecting', 'close', or null when unreachable. */
     public function connectionState(string $instance): ?string
     {

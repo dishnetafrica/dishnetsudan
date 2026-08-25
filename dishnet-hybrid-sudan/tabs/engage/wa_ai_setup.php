@@ -117,6 +117,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => !empty($r['ok']), 'text' => !empty($r['ok'])
             ? 'Signed ' . $inst . ' out of WhatsApp.' : 'Evolution refused: ' . ($r['error'] ?? '')];
 
+    } elseif ($act === 'assign_instance') {
+        $inst = trim((string)($_POST['instance'] ?? ''));
+        if ($ch === '' || !in_array($ch, EvolutionApiService::CHANNELS, true)) {
+            $_wMsg = ['ok' => false, 'text' => 'Unknown channel.'];
+        } elseif ($inst === '') {
+            $_wMsg = ['ok' => false, 'text' => 'No instance given.'];
+        } else {
+            list($ok, $err) = PluginConfig::saveOverrides($_wData, ['evo_instance_' . $ch => $inst]);
+            $_wMsg = ['ok' => $ok, 'text' => $ok
+                ? $inst . ' is now the ' . $ch . ' number.'
+                : $err];
+            $_wCfg = PluginConfig::load($_wRoot, $_wData);
+            $_wEvo = new EvolutionApiService($_wCfg);
+        }
+
     } elseif ($act === 'save_public_url') {
         $u = trim((string)($_POST['public_url'] ?? ''));
         $u = rtrim($u, '/');
@@ -150,17 +165,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
     }
 }
 
-$_wLive = null; $_wErr = '';
+$_wLive = null; $_wErr = ''; $_wDetected = [];
 if ($_wEvo->canReachApi()) {
     $r = $_wEvo->fetchInstances();
     if (!empty($r['ok']) && is_array($r['data'])) {
+        $_wDetected = $_wEvo->listInstances();
         $_wLive = [];
-        foreach ($r['data'] as $i) {
-            if (!is_array($i)) continue;
-            $in = $i['instance'] ?? $i;
-            $n  = (string)($in['name'] ?? ($in['instanceName'] ?? ''));
-            if ($n !== '') $_wLive[$n] = (string)($in['connectionStatus'] ?? ($in['state'] ?? 'unknown'));
-        }
+        foreach ($_wDetected as $d) $_wLive[$d['name']] = $d['state'];
         ksort($_wLive);
     } else {
         $e = $_wEvo->getLastError();
@@ -232,6 +243,41 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     </form>
   </div>
 </div>
+
+<?php if ($_wDetected): ?>
+<div class="wa-card">
+  <h3>Found in Evolution</h3>
+  <?php foreach ($_wDetected as $d):
+        $assigned = '';
+        foreach (EvolutionApiService::CHANNELS as $c) if ($_wEvo->instanceFor($c) === $d['name']) $assigned = $c; ?>
+  <div class="wa-row">
+    <span class="n"><?= h($d['name']) ?></span>
+    <span class="d">
+      <?= h($d['phone'] !== '' ? '+' . $d['phone'] : 'no number yet') ?>
+      <?= $d['profile'] !== '' ? ' &middot; ' . h($d['profile']) : '' ?>
+    </span>
+    <span class="wa-pill <?= $d['connected'] ? 'wa-ok' : 'wa-w' ?>" style="margin-left:12px">
+      <?= $d['connected'] ? 'connected' : h($d['state']) ?>
+    </span>
+    <span style="margin-left:auto">
+      <?php if ($assigned !== ''): ?>
+        <span class="wa-pill wa-ok">in use as <?= h($assigned) ?></span>
+      <?php else: ?>
+        <?php foreach (EvolutionApiService::CHANNELS as $c): ?>
+          <form method="post" style="display:inline"><?= $_csrf ?>
+            <input type="hidden" name="wa_action" value="assign_instance">
+            <input type="hidden" name="instance" value="<?= h($d['name']) ?>">
+            <input type="hidden" name="channel" value="<?= h($c) ?>">
+            <button class="wa-btn <?= $c === 'sales' ? 'p' : '' ?>" type="submit">Use for <?= h($c) ?></button>
+          </form>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </span>
+  </div>
+  <?php endforeach; ?>
+  <div class="wa-note">Detected live from Evolution. One click assigns a number &mdash; no typing.</div>
+</div>
+<?php endif; ?>
 
 <form method="post"><?= $_csrf ?>
 <input type="hidden" name="wa_action" value="save_channels">
