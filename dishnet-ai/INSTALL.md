@@ -11,6 +11,11 @@ UISP → **Settings → Plugins → Add plugin** → upload `dishnet-ai.zip` →
 
 That is the whole install. No shell access, no crontab, no other service.
 
+If you rebuild the zip yourself, use `./build-zip.sh`. uCRM looks for
+`manifest.json` at the **root** of the archive — zipping the containing folder
+instead of its contents gives "Plugin manifest could not be found in the ZIP
+archive". The script gets that right and verifies it before finishing.
+
 ## 2. Configure
 
 UISP → Plugins → DishNet AI → **Settings**. Leave *Answer customers
