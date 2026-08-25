@@ -219,7 +219,7 @@ PRICES = [
      "Starlink Priority plans: 500GB at $112, 1TB at $189, 2TB at $336, 3TB at $483 and 5TB at $784 per month (USD). Every plan includes unlimited standard data after the priority allowance.",
      "old plan lineup in FAQ"),
     (r"For most homes: the Mini Kit \(\$299\) or V4 Standard \(\$550\)\. For businesses needing maximum performance: the Flat High Performance \(\$2,600\)\. The Standard Actuated \(\$650\) is great for permanent outdoor installations\.",
-     "For most homes: the Mini or the V4 Standard. For businesses needing maximum performance: the Flat High Performance. The Standard Actuated suits permanent outdoor installations. Kit pricing changes with supply, so ask us for today's price.",
+     "Starlink currently sells two consumer kits, and we stock both. The Standard is the kit for homes and offices \u2014 current-generation kickstand dish, WiFi 6 router, sealed against dust. The Mini is the size of a laptop, runs on 25\u201340 W and travels in a backpack \u2014 ideal for field teams and anyone on the move. Performance kits for large organisations are available on request. Kit pricing changes with supply, so ask us for today's price.",
      "South Sudan hardware prices in FAQ"),
     (r"we offer professional installation \(\$50\) to ensure",
      "we offer professional installation to ensure", "unconfirmed install fee"),
@@ -386,6 +386,10 @@ function toggleFaq(btn) {
 </script>
 </body>""", 1)
         notes.append("injected missing toggleFaq")
+
+    # Stripping held-page links leaves empty <li></li> holes in footers.
+    new, n = re.subn(r'\s*<li>\s*</li>', '', text)
+    if n: text = new
 
     # portal-preview.html existed only to showcase the demo tenants, which are
     # gone with demo/. Its "Live Demo" nav entry sits on 41 pages.
