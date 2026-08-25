@@ -205,6 +205,12 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
   </div>
   <?php endforeach; ?>
   <div class="wa-row"><button class="wa-btn p" type="submit">Save numbers</button></div>
+  <?php if ($_wLive !== null && !$_wLive): ?>
+    <div class="wa-note"><b>Connected to Evolution, but it has no instances yet.</b>
+    Create one below, or in the Evolution manager, then reload this page.</div>
+  <?php elseif ($_wLive !== null): ?>
+    <div class="wa-note"><?= count($_wLive) ?> instance<?= count($_wLive) === 1 ? '' : 's' ?> found in Evolution.</div>
+  <?php endif; ?>
   <?php if ($_wNoCreds): ?>
     <div class="wa-note"><b>Evolution API URL and key are not set.</b>
     Add them in UISP &rarr; Plugins &rarr; DishNet Sudan &rarr; the gear icon (Configuration),

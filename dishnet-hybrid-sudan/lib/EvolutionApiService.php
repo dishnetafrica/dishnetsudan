@@ -424,8 +424,16 @@ class EvolutionApiService
         if ($httpCode >= 400) {
             $msg = $data['message'] ?? ($data['error'] ?? ('HTTP ' . $httpCode));
             if (is_array($msg)) $msg = implode('; ', array_map('strval', $msg));
-            $this->lastError = ['message' => (string)$msg, 'http' => $httpCode, 'path' => $path];
-            return ['ok' => false, 'http' => $httpCode, 'data' => $data, 'error' => (string)$msg];
+            $msg = (string)$msg;
+
+            // "Not Found" on its own is undiagnosable. Say which call failed
+            // and with what status, so a routing problem can be told apart
+            // from a genuine rejection.
+            $detail = $msg . ' [HTTP ' . $httpCode . ' on ' . $method . ' ' . $path . ']';
+
+            $this->lastError = ['message' => $msg, 'http' => $httpCode,
+                                'path' => $path, 'method' => $method, 'detail' => $detail];
+            return ['ok' => false, 'http' => $httpCode, 'data' => $data, 'error' => $detail];
         }
 
         $this->lastError = [];
