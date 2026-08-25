@@ -43,6 +43,12 @@ PROTECT = [
     "courts of Juba, Central Equatoria State",
     "South Sudan's First FTTH",
     "South Sudan's first FTTH",
+    # Image URLs must NOT follow the domain rename. These files live in the
+    # South Sudan CMS; rewritten to dishnetsudan.com they 404, because that
+    # path does not exist on the new domain. tools/fetch-images.sh replaces
+    # them with local copies, which also drops the external dependency.
+    "https://dishnetafrica.com/admin/public/uploads",
+    "https://dishnetafrica.com/public/uploads",
 ]
 
 # Pages whose content is South Sudan-specific and whose Sudan equivalent is an
@@ -54,6 +60,12 @@ HOLD = {
   "coverage.html":   "coverage checker is Juba fibre areas",
   "testimonials.html":"named South Sudan customers",
   "blog-starlink-south-sudan.html": "post is South Sudan market analysis",
+  # Ported from the Uganda build. Each describes a service or a payment rail
+  # that nobody has confirmed for Sudan.
+  "pay.html":      "runs on MTN MoMo and Airtel Money, neither of which operates in Sudan",
+  "hotspot.html":  "hotspot business service not confirmed for Sudan",
+  "security.html": "CCTV and firewall service not confirmed for Sudan",
+  "reseller.html": "reseller programme implies a coverage footprint not established",
 }
 
 # ── 2. Claims that would be false about Sudan ────────────────────────────────
@@ -125,6 +137,43 @@ CLAIMS = [
      "12 Years of Connectivity Experience, Now in Sudan", "false as Sudan history"),
 ]
 
+# ── 2b. Pages ported from the Uganda build ──────────────────────────────────
+UGANDA = [
+    # Ugandan cities go the same way Juba did: removed, not swapped for a
+    # Sudanese one, because which cities DishNet can serve is not established.
+    (r'"addressLocality": "Kampala", "addressCountry": "UG"', '"addressCountry": "SD"',
+     "Kampala postal address"),
+    (r'"areaServed":\s*\[[^\]]*\]', '"areaServed": "SD"', "Ugandan city list"),
+    (r"than send a truck from Kampala", "than dispatch from a central depot", "city-bound"),
+    (r"Kampala, Entebbe, Wakiso, Mukono[^<\"]*", "across Sudan", "Ugandan city list"),
+    (r"\bKampala\b", "Sudan", "city-bound"),
+    # The Uganda build ships with unreplaced placeholders. Carrying a fake
+    # number onto a live site is worse than carrying none.
+    (r"\+256 700 000 000", "", "Uganda placeholder number"),
+    (r"256700000000", "", "Uganda placeholder number"),
+    (r"uganda@dishnetafrica\.com", "info@dishnetafrica.com", "placeholder mailbox"),
+    (r"https://uganda\.dishnetafrica\.com", "https://dishnetsudan.com", "domain"),
+    # "Ugandans" first: a \b rule on "Ugandan" would leave the plural behind.
+    (r"\bUgandans\b", "Sudanese", "country"),
+    (r"\bUgandan\b", "Sudanese", "country"),
+    # Payment rails, on a page that does get published. MTN and Airtel Money
+    # do not operate in Sudan, and naming a rail nobody can use costs a payment.
+    (r"MTN MoMo and Airtel Money for everything", "One account for everything", "Ugandan payment rail"),
+    (r"Mobile Money", "mobile payment", "Ugandan payment rail"),
+    # URL-encoded text has no word boundary after %20, so \bUganda\b misses it.
+    # Footer strapline on every ported page. It sells fibre, WiFi zones and
+    # CCTV -- all held back here -- so it is trimmed to what is confirmed.
+    (r"Connecting and protecting Sudan — Starlink, fiber, managed WiFi zones, CCTV and network security with professional installation",
+     "Connecting Sudan — Starlink satellite internet with professional installation",
+     "footer sold held-back services"),
+    # "in every region" is a nationwide installation claim, which is exactly
+    # what has not been established.
+    (r"with professional installation in every region\.",
+     "with professional installation.", "unverified nationwide claim"),
+    (r"%20Uganda", "%20Sudan", "encoded country"),
+    (r"\bUganda\b", "Sudan", "country"),
+]
+
 # ── 3. Straight renames ──────────────────────────────────────────────────────
 RENAMES = [
     ("South Sudan", "Sudan"),          # also turns South Sudanese -> Sudanese
@@ -150,7 +199,24 @@ REPORT = [
     ("portal.dishnetss.com",  "no Sudan portal decided"),
     ("info@dishnetafrica.com","mailbox must exist before it is advertised"),
     ("Central Equatoria",     "South Sudan state"),
+    ("MTN|Airtel",            "Ugandan payment rail"),
+    (r"\bUganda",             "Uganda reference left over"),
 ]
+
+# One LocalBusiness block, on every content page. The description names only
+# what is confirmed for Sudan -- the Uganda original advertised fibre, CCTV and
+# WiFi zones, all of which are held back here, and telephone was left empty,
+# which is worse than absent.
+LOCALBUSINESS = """<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness",
+"name":"DishNet Africa Ltd \u2014 Sudan","url":"https://{d}/",
+"image":"https://portal.dishnetss.com/uploads/images/1727669803.png",
+"email":"info@dishnetafrica.com",
+"address":{"@type":"PostalAddress","addressCountry":"SD"},
+"areaServed":"SD",
+"description":"Starlink satellite internet for homes, businesses and organisations across Sudan."}
+</script>
+"""
 
 SEO_HEAD = """<meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="geo.region" content="SD">
@@ -169,6 +235,13 @@ def localise(text, path):
     for i, s in enumerate(PROTECT):
         text = text.replace(s, f"\x00P{i}\x00")
     for pat, rep, why in CLAIMS:
+        new, n = re.subn(pat, rep, text)
+        if n: notes.append(f"{n}x {why}"); text = new
+    # portal-preview.html existed only to showcase the demo tenants, which are
+    # gone with demo/. Its "Live Demo" nav entry sits on 41 pages.
+    new, n = re.subn(r'<a[^>]*href="[^"]*portal-preview[^"]*"[^>]*>.*?</a>', '', text, flags=re.S)
+    if n: notes.append(f"{n}x removed Live Demo nav link"); text = new
+    for pat, rep, why in UGANDA:
         new, n = re.subn(pat, rep, text)
         if n: notes.append(f"{n}x {why}"); text = new
     for pat, rep in SCHEMA_ADDR:
@@ -191,6 +264,15 @@ def localise(text, path):
     if not held and 'name="robots"' not in text:
         blk = SEO_HEAD.format(d=DOMAIN, p=url_path(path))
         text = text.replace('</head>', blk + '</head>', 1)
+    # Normalise a ported block that carried an empty telephone or Uganda's
+    # service list, then add one to any content page that has none.
+    text = text.replace('"telephone": "",', '').replace('"telephone":"",', '')
+    text = text.replace(
+        "Starlink satellite internet, fiber, managed WiFi zones, CCTV and network security across Sudan.",
+        "Starlink satellite internet for homes, businesses and organisations across Sudan.")
+    if 'LocalBusiness' not in text and '/tutorials/' not in path:
+        text = text.replace('</head>', LOCALBUSINESS.replace('{d}', DOMAIN) + '</head>', 1)
+
     # keywords meta is ignored by Google and was on one page only
     text = re.sub(r'\s*<meta name="keywords"[^>]*>', '', text)
     return text, notes
@@ -226,7 +308,7 @@ def main():
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
             + '\n'.join(rows) + '\n</urlset>\n')
         open(os.path.join(SITE,'robots.txt'),'w').write(
-            f"User-agent: *\nAllow: /\nDisallow: /demo/\n\nSitemap: https://{DOMAIN}/sitemap.xml\n")
+            f"User-agent: *\nAllow: /\n\nSitemap: https://{DOMAIN}/sitemap.xml\n")
 
     print(f"{'would change' if CHECK else 'changed'}: {changed} of {len(FILES)} files\n")
     print("== claims rewritten rather than renamed ==")

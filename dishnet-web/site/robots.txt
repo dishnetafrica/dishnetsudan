@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /demo/
 
 Sitemap: https://dishnetsudan.com/sitemap.xml

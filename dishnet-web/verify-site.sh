@@ -135,7 +135,12 @@ for f in glob.glob(os.path.join(root,'**','*.html'),recursive=True):
             print(f"  false-for-Sudan claim {b!r} in {os.path.relpath(f,root)}"); bad=1
 sys.exit(bad)
 PYCHK
-[ $fail -eq 0 ] && echo "  no South-Sudan-only claims, sitemap well-formed"
+# An absolute image URL on our own domain means the domain rename rewrote a
+# path that only exists in the South Sudan CMS. It 404s in production and the
+# local-link crawl above cannot see it, because it only checks relative refs.
+selfabs=$(grep -rhoE 'src="https://dishnetsudan\.com/[^"]+"' "$HERE/site" --include='*.html' | sort -u || true)
+[ -n "$selfabs" ] && { echo "  absolute self-URL will 404: $selfabs"; fail=1; }
+[ $fail -eq 0 ] && echo "  no South-Sudan-only claims, sitemap well-formed, no self-404 images"
 
 echo
 [ $fail -eq 0 ] && echo "PASS" || echo "FAIL"

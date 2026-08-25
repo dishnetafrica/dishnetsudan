@@ -13,12 +13,8 @@
 /application /contact.html 301
 
 # Block directory listing on demo subfolders
-/demo/ngo/sites /demo/ngo/sites.html 301
-/demo/embassy/sites /demo/embassy/sites.html 301
-/demo/un/sites /demo/un/sites.html 301
 
 # Block directory listing on demo root
-/demo /demo/index.html 301
 
 # Catch-all 404 -> home
 /* /index.html 200

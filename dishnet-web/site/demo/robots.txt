@@ -1,5 +1,0 @@
-# DishNet Africa demo environment
-# Not for indexing. Share by direct link only.
-User-agent: *
-Disallow: /
-
