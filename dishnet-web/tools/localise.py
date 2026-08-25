@@ -230,6 +230,9 @@ PRICES = [
     (r"All prices are quoted in US Dollars \(USD\)\. Sudanese Pound \(SSP\) equivalents[^<]*",
      "All prices are quoted in US Dollars (USD). ",
      "wrong currency in terms"),
+    (r"Yes\. We accept payments in both USD and SSP\. The SSP equivalent is calculated at the current exchange rate\. We accept cash, bank transfer, and mobile money\.",
+     "Our plans are priced in US dollars. Message us on WhatsApp to ask about paying in Sudanese pounds and which payment methods are available in your city.",
+     "unconfirmed currency and payment methods"),
 ]
 
 # ── 3. Straight renames ──────────────────────────────────────────────────────
