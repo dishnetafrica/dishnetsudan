@@ -13,6 +13,26 @@ require_once dirname(__DIR__, 2) . '/lib/PluginConfig.php';
 require_once dirname(__DIR__, 2) . '/lib/EvolutionApiService.php';
 require_once dirname(__DIR__, 2) . '/lib/EvoWebhookGuard.php';
 
+/**
+ * Where Evolution should send messages.
+ *
+ * Deriving this from the request is unreliable: this page is normally loaded
+ * inside the UISP admin iframe, so SCRIPT_NAME is not the plugin's own public
+ * path, and UISP's public-URL layout differs between installs (/\_plugins/...
+ * on one host, /crm/\_plugins/... on another). UISP prints the correct address
+ * on the plugin's page in Settings, so we let the operator paste it and treat
+ * that as authoritative. The derived value is only ever a suggestion.
+ */
+function wa_ai_public_base(array $cfg): string
+{
+    $saved = rtrim(trim((string)($cfg['plugin_public_url'] ?? '')), '/');
+    if ($saved !== '') return $saved;
+
+    $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
+    return $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? '')
+         . rtrim(str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? ''))), '/');
+}
+
 $_wRoot = dirname(__DIR__, 2);
 $_wData = $GLOBALS['dataDir'] ?? ($_wRoot . '/data');
 $_wCfg  = PluginConfig::load($_wRoot, $_wData);
@@ -76,6 +96,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => !empty($r['ok']), 'text' => !empty($r['ok'])
             ? 'Signed ' . $inst . ' out of WhatsApp.' : 'Evolution refused: ' . ($r['error'] ?? '')];
 
+    } elseif ($act === 'save_public_url') {
+        $u = trim((string)($_POST['public_url'] ?? ''));
+        $u = rtrim($u, '/');
+        if ($u !== '' && !preg_match('~^https?://~i', $u)) {
+            $_wMsg = ['ok' => false, 'text' => 'Paste the full address, starting with https://'];
+        } else {
+            // Accept either the plugin folder or the public.php inside it.
+            $u = preg_replace('~/public\.php$~i', '', $u);
+            list($ok, $err) = PluginConfig::saveOverrides($_wData, ['plugin_public_url' => $u]);
+            $_wMsg = ['ok' => $ok, 'text' => $ok
+                ? ($u === '' ? 'Cleared — the address will be worked out from your browser again.'
+                             : 'Saved. Register the webhook now.')
+                : $err];
+            $_wCfg = PluginConfig::load($_wRoot, $_wData);
+        }
+
     } elseif ($act === 'register_webhook') {
         $inst   = $_wEvo->instanceFor($ch);
         $secret = PluginConfig::isSet_($_wCfg, 'evo_webhook_secret')
@@ -85,9 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         } elseif ($secret === '') {
             $_wMsg = ['ok' => false, 'text' => 'Could not create a webhook secret — is the data directory writable?'];
         } else {
-            $scheme = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
-            $base   = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? '')
-                    . rtrim(str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? ''))), '/');
+            $base = wa_ai_public_base($_wCfg);
             $r = $_wEvo->setWebhook($inst, $base . '/evo_webhook.php?token=' . rawurlencode($secret));
             $_wMsg = ['ok' => $r['ok'], 'text' => $r['ok']
                 ? 'Evolution will now send ' . $ch . ' messages to this plugin.'
@@ -228,6 +262,36 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
   <?php endif; ?>
 </div>
 </form>
+
+<div class="wa-card">
+  <h3>Plugin address</h3>
+  <div class="wa-row" style="display:block">
+    <div class="wa-note" style="padding:0 0 8px">
+      Evolution has to be able to reach this plugin. Copy the <b>Public URL</b> shown on this
+      plugin's page in UISP &rarr; Settings &rarr; Plugins, and paste it here. It differs between
+      installs, and this page cannot work it out reliably from inside the UISP frame.
+    </div>
+    <form method="post" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><?= $_csrf ?>
+      <input type="hidden" name="wa_action" value="save_public_url">
+      <input type="text" name="public_url" style="min-width:460px"
+             value="<?= h((string)($_wCfg['plugin_public_url'] ?? '')) ?>"
+             placeholder="https://crm.dishnetsudan.com/_plugins/dishnet-hybrid-sudan">
+      <button class="wa-btn p" type="submit">Save address</button>
+    </form>
+    <div class="wa-note" style="padding:8px 0 0">
+      Currently sending Evolution to:<br>
+      <code style="word-break:break-all"><?= h(wa_ai_public_base($_wCfg)) ?>/evo_webhook.php</code>
+      <?php if (empty($_wCfg['plugin_public_url'])): ?>
+        <br><b>That is a guess</b> from your browser address, and is very likely wrong while this
+        page is open inside UISP. Paste the real one above.
+      <?php endif; ?>
+      <?php if (strpos(wa_ai_public_base($_wCfg), ':8443') !== false): ?>
+        <br><b>Warning:</b> that address uses port 8443, which bypasses Traefik and serves UISP's
+        self-signed certificate. Evolution will refuse it. Use the address without a port.
+      <?php endif; ?>
+    </div>
+  </div>
+</div>
 
 <div class="wa-card">
   <h3>Connect &amp; webhooks</h3>

@@ -124,6 +124,17 @@ $_hSecret = PluginConfig::isSet_($_hCfg, 'evo_webhook_secret')
 $row('WhatsApp', 'Webhook secret', $_hSecret !== '' ? 'ok' : 'bad',
      $_hSecret !== '' ? $_hSecret : 'could not be created — is the data directory writable?');
 
+$_hPub = rtrim(trim((string)($_hCfg['plugin_public_url'] ?? '')), '/');
+if ($_hPub === '') {
+    $row('WhatsApp', 'Plugin address', 'warn',
+         'not set — paste the Public URL from the plugin page so Evolution can reach the webhook');
+} elseif (strpos($_hPub, ':8443') !== false) {
+    $row('WhatsApp', 'Plugin address', 'bad',
+         $_hPub . ' — port 8443 bypasses Traefik and serves a self-signed certificate; Evolution will refuse it');
+} else {
+    $row('WhatsApp', 'Plugin address', 'ok', $_hPub);
+}
+
 $_hSeen = 0;
 try { $_hSeen = (int)$_hPdo->query("SELECT COUNT(*) FROM evo_webhook_seen WHERE received_at > datetime('now','-24 hours')")->fetchColumn(); } catch (\Throwable $e) {}
 $row('WhatsApp', 'Inbound in last 24h', $_hSeen > 0 ? 'ok' : 'warn',
