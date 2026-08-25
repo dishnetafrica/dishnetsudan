@@ -1,0 +1,14 @@
+# Inspection output may contain hostnames, container names and near-miss
+# secrets that pattern-based redaction did not catch. Never commit it.
+reports/
+*.tar.gz
+*.bak
+
+# Config snapshots taken by scripts/backup-configs.sh
+dishnet-backups/
+
+# Never commit these, whatever the path
+*.key
+*.pem
+acme.json
+unms.conf
