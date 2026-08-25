@@ -1095,7 +1095,7 @@ REPLY STYLE
         <span style="color:#7C3AED;">📡</span> Evolution API (Marketing / Sales WhatsApp)
     </div>
     <div style="padding:18px;">
-        <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#6d28d9;">
+        <div style="background:#fff8e1;border:1px solid #f0c040;border-radius:6px;padding:12px 14px;margin-bottom:14px;font-size:14px"><b>These fields no longer save.</b> Evolution API settings moved to <a href="?page=dashboard&amp;tab=wa_ai_setup"><b>WhatsApp &rarr; WhatsApp AI</b></a>, which also detects your instances, shows the pairing QR and registers the webhook. Both screens used to write the same keys, so saving here could overwrite a working setup.</div><div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#6d28d9;">
             <strong>Sync conversations from your Evolution API instance.</strong> Messages are stored locally for conversation history, search, and AI training data.
         </div>
         <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;margin-bottom:14px;">

@@ -117,6 +117,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => !empty($r['ok']), 'text' => !empty($r['ok'])
             ? 'Signed ' . $inst . ' out of WhatsApp.' : 'Evolution refused: ' . ($r['error'] ?? '')];
 
+    } elseif ($act === 'save_connection') {
+        list($ok, $err) = PluginConfig::saveEvolutionCredentials(
+            $_wData,
+            (string)($_POST['evo_api_url'] ?? ''),
+            (string)($_POST['evo_api_key'] ?? '')
+        );
+        $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Evolution connection saved.' : $err];
+        $_wCfg = PluginConfig::load($_wRoot, $_wData);
+        $_wEvo = new EvolutionApiService($_wCfg);
+
     } elseif ($act === 'assign_instance') {
         $inst = trim((string)($_POST['instance'] ?? ''));
         if ($ch === '' || !in_array($ch, EvolutionApiService::CHANNELS, true)) {
@@ -242,6 +252,31 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
       <button class="wa-btn <?= $_wOn ? 'd' : 'p' ?>" type="submit"><?= $_wOn ? 'Stop answering' : 'Start answering' ?></button>
     </form>
   </div>
+</div>
+
+<div class="wa-card">
+  <h3>Evolution connection</h3>
+  <form method="post"><?= $_csrf ?>
+    <input type="hidden" name="wa_action" value="save_connection">
+    <div class="wa-row">
+      <span class="n">API URL</span>
+      <input type="text" name="evo_api_url" style="min-width:420px"
+             value="<?= h((string)($_wCfg['evo_api_url'] ?? '')) ?>"
+             placeholder="https://evo-evolution-api.xxxx.easypanel.host">
+    </div>
+    <div class="wa-row">
+      <span class="n">API key</span>
+      <input type="password" name="evo_api_key" style="min-width:420px" autocomplete="off"
+             placeholder="<?= PluginConfig::isSet_($_wCfg,'evo_api_key') ? 'stored — leave blank to keep it' : 'paste your Evolution API key' ?>">
+      <span class="wa-pill <?= PluginConfig::isSet_($_wCfg,'evo_api_key') ? 'wa-ok' : 'wa-b' ?>">
+        <?= PluginConfig::isSet_($_wCfg,'evo_api_key') ? 'set' : 'not set' ?>
+      </span>
+    </div>
+    <div class="wa-row"><button class="wa-btn p" type="submit">Save connection</button></div>
+  </form>
+  <div class="wa-note">This is the only place these are set. The old
+  <b>Settings &rarr; Evolution API</b> section no longer saves them &mdash; both screens wrote the
+  same keys, so saving there could overwrite a working setup.</div>
 </div>
 
 <?php if ($_wDetected): ?>

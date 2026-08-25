@@ -43,5 +43,30 @@ foreach ([['1',true],['0',false],['true',true],['false',false],['yes',true],['on
 }
 
 $cleanup();
+echo "\nEvolution credentials: the one permitted secret path\n";
+$cdir = sys_get_temp_dir() . '/dishnet_cred_' . getmypid();
+@mkdir($cdir, 0700, true);
+list($ok,$err) = PluginConfig::saveEvolutionCredentials($cdir, 'https://evo.example.host', 'KEY123456');
+t('saves url and key', [$ok,$err], [true,'']);
+$c = json_decode((string)file_get_contents("$cdir/kyc_config.json"), true);
+t('url stored',  $c['evo_api_url'] ?? null, 'https://evo.example.host');
+t('key stored',  $c['evo_api_key'] ?? null, 'KEY123456');
+
+// A blank key must not wipe a stored one -- the form shows a mask, not the value.
+PluginConfig::saveEvolutionCredentials($cdir, 'https://evo.example.host', '');
+$c = json_decode((string)file_get_contents("$cdir/kyc_config.json"), true);
+t('blank key keeps the stored one', $c['evo_api_key'] ?? null, 'KEY123456');
+
+PluginConfig::saveEvolutionCredentials($cdir, 'https://other.host/', 'NEWKEY');
+$c = json_decode((string)file_get_contents("$cdir/kyc_config.json"), true);
+t('url trailing slash stripped', $c['evo_api_url'] ?? null, 'https://other.host');
+t('new key replaces old',        $c['evo_api_key'] ?? null, 'NEWKEY');
+
+list($ok,$err) = PluginConfig::saveEvolutionCredentials($cdir, 'evo.example.host', 'K');
+t('refuses a url without a scheme', [$ok, $err], [false, 'The API URL must start with https://']);
+
+t('file is owner-only', substr(sprintf('%o', fileperms("$cdir/kyc_config.json")), -3), '600');
+array_map('unlink', glob("$cdir/*") ?: []); @rmdir($cdir);
+
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);

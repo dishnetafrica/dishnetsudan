@@ -88,6 +88,47 @@ class PluginConfig
         return $safe;
     }
 
+    /**
+     * Store credentials from an authenticated dashboard screen.
+     *
+     * saveOverrides() refuses secrets on purpose: it also serves the standalone
+     * plugin, whose page uCRM does not authenticate. The Hybrid dashboard tabs
+     * sit behind the plugin's own login, so an admin there may set these -- but
+     * only these two, named explicitly, so the refusal still covers everything
+     * else.
+     */
+    public static function saveEvolutionCredentials(string $dataDir, string $url, string $key): array
+    {
+        $path     = $dataDir . '/kyc_config.json';
+        $existing = [];
+        if (is_file($path)) {
+            $d = json_decode((string)file_get_contents($path), true);
+            if (is_array($d)) $existing = $d;
+        }
+
+        $url = rtrim(trim($url), '/');
+        if ($url !== '' && !preg_match('~^https?://~i', $url)) {
+            return [false, 'The API URL must start with https://'];
+        }
+        $existing['evo_api_url'] = $url;
+
+        // An empty key means "leave the stored one alone" -- the form shows a
+        // mask rather than the real value, so blank must not wipe it.
+        $key = trim($key);
+        if ($key !== '') $existing['evo_api_key'] = $key;
+
+        $json = json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if ($json === false) return [false, 'Could not encode settings.'];
+
+        $tmp = $path . '.tmp.' . getmypid();
+        if (@file_put_contents($tmp, $json, LOCK_EX) === false) {
+            return [false, 'Could not write to the plugin data directory.'];
+        }
+        @chmod($tmp, 0600);
+        if (!@rename($tmp, $path)) { @unlink($tmp); return [false, 'Could not save settings.']; }
+        return [true, ''];
+    }
+
     public static function isSet_(array $config, string $key): bool
     {
         return isset($config[$key]) && is_string($config[$key]) && trim($config[$key]) !== '';

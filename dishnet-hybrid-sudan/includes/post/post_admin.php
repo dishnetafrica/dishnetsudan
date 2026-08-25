@@ -654,9 +654,17 @@ if($_SERVER['REQUEST_METHOD']==='POST'&&($_POST['action']??'')==='save_settings'
         $config['wa_send_pdf'] = ($_POST['wa_send_pdf'] === '1' || $_POST['wa_send_pdf'] === 'true');
     }
     // Evolution API
-    $config['evo_api_url']             = trim($_POST['evo_api_url']            ?? $config['evo_api_url']            ?? '');
-    $config['evo_api_key']             = trim($_POST['evo_api_key']            ?? $config['evo_api_key']            ?? '');
-    $config['evo_instance_name']       = trim($_POST['evo_instance_name']      ?? $config['evo_instance_name']      ?? '');
+    //
+    // SUDAN EDITION: the URL, key and instance names are NOT saved from here
+    // any more. WhatsApp -> WhatsApp AI owns them, and it is the screen with
+    // instance detection, QR pairing and webhook registration.
+    //
+    // Both screens used to write these same keys into kyc_config.json, so
+    // saving this page would silently overwrite a working Evolution setup --
+    // and 'evo_instance_name' means the SUPPORT number here while the field on
+    // this page is labelled Sales, so the two disagreed about which channel it
+    // was. Existing values are preserved untouched.
+    $config['evo_channel_name']        = trim($_POST['evo_channel_name']       ?? $config['evo_channel_name']       ?? 'marketing');
     $config['evo_channel_name']        = trim($_POST['evo_channel_name']       ?? $config['evo_channel_name']       ?? 'marketing');
     $config['evo_auto_reply_enabled']  = isset($_POST['evo_auto_reply_enabled']) ? 1 : (int)($config['evo_auto_reply_enabled'] ?? 0);
     // Legacy fields kept so old saved values are preserved
