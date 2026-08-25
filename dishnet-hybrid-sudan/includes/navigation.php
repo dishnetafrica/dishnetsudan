@@ -137,6 +137,10 @@ $_waLeadBadge2 = (int)($_navBadges['wa_leads']    ?? 0);
     <span style="background:#ef4444;color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px;margin-left:2px;">SETUP</span>
     <?php endif; ?>
 </a>
+<a href="?page=dashboard&tab=wa_ai_setup" class="kyc-tab <?= $tab==='wa_ai_setup'?'active':'' ?>">
+    <span>WhatsApp AI</span>
+    <span style="background:#0b6b5b;color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px;margin-left:2px;">AI</span>
+</a>
 <?php endif; ?>
 
 <a href="?page=dashboard&tab=lifecycle" class="kyc-tab <?= $tab==='lifecycle'?'active':'' ?>">
@@ -369,9 +373,6 @@ try {
 <?php if ($isAdmin): ?>
 <a href="?page=dashboard&tab=system_health" class="kyc-tab <?= $tab==='system_health'?'active':'' ?>">
   <span>System Health</span>
-</a>
-<a href="?page=dashboard&tab=wa_ai_setup" class="kyc-tab <?= $tab==='wa_ai_setup'?'active':'' ?>">
-  <span>WhatsApp AI</span>
 </a>
 <?php endif; ?>
 <a href="?page=dashboard&tab=roles" class="kyc-tab <?= $tab==='roles'?'active':'' ?>">
