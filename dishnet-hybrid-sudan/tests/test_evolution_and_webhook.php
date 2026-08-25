@@ -25,6 +25,22 @@ t('instance lookup is case-insensitive', $evo->channelFor('DishNet_Support'), 's
 t('unknown instance rejected (not defaulted)', $evo->channelFor('some_other_instance'), '');
 t('all three channels mapped', $evo->configuredChannels(), ['sales','support','account']);
 
+echo "\nURL normalisation — /manager is the natural mistake\n";
+// Evolution's welcome page advertises the manager URL. Pasting it makes every
+// GET return the SPA's HTML with a 200 (reads as "connected, no instances")
+// while every POST 404s. Strip it rather than diagnose it again.
+t('strips /manager',        EvolutionApiService::normaliseBaseUrl('https://evo.host/manager'), 'https://evo.host');
+t('strips /manager/',       EvolutionApiService::normaliseBaseUrl('https://evo.host/manager/'), 'https://evo.host');
+t('strips /MANAGER',        EvolutionApiService::normaliseBaseUrl('https://evo.host/MANAGER'), 'https://evo.host');
+t('strips /dashboard',      EvolutionApiService::normaliseBaseUrl('https://evo.host/dashboard'), 'https://evo.host');
+t('leaves a clean url',     EvolutionApiService::normaliseBaseUrl('https://evo.host'), 'https://evo.host');
+t('strips trailing slash',  EvolutionApiService::normaliseBaseUrl('https://evo.host/'), 'https://evo.host');
+t('empty stays empty',      EvolutionApiService::normaliseBaseUrl(''), '');
+t('does not eat a host ending in manager',
+  EvolutionApiService::normaliseBaseUrl('https://manager.evo.host'), 'https://manager.evo.host');
+$m = new EvolutionApiService(['evo_api_url'=>'https://evo.host/manager','evo_api_key'=>'k']);
+t('constructor normalises too', $m->describe()['base_url'], 'https://evo.host');
+
 echo "\nReachable vs fully-configured (the chicken-and-egg)\n";
 // Listing instances must work on URL+key alone. Requiring a channel mapping
 // first made the dropdown impossible on a fresh install: you needed an

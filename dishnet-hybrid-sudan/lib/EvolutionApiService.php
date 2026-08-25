@@ -52,7 +52,7 @@ class EvolutionApiService
 
     public function __construct(array $config, int $timeout = 20)
     {
-        $this->baseUrl = rtrim(trim((string)($config['evo_api_url'] ?? '')), '/');
+        $this->baseUrl = self::normaliseBaseUrl((string)($config['evo_api_url'] ?? ''));
         $this->apiKey  = trim((string)($config['evo_api_key'] ?? ''));
         $this->timeout = $timeout;
 
@@ -77,6 +77,30 @@ class EvolutionApiService
             $this->channelToInstance[$channel] = $instance;
             $this->instanceToChannel[mb_strtolower($instance)] = $channel;
         }
+    }
+
+    /**
+     * Trim a pasted Evolution URL back to its API root.
+     *
+     * Evolution's own welcome page advertises the manager URL, so /manager is
+     * the natural thing to copy -- and it fails in a way that hides itself: the
+     * manager is a single-page app, so GET /manager/instance/fetchInstances
+     * returns the app's HTML with a 200, which reads as "connected, no
+     * instances", while every POST 404s. That combination cost a long
+     * afternoon, so the suffix is stripped here rather than diagnosed again.
+     */
+    public static function normaliseBaseUrl(string $url): string
+    {
+        $url = rtrim(trim($url), '/');
+        if ($url === '') return '';
+
+        // Strip UI paths that are not the API root.
+        foreach (['/manager', '/dashboard'] as $suffix) {
+            if (substr(strtolower($url), -strlen($suffix)) === $suffix) {
+                $url = substr($url, 0, -strlen($suffix));
+            }
+        }
+        return rtrim($url, '/');
     }
 
     // ── Configuration ────────────────────────────────────────────────────────
@@ -453,7 +477,19 @@ class EvolutionApiService
         }
 
         $data = json_decode((string)$raw, true);
-        if (!is_array($data)) $data = ['raw' => mb_substr((string)$raw, 0, 500)];
+        if (!is_array($data)) {
+            // A 200 carrying HTML means we reached a web page, not the API --
+            // typically the manager UI. Treat it as a failure, not as an empty
+            // result, so it cannot masquerade as a working connection.
+            $body = ltrim((string)$raw);
+            if ($body !== '' && ($body[0] === '<' || stripos($body, '<!doctype') === 0)) {
+                $msg = 'Got an HTML page, not the API. Check the URL is the API root '
+                     . '(no /manager on the end).';
+                $this->lastError = ['message' => $msg, 'http' => $httpCode, 'path' => $path, 'detail' => $msg];
+                return ['ok' => false, 'http' => $httpCode, 'data' => [], 'error' => $msg];
+            }
+            $data = ['raw' => mb_substr((string)$raw, 0, 500)];
+        }
 
         if ($httpCode >= 500 && $method === 'GET' && $attempt < 3) {
             usleep(200000 * $attempt);

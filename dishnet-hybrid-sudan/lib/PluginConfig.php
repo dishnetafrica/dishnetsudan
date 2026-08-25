@@ -110,6 +110,11 @@ class PluginConfig
         if ($url !== '' && !preg_match('~^https?://~i', $url)) {
             return [false, 'The API URL must start with https://'];
         }
+        // Strip /manager and friends: pasting the manager URL is the natural
+        // mistake, and it fails silently rather than loudly.
+        if (class_exists('EvolutionApiService')) {
+            $url = EvolutionApiService::normaliseBaseUrl($url);
+        }
         $existing['evo_api_url'] = $url;
 
         // An empty key means "leave the stored one alone" -- the form shows a
