@@ -75,7 +75,16 @@ class EvolutionApiService
         foreach ($map as $channel => $instance) {
             if ($instance === '') continue;
             $this->channelToInstance[$channel] = $instance;
-            $this->instanceToChannel[mb_strtolower($instance)] = $channel;
+            // First write wins, and $map iterates sales -> support -> account.
+            // One instance serving several channels therefore resolves to
+            // SALES for inbound routing. Last-write-wins did the opposite: a
+            // legacy accounts field naming the same instance silently stole
+            // the mapping, and no amount of assigning sales in the UI could
+            // ever fix it, because account was written after sales each load.
+            $key = mb_strtolower($instance);
+            if (!isset($this->instanceToChannel[$key])) {
+                $this->instanceToChannel[$key] = $channel;
+            }
         }
     }
 

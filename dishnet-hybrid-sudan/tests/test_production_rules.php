@@ -135,5 +135,20 @@ has('kit and price in prompt', $p, 'Starlink Standard Kit — price 350 one-time
 $p = $brain->promptPreview($sales + ['products' => $catalogue]);
 has('no hardware in uCRM => AI told to confirm, not guess', $p, 'HARDWARE: no kit or installation prices');
 
+// ── 8. Single number serving several channels routes inbound as SALES ───
+require_once dirname(__DIR__) . '/lib/EvolutionApiService.php';
+$one = new EvolutionApiService([
+    'evo_api_url' => 'https://example.invalid', 'evo_api_key' => 'k',
+    'evo_instance_sales'          => 'dishnet_sudan',
+    'evo_accounts_instance_name'  => 'dishnet_sudan',   // legacy field, same instance
+    'evo_instance_name'           => 'dishnet_sudan',   // legacy field, same instance
+]);
+t('duplicate mapping resolves to sales', $one->channelFor('dishnet_sudan'), 'sales');
+$acctOnly = new EvolutionApiService([
+    'evo_api_url' => 'https://example.invalid', 'evo_api_key' => 'k',
+    'evo_accounts_instance_name' => 'dishnet_acct',
+]);
+t('account-only mapping still works', $acctOnly->channelFor('dishnet_acct'), 'account');
+
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail === 0 ? 0 : 1);
