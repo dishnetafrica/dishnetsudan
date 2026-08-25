@@ -14,6 +14,8 @@
 # endpoint, inspects the queue and worker, and checks the AI provider.
 # It changes nothing unless you pass a flag:
 #
+#     --go               do everything remaining, in order, stopping at the
+#                        first thing that genuinely fails
 #     --fix-traefik      write the Traefik route for crm.dishnetsudan.com
 #     --set-webhook      point dishnet_sales at this plugin's webhook
 #     --send-test <num>  send one outbound WhatsApp message (digits only)
@@ -28,9 +30,10 @@ INSTANCE="${INSTANCE:-dishnet_sales}"
 EVO_URL="${EVO_URL:-https://evo-evolution-api.rz2qqk.easypanel.host}"
 EVO_KEY="${EVO_KEY:-}"
 
-FIX_TRAEFIK=0; SET_WEBHOOK=0; SEND_TEST=""
+FIX_TRAEFIK=0; SET_WEBHOOK=0; SEND_TEST=""; GO=0
 while [ $# -gt 0 ]; do
   case "$1" in
+    --go)          GO=1; FIX_TRAEFIK=1; SET_WEBHOOK=1 ;;
     --fix-traefik) FIX_TRAEFIK=1 ;;
     --set-webhook) SET_WEBHOOK=1 ;;
     --send-test)   SEND_TEST="${2:-}"; shift ;;
@@ -147,6 +150,18 @@ YAML
   fi
 fi
 
+if [ "$GO" = "1" ]; then
+  say "waiting for Let's Encrypt to issue (up to 2 minutes)..."
+  for i in $(seq 1 24); do
+    C=$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 "https://$DOMAIN/crm/_plugins/$PLUGIN/public.php" 2>/dev/null)
+    I=$(echo | timeout 8 openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null | openssl x509 -noout -issuer 2>/dev/null)
+    if [ "$C" = "200" ] || [ "$C" = "302" ]; then
+      echo "$I" | grep -qi "let's encrypt" && { say "certificate issued after $((i*5))s"; break; }
+    fi
+    sleep 5
+  done
+fi
+
 DOM_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://$DOMAIN/crm/_plugins/$PLUGIN/public.php" 2>/dev/null)
 DOM_CERT=$(echo | timeout 12 openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" 2>/dev/null \
            | openssl x509 -noout -issuer 2>/dev/null)
@@ -211,7 +226,11 @@ else
   record "MESSAGES_UPSERT enabled" SKIP "not configured"
 fi
 
-if [ "$SET_WEBHOOK" = "1" ]; then
+if [ "$SET_WEBHOOK" = "1" ] && [ "$GO" = "1" ] && [ "$NOTOK" != "401" ]; then
+  say "!! not registering the webhook: the endpoint answered ${NOTOK:-nothing}, not 401."
+  say "   Evolution would be pointed at something that cannot receive messages."
+  say "   Fix the row marked FIX above, then re-run."
+elif [ "$SET_WEBHOOK" = "1" ]; then
   SECRET=$(docker exec "$UCRM_CT" sh -c "cat /data/ucrm/data/plugins/$PLUGIN/data/webhook_secret 2>/dev/null || true" 2>/dev/null | tr -d '\r\n')
   if [ -z "$SECRET" ]; then
     say "!! no webhook secret yet — open the plugin page once so it generates one"
@@ -221,6 +240,16 @@ if [ "$SET_WEBHOOK" = "1" ]; then
       -d "{\"webhook\":{\"enabled\":true,\"url\":\"$WH_BASE&token=$SECRET\",\"byEvents\":false,\"base64\":false,\"events\":[\"MESSAGES_UPSERT\",\"MESSAGES_UPDATE\",\"CONNECTION_UPDATE\"]}}")
     echo "$RESP" | mask | head -c 400 | sed 's/^/     /'; echo
   fi
+fi
+
+if [ "$GO" = "1" ] && [ "$NOTOK" = "401" ]; then
+  head2 "5b. Re-check after registering"
+  sleep 3
+  RE=$(curl -s --max-time 15 -H "apikey: $EVO_KEY" "$EVO_URL/webhook/find/$INSTANCE" 2>&1)
+  echo "$RE" | grep -oE '"url":"[^"]*"' | head -1 | mask | sed 's/^/     now set to: /'
+  echo "$RE" | grep -q "page=evo_webhook" \
+    && say "registered correctly" \
+    || say "!! registration did not stick — see the response above"
 fi
 
 # ── 6. queue and worker ──────────────────────────────────────────────────────
@@ -318,6 +347,11 @@ for r in "${ROWS[@]}"; do
   printf '   %-34s %-6s %s\n' "$C" "$M" "$D"
 done
 printf '\n   %d item(s) to fix.\n\n' "$FAILS"
+
+if [ "$GO" = "1" ]; then
+  printf '   --go finished. If every row above says OK, send "Hello" to the number\n'
+  printf '   and watch:  docker logs -f %s 2>&1 | grep -i webhook\n\n' "${EVO_CT:-<evolution>}"
+fi
 
 printf '   Next, in order:\n'
 printf '     1. Create %s in the Evolution manager if it is missing\n' "$INSTANCE"
