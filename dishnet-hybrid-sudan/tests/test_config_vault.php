@@ -56,6 +56,18 @@ unlink($data . '/config.json');
 $cfg4 = PluginConfig::load($plugin, $data);
 t('next wipe restores the NEW key', $cfg4['openai_api_key'] ?? null, 'sk-NEW-456');
 
+// ── 5. The 25 Aug hazard: data dir gone entirely at first load ──────────
+// The restore must recreate the directory, and even if it could not, the
+// refresh must never erase the vault's copy of the secret.
+exec('rm -rf ' . escapeshellarg($data));
+$cfg5 = PluginConfig::load($plugin, $data);
+t('data dir recreated by the vault', is_dir($data), true);
+t('secret restored into the fresh data dir',
+  trim((string)@file_get_contents($data . '/webhook_secret')), 'sekrit-token-abc');
+$vaultNow = json_decode((string)file_get_contents($vault), true);
+t('vault still holds the secret after the ordeal',
+  $vaultNow['webhook_secret_file'] ?? null, 'sekrit-token-abc');
+
 // tidy
 foreach ([$data . '/webhook_secret', $data . '/config.json', $vault] as $f) @unlink($f);
 @rmdir($data); @rmdir($plugin); @rmdir($root . '/plugins'); @rmdir($root);

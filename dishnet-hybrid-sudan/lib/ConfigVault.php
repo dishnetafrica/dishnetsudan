@@ -86,6 +86,10 @@ class ConfigVault
             }
 
             $secretFile = rtrim($dataDir, '/') . '/webhook_secret';
+            // A fresh install's first load can run before the data directory
+            // exists; without this, the secret restore silently skipped and
+            // the refresh below then erased the vault's own copy.
+            if (!is_dir($dataDir)) @mkdir($dataDir, 0700, true);
             if (!is_file($secretFile)
                 && is_string($vault['webhook_secret_file'] ?? null)
                 && $vault['webhook_secret_file'] !== ''
@@ -101,7 +105,7 @@ class ConfigVault
                 error_log('[ConfigVault] restored after re-install: ' . implode(', ', $restored));
             }
 
-            self::refresh($file, $dataDir, $config);
+            self::refresh($file, $dataDir, $config, $vault);
         } catch (\Throwable $e) {
             error_log('[ConfigVault] ' . $e->getMessage());
         }
@@ -109,7 +113,7 @@ class ConfigVault
     }
 
     /** Write the vault only when its content actually changed. */
-    private static function refresh(string $file, string $dataDir, array $config): void
+    private static function refresh(string $file, string $dataDir, array $config, array $previous = []): void
     {
         $snap = ['config' => []];
         foreach (self::VAULT_KEYS as $k) {
@@ -122,6 +126,12 @@ class ConfigVault
         if (is_file($secretFile)) {
             $s = trim((string)@file_get_contents($secretFile));
             if ($s !== '') $snap['webhook_secret_file'] = $s;
+        } elseif (is_string($previous['webhook_secret_file'] ?? null)
+                  && $previous['webhook_secret_file'] !== '') {
+            // The file being absent right now is not a reason to forget it.
+            // A vault that erases its cargo when delivery fails once is not a
+            // vault — this exact hazard lost the secret on 25 Aug.
+            $snap['webhook_secret_file'] = $previous['webhook_secret_file'];
         }
         if ($snap['config'] === [] && !isset($snap['webhook_secret_file'])) {
             return;   // nothing worth keeping; never replace a vault with emptiness
