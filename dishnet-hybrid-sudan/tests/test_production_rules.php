@@ -154,5 +154,20 @@ t('account-only mapping still works', $acctOnly->channelFor('dishnet_acct'), 'ac
 $caps = new DishNetAiBrain(['ai_provider' => 'OpenAI', 'openai_api_key' => 'k']);
 t('OpenAI (capitalised) finds the openai key', $caps->isConfigured(), true);
 
+// ── 10. Upfront-cost discipline: one-time and monthly stay separate ─────
+$p = $brain->promptPreview($sales + ['products' => $catalogue + [
+    'hardware' => [['name' => 'Starlink Standard Kit', 'price' => 600.0],
+                   ['name' => 'Professional Installation', 'price' => 50.0]]]]);
+has('monthly vs one-time distinction is a rule', $p, 'MONEY IS TWO SEPARATE THINGS');
+has('upfront = confirmed one-time items only',   $p, 'ONLY the confirmed one-time items from HARDWARE');
+has('monthly price presented separately',        $p, 'monthly price');
+has('no invented delivery/customs/taxes',        $p, 'Never add delivery, customs, taxes');
+has('missing one-time price => confirm + hand over', $p, 'say you will confirm it and hand over');
+$rulePos = strpos($p, 'MONEY IS TWO SEPARATE THINGS');
+$dataPos = strpos($p, 'HARDWARE (one-time items');
+t('upfront rule precedes the data it governs', $rulePos !== false && $dataPos !== false && $rulePos < $dataPos, true);
+$sup = $brain->promptPreview(['channel' => 'support', 'message' => 'internet slow', 'customer' => null, 'history' => []]);
+hasnt('sales-only rule stays off the support role', $sup, 'MONEY IS TWO SEPARATE THINGS');
+
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail === 0 ? 0 : 1);

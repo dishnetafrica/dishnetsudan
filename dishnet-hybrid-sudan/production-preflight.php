@@ -293,6 +293,7 @@ if ($MODE === 'suite') {
         'What is the cheapest plan?',
         'What is the difference between 500GB and 1TB?',
         'How much is installation?',
+        'How much do I need to pay to get started with 1TB?',
         'How much is the Starlink terminal?',
         'Is Starlink available in my area?',
         'Can I pay in Sudanese pounds?',
@@ -305,6 +306,21 @@ if ($MODE === 'suite') {
     $ucrmPrices = [];
     foreach (array_merge($plans, $prod['ok'] ? ($prod['data']['hardware'] ?? []) : []) as $p)
         if (($p['price'] ?? null) !== null) $ucrmPrices[] = rtrim(rtrim(number_format((float)$p['price'], 2, '.', ''), '0'), '.');
+    // A total of one-time items is a legitimate quote ("kit + installation =
+    // $650 one-time"). Whitelist every subset sum of HARDWARE prices — and
+    // ONLY hardware: a monthly price blended into an upfront figure must
+    // still be flagged, because that is exactly the violation the upfront
+    // rule forbids.
+    $hwPrices = [];
+    foreach (($prod['ok'] ? ($prod['data']['hardware'] ?? []) : []) as $h)
+        if (($h['price'] ?? null) !== null) $hwPrices[] = (float)$h['price'];
+    if (count($hwPrices) <= 10) {
+        $sums = [0.0];
+        foreach ($hwPrices as $hp) foreach ($sums as $sv) $sums[] = $sv + $hp;
+        foreach (array_unique($sums) as $sv) if ($sv > 0)
+            $ucrmPrices[] = rtrim(rtrim(number_format($sv, 2, '.', ''), '0'), '.');
+    }
+    $ucrmPrices = array_values(array_unique($ucrmPrices));
     $forbidden  = ['142', '218', '366', '513', '814', '$80', '$65', '$50', '$299', '$550', '$650', '$2,600', '$2600'];
     foreach ($SUITE as $i => $q) {
         $r = $runOne($q, $ctx);
