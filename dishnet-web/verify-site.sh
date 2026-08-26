@@ -316,6 +316,15 @@ for f in glob.glob(os.path.join(root,'**','*.html'), recursive=True):
     for m in re.findall(r'wa\.me/(\d*)', t) + re.findall(r'api\.whatsapp\.com/send/\?phone=\+?(\d+)', t):
         if m != NUMBER:
             err(f'{rel}: WhatsApp link to {m or "<empty>"} (want {NUMBER})')
+    # 2a. No login link to the bare CRM root: it redirects to /nms/login,
+    #     the UISP admin console. Customers cannot use it, and pointing a
+    #     public site at a vendor-branded credential form on a new domain is
+    #     what got crm.dishnetsudan.com flagged as deceptive by Chrome.
+    #     Uses the loop's own file -- opening a second one here reassigned t
+    #     and every check below it silently read the wrong page.
+    if re.search(r'https://crm\.dishnetsudan\.com/(?=")', t):
+        err(f'{rel}: login link points at the UISP admin console')
+
     # 2. No login link to the South Sudan plugin path.
     if 'dishnet-hybrid-telecom' in t:
         err(f'{rel}: links the South Sudan plugin URL')

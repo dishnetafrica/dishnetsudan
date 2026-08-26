@@ -310,6 +310,9 @@ REPORT = [
     (r"\+211",                "South Sudan phone number"),
     ("SSP",                   "South Sudan pound"),
     ("portal.dishnetss.com",  "no Sudan portal decided"),
+    # The bare CRM root lands on the UISP admin console, not the customer
+    # portal. Customers must never be sent there.
+    ("https://crm.dishnetsudan.com/\"", "login points at the UISP admin console"),
     ("info@dishnetafrica.com","mailbox must exist before it is advertised"),
     ("Central Equatoria",     "South Sudan state"),
     ("MTN|Airtel",            "Ugandan payment rail"),
