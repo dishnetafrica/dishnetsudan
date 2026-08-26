@@ -88,5 +88,62 @@ $g->record('5.5.5.5', 'new');
 t('ancient row pruned', count($s->rows), 1);
 t('the surviving row is the new one', $s->rows[0]['ip'], '5.5.5.5');
 
+
+// ── Retention: personal data must expire ──────────────────────────────────
+class FakeMultiStore {
+    public array $files = [];
+    public function load(string $f): array { return $this->files[$f] ?? []; }
+    public function save(string $f, array $rows): void { $this->files[$f] = array_values($rows); }
+    public function withLock(string $f, callable $fn) { $this->files[$f] = $fn($this->files[$f] ?? []); }
+}
+$old = gmdate('c', time() - 120 * 86400);
+$new = gmdate('c', time() - 5 * 86400);
+$ms = new FakeMultiStore();
+$ms->files['web_chat_leads.json'] = [
+    ['session' => 'old1', 'phone' => '111', 'created' => $old],
+    ['session' => 'new1', 'phone' => '222', 'created' => $new],
+    ['session' => 'undated', 'phone' => '333'],
+];
+$ms->files['web_chat_sessions.json'] = [
+    ['session' => 'old1', 'turns' => '[]', 'updated' => $old],
+    ['session' => 'new1', 'turns' => '[]', 'updated' => $new],
+];
+$g = new WebChatGuard($ms, []);
+list($leads, $sessions) = $g->prune();
+t('90-day default removes the old lead', $leads, 1);
+t('and its transcript with it', $sessions, 1);
+t('recent lead survives', count($ms->files['web_chat_leads.json']), 2);
+$left = array_column($ms->files['web_chat_leads.json'], 'session');
+t('the right one survived', in_array('new1', $left, true), true);
+t('an undated row is kept rather than guessed at', in_array('undated', $left, true), true);
+t('the old transcript is gone',
+  array_column($ms->files['web_chat_sessions.json'], 'session'), ['new1']);
+
+// Configurable, and 0 means never.
+$ms2 = new FakeMultiStore();
+$ms2->files['web_chat_leads.json'] = [['session' => 'a', 'created' => gmdate('c', time() - 10 * 86400)]];
+$g2 = new WebChatGuard($ms2, ['web_chat_retention_days' => 7]);
+t('a shorter period is honoured', $g2->prune()[0], 1);
+
+$ms3 = new FakeMultiStore();
+$ms3->files['web_chat_leads.json'] = [['session' => 'a', 'created' => gmdate('c', time() - 9999 * 86400)]];
+$g3 = new WebChatGuard($ms3, ['web_chat_retention_days' => 0]);
+t('0 disables pruning entirely', $g3->prune(), [0, 0]);
+t('and nothing was deleted', count($ms3->files['web_chat_leads.json']), 1);
+
+// ── Erasing one person on request ─────────────────────────────────────────
+$ms4 = new FakeMultiStore();
+$ms4->files['web_chat_leads.json'] = [
+    ['session' => 'keep', 'phone' => '1'], ['session' => 'erase', 'phone' => '2']];
+$ms4->files['web_chat_sessions.json'] = [
+    ['session' => 'keep', 'turns' => '[]'], ['session' => 'erase', 'turns' => '[]']];
+$g4 = new WebChatGuard($ms4, []);
+t('forget reports what it removed', $g4->forget('erase'), ['lead' => true, 'session' => true]);
+t('the lead is gone', array_column($ms4->files['web_chat_leads.json'], 'session'), ['keep']);
+t('the conversation is gone too', array_column($ms4->files['web_chat_sessions.json'], 'session'), ['keep']);
+t('everyone else is untouched', count($ms4->files['web_chat_leads.json']), 1);
+t('forgetting an unknown visitor is harmless',
+  $g4->forget('never-existed'), ['lead' => false, 'session' => false]);
+
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail > 0 ? 1 : 0);

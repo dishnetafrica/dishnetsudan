@@ -135,6 +135,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Currency saved.' : $err];
         $_wCfg = PluginConfig::load($_wRoot, $_wData);
 
+    } elseif ($act === 'forget_lead') {
+        // A deletion request must not require someone to open SQLite. Removes
+        // the contact details AND the conversation, because keeping a
+        // transcript that names the person defeats the purpose.
+        require_once $_wRoot . '/lib/WebChatGuard.php';
+        require_once $_wRoot . '/lib/StoreInterface.php';
+        require_once $_wRoot . '/lib/SqliteStore.php';
+        $sess = trim((string)($_POST['session'] ?? ''));
+        try {
+            $st = $GLOBALS['store'] ?? SqliteStore::create($_wData);
+            $r  = (new WebChatGuard($st, $_wCfg))->forget($sess);
+            $done = array_keys(array_filter($r));
+            $_wMsg = ['ok' => (bool)$done, 'text' => $done
+                ? 'Deleted: ' . implode(' and ', $done) . '.'
+                : 'Nothing found for that visitor.'];
+            @file_put_contents($_wData . '/ai_platform.log', sprintf(
+                "[%s] web_chat: operator erased visitor %s (lead=%s, transcript=%s)\n",
+                gmdate('c'), substr($sess, 0, 8) . '…',
+                $r['lead'] ? 'yes' : 'no', $r['session'] ? 'yes' : 'no'), FILE_APPEND);
+        } catch (\Throwable $e) {
+            $_wMsg = ['ok' => false, 'text' => 'Could not delete: ' . $e->getMessage()];
+        }
+
     } elseif ($act === 'save_web_chat') {
         // None of these are secrets, so they go through the ordinary override
         // path. The provider key is shared with WhatsApp and is set above.
@@ -151,6 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
             'web_chat_lead_mode'     => trim((string)($_POST['web_chat_lead_mode'] ?? 'after')),
             'web_chat_teaser'        => trim((string)($_POST['web_chat_teaser'] ?? '')),
             'web_chat_teaser_delay'  => trim((string)($_POST['web_chat_teaser_delay'] ?? '')),
+            'web_chat_retention_days'=> trim((string)($_POST['web_chat_retention_days'] ?? '')),
         ];
         list($ok, $err) = PluginConfig::saveOverrides($_wData, $changes);
         $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Website chat settings saved.' : $err];
@@ -527,6 +551,17 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
         the default; set the delay to 0 to show it immediately.
       </span>
     </div>
+    <div class="wa-row">
+      <span class="n">Keep contact details for</span>
+      <input type="number" min="0" max="3650" name="web_chat_retention_days" style="width:90px"
+             placeholder="90" value="<?= h((string)($_wCfg['web_chat_retention_days'] ?? '')) ?>">
+      <span style="font-size:13px">days</span>
+      <span style="color:#5a6b60;font-size:12px;max-width:60ch">
+        Leads and their conversations are deleted automatically after this. Default 90.
+        0 keeps everything forever &mdash; a decision worth making deliberately, and it must
+        match what privacy.html tells visitors.
+      </span>
+    </div>
     <div class="wa-row"><button class="wa-btn p" type="submit">Save website chat</button></div>
   </form>
 
@@ -543,7 +578,7 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     <table style="width:100%;border-collapse:collapse;font-size:13.5px">
       <tr style="text-align:left;border-bottom:1px solid #dce3de">
         <th style="padding:5px 8px 5px 0">When</th><th style="padding:5px 8px">Name</th>
-        <th style="padding:5px 8px">Phone</th><th style="padding:5px 8px">Email</th>
+        <th style="padding:5px 8px">Phone</th><th style="padding:5px 8px">Email</th><th></th>
       </tr>
       <?php foreach ($_leads as $L): ?>
       <tr style="border-bottom:1px solid #f0f3f1">
@@ -551,6 +586,15 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
         <td style="padding:5px 8px"><?= h((string)($L['name'] ?? '')) ?></td>
         <td style="padding:5px 8px"><?= h((string)($L['phone'] ?? '')) ?></td>
         <td style="padding:5px 8px"><?= h((string)($L['email'] ?? '')) ?></td>
+        <td style="padding:5px 8px;text-align:right">
+          <form method="post" style="display:inline"
+                onsubmit="return confirm('Delete this person\'s contact details and their conversation? This cannot be undone.')">
+            <?= $_csrf ?>
+            <input type="hidden" name="wa_action" value="forget_lead">
+            <input type="hidden" name="session" value="<?= h((string)($L['session'] ?? '')) ?>">
+            <button class="wa-btn" type="submit" style="padding:3px 10px;font-size:12px">Delete</button>
+          </form>
+        </td>
       </tr>
       <?php endforeach; ?>
     </table>

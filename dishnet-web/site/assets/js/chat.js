@@ -24,6 +24,7 @@
   if (!script) return;
   var ENDPOINT = script.getAttribute('data-endpoint') || '';
   var WHATSAPP = (script.getAttribute('data-whatsapp') || '').replace(/\D/g, '');
+  var PRIVACY  = script.getAttribute('data-privacy') || 'privacy.html';
   if (!ENDPOINT) return;
 
   var RTL     = (document.documentElement.getAttribute('dir') || '').toLowerCase() === 'rtl';
@@ -41,7 +42,10 @@
     leadIntro: 'حتى يتمكن أحد الزملاء من متابعة طلبك، اترك رقمك أو بريدك الإلكتروني.',
     fName: 'الاسم (اختياري)', fPhone: 'رقم الهاتف', fEmail: 'البريد الإلكتروني',
     fSave: 'إرسال', fSkip: 'تخطي', fNeed: 'الرجاء إدخال رقم هاتف أو بريد إلكتروني.',
-    fThanks: 'شكراً. سنتواصل معك.'
+    fThanks: 'شكراً. سنتواصل معك.',
+    consent: 'بإرسال بياناتك، أنت توافق على استخدام ديش نت لها للرد على استفسارك. '
+           + 'قد تتم معالجة المحادثات بواسطة مزوّد خدمة الذكاء الاصطناعي لدينا لتوليد الردود.',
+    privacy: 'سياسة الخصوصية'
   } : {
     title: 'DishNet Assistant', open: 'Chat with us', close: 'Close',
     placeholder: 'Ask about Starlink in Sudan…', send: 'Send',
@@ -53,7 +57,11 @@
     leadIntro: 'So a colleague can follow up, leave a phone number or an email.',
     fName: 'Name (optional)', fPhone: 'Phone number', fEmail: 'Email',
     fSave: 'Send', fSkip: 'Skip', fNeed: 'Please give a phone number or an email.',
-    fThanks: 'Thank you. We will be in touch.'
+    fThanks: 'Thank you. We will be in touch.',
+    consent: 'By submitting your details you agree that DishNet may use them to respond to '
+           + 'your enquiry. Chat conversations may be processed by our AI service provider '
+           + 'to generate replies.',
+    privacy: 'Privacy Policy'
   };
 
   var css = [
@@ -102,6 +110,8 @@
     ' border-radius:8px;font:inherit;font-size:14px}',
     '.dnchat-lead input:focus{outline:2px solid #C8102E;outline-offset:1px;border-color:transparent}',
     '.dnchat-lead .dnchat-err{color:#C8102E;font-size:12.5px;margin:0 0 7px;display:block}',
+    '.dnchat-consent{font-size:11.5px;line-height:1.5;color:#6B6862;margin:2px 0 10px}',
+    '.dnchat-consent a{color:#C8102E;font-weight:600}',
     '.dnchat-lead-row{display:flex;gap:8px;align-items:center}',
     '.dnchat-lead-row button{flex:1;padding:9px;border:none;border-radius:100px;background:#C8102E;',
     ' color:#fff;font:600 14px/1 system-ui,sans-serif;cursor:pointer}',
@@ -273,6 +283,18 @@
       box.appendChild(i);
     });
     box.appendChild(err);
+
+    // Consent is stated where the decision is made, not only in a policy page
+    // nobody opened. Collecting a phone number silently is the thing to avoid.
+    var consent = el('p', 'dnchat-consent');
+    consent.appendChild(document.createTextNode(T.consent + ' '));
+    var plink = el('a', null, T.privacy);
+    plink.href = PRIVACY;
+    plink.target = '_blank';
+    plink.rel = 'noopener';
+    consent.appendChild(plink);
+    consent.appendChild(document.createTextNode('.'));
+    box.appendChild(consent);
 
     var row  = el('div', 'dnchat-lead-row');
     var save = el('button', null, T.fSave); save.type = 'button';

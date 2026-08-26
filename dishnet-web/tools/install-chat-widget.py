@@ -28,7 +28,8 @@ def tag(depth: int) -> str:
     prefix = '../' * depth
     return (f'<script src="{prefix}assets/js/chat.js" '
             f'data-endpoint="{ENDPOINT.replace("&", "&amp;")}" '
-            f'data-whatsapp="{WHATSAPP}" defer></script>')
+            f'data-whatsapp="{WHATSAPP}" '
+            f'data-privacy="{prefix}privacy.html" defer></script>')
 
 
 def main():

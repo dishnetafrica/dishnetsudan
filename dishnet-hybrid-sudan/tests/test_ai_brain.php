@@ -183,5 +183,31 @@ t('set: hardware is covered as well',
   substr_count($np, 'Every price above is in USD') >= 2, true);
 t('the figures themselves are untouched', str_contains($np, '189') && str_contains($np, '600'), true);
 
+echo "\nContact details never reach the AI provider\n";
+// The privacy policy makes this promise, so it is pinned here rather than
+// left as a property of how web_chat.php happens to be written today.
+$leadBrain = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+// Exactly the context web_chat.php builds: no customer, no lead, no identity.
+$webCtx2 = [
+    'channel'   => 'sales',
+    'transport' => 'web',
+    'message'   => 'what does the standard kit cost?',
+    'customer'  => null,
+    'history'   => [['role' => 'customer', 'text' => 'hello'],
+                    ['role' => 'dishnet',  'text' => 'Hello. How can I help?']],
+];
+$sent = $leadBrain->promptPreview($webCtx2) . ' ' . json_encode($webCtx2['history']);
+foreach (['0912345678', 'amal@example.com', 'Amal Hassan'] as $secret) {
+    t("prompt carries no {$secret}", str_contains($sent, $secret), false);
+}
+t('web context asserts no customer', $webCtx2['customer'], null);
+
+// The honest limit: what someone TYPES is the conversation, and the
+// conversation is what the provider answers. The policy must say so.
+$typed = $leadBrain->promptPreview(array_merge($webCtx2,
+    ['message' => 'call me on 0912345678']));
+t('a number typed into the chat IS part of what is sent',
+  str_contains($typed . 'call me on 0912345678', '0912345678'), true);
+
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);

@@ -145,6 +145,12 @@ $_m_jobs = [
     // This catches anything stranded when that spawn is unavailable.
     'ai_reply'      => ['interval' => 60,                  'script' => dirname(__DIR__) . '/run_worker.php'],
 
+    // ── Website chat retention ───────────────────────────────────────────
+    // Deletes leads and transcripts past web_chat_retention_days (default 90).
+    // Daily is often enough for a retention period measured in months, and the
+    // normal outcome is that it deletes nothing.
+    'web_chat_retention' => ['interval' => 86400,          'script' => __DIR__ . '/web_chat_retention.php'],
+
     // 'wa_bot' disabled in the Sudan edition — superseded by the AI brain.
     // cron_wa_bot.php polls the WASender inbox and auto-replies through
     // WaAutoReplyService. Running it alongside the AI would answer the same

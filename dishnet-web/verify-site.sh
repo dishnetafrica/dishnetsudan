@@ -293,6 +293,36 @@ sys.exit(bad)
 PYIMG
 [ $fail -eq 0 ] && echo "  every <img> is a local file that exists, with alt text"
 
+python3 - "$HERE/site" <<'PYPRIV' || fail=1
+# The chat collects a phone number and an email. A privacy policy that does not
+# say so, or that states a retention period the code does not enforce, is worse
+# than no policy: it is a promise nobody is keeping.
+import sys, re, os
+root = sys.argv[1]; bad = 0
+p = os.path.join(root, 'privacy.html')
+t = open(p, encoding='utf-8').read()
+NEED = [
+    ('chat assistant',        'the chat assistant is not mentioned at all'),
+    ('Anthropic',             'the AI processor is not named'),
+    ('OpenAI',                'the second permitted AI processor is not named'),
+    ('90 days',               'no retention period stated'),
+    ('mailto:',               'no route to request deletion'),
+    ('not</strong> included', 'does not say contact details are withheld from the AI provider'),
+]
+for needle, why in NEED:
+    if needle not in t:
+        print(f'  privacy.html: {why}'); bad = 1
+
+# The widget must actually link to it, or nobody reads it at the moment it matters.
+chat = open(os.path.join(root, 'assets', 'js', 'chat.js'), encoding='utf-8').read()
+if 'data-privacy' not in open(os.path.join(root, 'index.html'), encoding='utf-8').read():
+    print('  index.html: chat widget is not given the privacy policy URL'); bad = 1
+if 'consent' not in chat:
+    print('  chat.js: no consent text shown before contact details are submitted'); bad = 1
+sys.exit(bad)
+PYPRIV
+[ $fail -eq 0 ] && echo "  privacy policy covers the chat, names the processor and its retention"
+
 echo "== commercial rules =="
 # These are the rules a silent regression would cost money on. All published
 # pages, held pages excluded from the branding/price rules where noted.

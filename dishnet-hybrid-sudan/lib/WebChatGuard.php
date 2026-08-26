@@ -36,6 +36,7 @@ class WebChatGuard
 
     const STORE_FILE      = 'web_chat_usage.json';
     const PRUNE_AFTER     = 172800; // keep two days; the daily counters need one
+    const RETENTION_DAYS  = 90;     // leads and transcripts; override in settings
 
     /** @var mixed JsonStore|SqliteStore — duck-typed, same interface */
     private $store;
@@ -206,6 +207,67 @@ class WebChatGuard
             'budget_usd'       => $this->cfgFloat('web_chat_monthly_usd', 25.0),
             'daily_max'        => $this->cfgInt('web_chat_daily_max', self::GLOBAL_MAX_DAY),
         ];
+    }
+
+    /**
+     * Delete leads and transcripts older than the retention period.
+     *
+     * Personal data with no expiry is a policy failure, not a storage one:
+     * a phone number left in a database for three years was collected for a
+     * question answered in three minutes. The period is configurable because
+     * the right number is a business decision, not ours.
+     *
+     * Returns [leadsDeleted, sessionsDeleted]. A session is kept in step with
+     * its lead: deleting the contact detail but keeping the conversation that
+     * names them would defeat the point.
+     */
+    public function prune(?int $days = null): array
+    {
+        $days = $days ?? $this->cfgInt('web_chat_retention_days', self::RETENTION_DAYS);
+        if ($days <= 0) return [0, 0];          // 0 disables, deliberately
+        $cutoff = time() - ($days * 86400);
+
+        $gone = 0;
+        foreach (['web_chat_leads.json' => 'created', 'web_chat_sessions.json' => 'updated'] as $file => $field) {
+            $kept = [];
+            $removed = 0;
+            try {
+                foreach ($this->store->load($file) as $row) {
+                    $stamp = strtotime((string)($row[$field] ?? $row['updated'] ?? $row['created'] ?? ''));
+                    // A row with no readable timestamp is kept: deleting data
+                    // because we cannot date it is worse than keeping it.
+                    if ($stamp !== false && $stamp < $cutoff) { $removed++; continue; }
+                    $kept[] = $row;
+                }
+                if ($removed > 0) $this->store->save($file, $kept);
+            } catch (\Throwable $e) {
+                continue;
+            }
+            $gone += $removed;
+            if ($file === 'web_chat_leads.json') $leads = $removed;
+        }
+        $leads = $leads ?? 0;
+        return [$leads, $gone - $leads];
+    }
+
+    /**
+     * Erase one visitor: their contact details and the conversation with them.
+     * Used by the admin screen so a deletion request needs no database access.
+     */
+    public function forget(string $session): array
+    {
+        $out = ['lead' => false, 'session' => false];
+        foreach (['web_chat_leads.json' => 'lead', 'web_chat_sessions.json' => 'session'] as $file => $key) {
+            try {
+                $kept = [];
+                foreach ($this->store->load($file) as $row) {
+                    if ((string)($row['session'] ?? '') === $session) { $out[$key] = true; continue; }
+                    $kept[] = $row;
+                }
+                if ($out[$key]) $this->store->save($file, $kept);
+            } catch (\Throwable $e) { /* report what did happen */ }
+        }
+        return $out;
     }
 
     private function load(): array

@@ -181,6 +181,31 @@ if (is_file($logFile)) {
     warn('no ai_platform.log yet — no message has been processed since install');
 }
 
+// Where the database actually lives decides whether it can be downloaded.
+// getDataDir() falls back to {pluginRoot}/data when ucrm.json names no
+// pluginDataDir -- and the plugin directory IS served over HTTP, so that
+// fallback puts customer contact details behind a guessable URL.
+$dbFile = $dataDir . '/plugin.sqlite3';
+if (strpos(realpath($dataDir) ?: $dataDir, realpath(__DIR__) ?: __DIR__) === 0) {
+    bad('the database is INSIDE the web-served plugin directory (' . $dataDir . ') — '
+      . 'set pluginDataDir in ucrm.json to a path outside the web root');
+} else {
+    ok('database is outside the plugin web directory');
+}
+if (is_file($dbFile)) {
+    $perms = substr(sprintf('%o', fileperms($dbFile)), -4);
+    $perms <= '0640'
+        ? ok("plugin.sqlite3 permissions {$perms}")
+        : warn("plugin.sqlite3 is {$perms} — it holds contact details and transcripts, "
+             . 'tighten it to 0640 or stricter');
+}
+
+$retDays = (int)($config['web_chat_retention_days'] ?? 90);
+$retDays > 0
+    ? ok("chat contact details deleted after {$retDays} days")
+    : warn('retention is 0 — chat contact details and transcripts are kept forever, '
+         . 'which must match what privacy.html tells visitors');
+
 $aiCur = trim((string)($config['ai_currency'] ?? ''));
 $aiCur !== ''
     ? ok("AI quotes prices in {$aiCur}")
