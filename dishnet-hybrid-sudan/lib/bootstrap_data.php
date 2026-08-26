@@ -46,14 +46,53 @@ function getDataDir(string $pluginRoot): string
         }
     }
     
-    // Priority 2: Fall back to {pluginRoot}/data for development only
+    // Priority 2: a sibling of the plugin, OUTSIDE anything uCRM replaces.
+    //
+    // {pluginRoot}/data was the old fallback and it destroyed the database on
+    // every upgrade: uCRM replaces the plugin directory when a new version is
+    // uploaded, and the data directory was inside it. Customers, staff,
+    // conversations, leads -- all of it gone, and the plugin came back showing
+    // its first-run screen. It happened repeatedly before anyone connected the
+    // two events.
+    //
+    // The plugins root survives, which ConfigVault has been relying on all
+    // along: its vault file lives there and is the only thing that ever came
+    // through an upgrade intact. The database belongs beside it.
+    //
+    // uCRM's own pluginDataDir still wins when it provides one -- it knows
+    // better than we do, and it is already outside the plugin.
     if (!$dataDir) {
-        $dataDir = $pluginRoot . '/data';
+        $parent = dirname(rtrim($pluginRoot, '/'));
+        $plugin = basename(rtrim($pluginRoot, '/'));
+        if (is_dir($parent) && is_writable($parent)) {
+            $dataDir = $parent . '/.' . $plugin . '-data';
+        } else {
+            // Nowhere safe to put it. Keeping the old location is better than
+            // failing to start, but it must not be silent.
+            error_log('[getDataDir] plugins root not writable — data stays inside the plugin '
+                    . 'directory and WILL be lost on the next upgrade');
+            $dataDir = $pluginRoot . '/data';
+        }
     }
     
     // Ensure directory exists
     if (!is_dir($dataDir)) {
         @mkdir($dataDir, 0755, true);
+    }
+
+    // One-time rescue: an install that still has its data in the old location
+    // gets it moved out before uCRM has a chance to delete it. Copy, never
+    // move -- if anything here goes wrong the original must still be there.
+    $legacy = $pluginRoot . '/data';
+    if ($dataDir !== $legacy && is_dir($legacy) && !is_file($dataDir . '/plugin.sqlite3')
+        && is_file($legacy . '/plugin.sqlite3')) {
+        foreach ((scandir($legacy) ?: []) as $entry) {
+            if ($entry === '.' || $entry === '..') continue;
+            $from = $legacy . '/' . $entry;
+            $to   = $dataDir . '/' . $entry;
+            if (is_file($from) && !file_exists($to)) @copy($from, $to);
+        }
+        error_log('[getDataDir] rescued plugin data from ' . $legacy . ' to ' . $dataDir);
     }
     
     // Cache for subsequent calls

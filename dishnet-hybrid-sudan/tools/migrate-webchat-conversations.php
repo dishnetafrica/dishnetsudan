@@ -75,7 +75,12 @@ function backup(string $dataDir): string
 {
     $src = $dataDir . '/plugin.sqlite3';
     if (!is_file($src)) throw new RuntimeException("no database at {$src}");
-    $dst = $dataDir . '/plugin.sqlite3.pre-webchat-migration.' . gmdate('Ymd-His');
+    // NOT beside the database. The first backup this wrote lived in the same
+    // directory as the file it was protecting, and an upgrade took both. One
+    // level up is the location that demonstrably survives.
+    $parent = dirname(rtrim($dataDir, '/'));
+    $where  = (is_dir($parent) && is_writable($parent)) ? $parent : $dataDir;
+    $dst = $where . '/plugin.sqlite3.pre-webchat-migration.' . gmdate('Ymd-His');
     if (!copy($src, $dst)) throw new RuntimeException('backup copy failed');
     @chmod($dst, 0600);
     return $dst;
