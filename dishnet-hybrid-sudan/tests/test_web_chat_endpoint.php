@@ -220,6 +220,64 @@ t('the store still supplies what the files do not have',
 // Restore for anything after this.
 writeConfig($tmp);
 
+echo "\nA transcript row can still be updated after it is written\n";
+// The real failure: append() writes no id, updateOne finds rows BY id, so every
+// save after the first silently did nothing. The transcript froze at the
+// opening exchange, the model saw the greeting and the current message and
+// nothing between, and it re-asked what the customer had already answered.
+// Tested at the store, because that is where it lives -- and because with no
+// provider key the endpoint bails before it ever writes a transcript.
+require_once $tmp . '/lib/StoreInterface.php';
+require_once $tmp . '/lib/SqliteStore.php';
+$st = SqliteStore::create($tmp . '/data');
+
+foreach (['web_chat_sessions.json', 'web_chat_leads.json'] as $file) {
+    $sid = 'sess' . substr(md5($file), 0, 8);
+    // Written exactly as web_chat.php writes it.
+    $st->appendWithId($file, ['session' => $sid, 'turns' => json_encode([['role' => 'customer',
+        'text' => 'hi morning']]), 'updated' => gmdate('c')]);
+
+    $found = $st->findOne($file, 'session', $sid);
+    t("{$file}: the row is found", ($found['session'] ?? null), $sid);
+    t("{$file}: and it carries an id updateOne can use",
+      isset($found['id']) && (int)$found['id'] > 0, true);
+
+    // Now the second message, the one that used to vanish.
+    $grown = [['role' => 'customer', 'text' => 'hi morning'],
+              ['role' => 'dishnet',  'text' => 'Good morning.'],
+              ['role' => 'customer', 'text' => 'want for hotspot'],
+              ['role' => 'customer', 'text' => '10']];
+    $ok = $st->updateOne($file, 'session', $sid,
+        ['session' => $sid, 'turns' => json_encode($grown), 'updated' => gmdate('c')]);
+    t("{$file}: the update reports success", $ok, true);
+
+    $after = $st->findOne($file, 'session', $sid);
+    $turns = json_decode((string)($after['turns'] ?? '[]'), true) ?: [];
+    t("{$file}: the transcript actually grew", count($turns), 4);
+    t("{$file}: and the later messages are there",
+      in_array('10', array_column($turns, 'text'), true), true);
+}
+
+// The contract above was always sound; what broke was the call site. So check
+// the source too: any row that is later updateOne'd must be created with
+// appendWithId, and plain append() next to an updateOne on the same file is
+// the exact mistake that shipped twice.
+$src = file_get_contents($tmp . '/web_chat.php');
+foreach (['web_chat_sessions.json', 'web_chat_leads.json', '$HIST'] as $file) {
+    $needle = "append(" . (str_starts_with($file, '$') ? $file : "'{$file}'");
+    t("web_chat.php does not plain-append {$file}",
+      str_contains($src, '->' . $needle), false);
+}
+t('and it does use appendWithId', substr_count($src, '->appendWithId('), 2);
+
+// And the shape web_chat reads back must survive a round trip unchanged.
+$sid = 'roundtrip01';
+$orig = [['role' => 'customer', 'text' => 'home'], ['role' => 'dishnet', 'text' => 'How many?']];
+$st->appendWithId('web_chat_sessions.json',
+    ['session' => $sid, 'turns' => json_encode($orig), 'updated' => gmdate('c')]);
+$back = json_decode((string)($st->findOne('web_chat_sessions.json', 'session', $sid)['turns'] ?? ''), true);
+t('roles and order survive the round trip', $back, $orig);
+
 echo "\nStray output cannot corrupt the response\n";
 // This is the failure the owner hit: status 200, but a PHP warning printed in
 // front of the JSON, so the browser could not parse a thing and the widget

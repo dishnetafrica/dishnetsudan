@@ -141,7 +141,12 @@ $handoff   = $waNumber !== '' ? 'https://wa.me/' . $waNumber : '';
 /** Every failure path ends somewhere a customer can actually get help. */
 function bail(string $msg, string $handoff, int $code = 200, string $reason = ''): void
 {
-    out(['ok' => false, 'reason' => $reason, 'reply' => $msg, 'handoff' => $handoff], $code);
+    // Carry the session if one has been issued: a visitor whose first message
+    // hits a rate limit or a provider outage would otherwise be handed a new
+    // identity on their next try and lose the conversation so far.
+    $body = ['ok' => false, 'reason' => $reason, 'reply' => $msg, 'handoff' => $handoff];
+    if (!empty($GLOBALS['_webChatSession'])) $body['session'] = $GLOBALS['_webChatSession'];
+    out($body, $code);
 }
 
 // ── Config probe ──────────────────────────────────────────────────────────
@@ -197,6 +202,7 @@ $session = (string)($body['session'] ?? '');
 if (!preg_match('/^[a-f0-9]{32}$/', $session)) {
     $session = bin2hex(random_bytes(16));
 }
+$GLOBALS['_webChatSession'] = $session;
 
 // Client IP. Behind Traefik the socket address is the proxy, so trust the
 // forwarded header only for the hop we actually put there.
@@ -361,7 +367,13 @@ try {
     if ($store->findOne($HIST, 'session', $session)) {
         $store->updateOne($HIST, 'session', $session, $payload);
     } else {
-        $store->append($HIST, $payload);
+        // appendWithId, not append. updateOne locates a row by its id and
+        // append() writes none, so every update after the first silently did
+        // nothing and the transcript froze at the opening exchange -- the model
+        // saw the greeting and the current message and nothing in between, so
+        // it re-asked questions the customer had already answered. Exactly the
+        // bug fixed for leads a few lines above; this call site was missed.
+        $store->appendWithId($HIST, $payload);
     }
 } catch (\Throwable $e) { /* a lost transcript must not lose the reply */ }
 
