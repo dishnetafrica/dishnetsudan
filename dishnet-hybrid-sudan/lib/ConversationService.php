@@ -665,6 +665,19 @@ class ConversationService
 
     private function normalisePhone(string $phone): string
     {
+        // A website visitor has no phone number. They are keyed by their chat
+        // session behind a "web:" prefix, which has to survive intact: stripping
+        // it to digits would lose the session AND risk colliding with a real
+        // customer's number. No real phone number can start with "web:", so this
+        // branch cannot capture one.
+        //
+        // Unused until the WebChat migration is deployed -- nothing passes a
+        // web: phone today, so this is inert on 5.5.2's behaviour.
+        if (strpos($phone, 'web:') === 0) {
+            // Lowercased first: session ids are lowercase hex from bin2hex(),
+            // and folding case is safer than silently dropping characters.
+            return 'web:' . preg_replace('/[^a-f0-9]/', '', strtolower(substr($phone, 4)));
+        }
         return preg_replace('/[^0-9]/', '', $phone);
     }
 
