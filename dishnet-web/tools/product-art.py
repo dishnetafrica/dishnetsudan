@@ -202,7 +202,10 @@ def replace_by_label(text, label_fragment, new_markup):
 
 
 def main():
-    card = 'width:82%;height:auto;display:block;margin:10px auto;'
+    # A fixed slot height with object-fit keeps the badge and title rows level
+    # across cards whose photos have different aspect ratios.
+    card = ('width:100%;height:190px;object-fit:contain;display:block;'
+            'margin:2px auto 16px;')
     big = 'width:100%;height:auto;max-width:340px;display:block;margin:0 auto;'
     hero = 'width:100%;height:auto;max-width:440px;display:block;margin:0 auto;'
 
