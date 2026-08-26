@@ -151,6 +151,12 @@ $_m_jobs = [
     // normal outcome is that it deletes nothing.
     'web_chat_retention' => ['interval' => 86400,          'script' => __DIR__ . '/web_chat_retention.php'],
 
+    // ── Unanswered-customer watchdog ─────────────────────────────────────
+    // Ported from the South Sudan bot. Every 15 minutes in business hours:
+    // if the last word in any conversation is the customer's and it has sat
+    // longer than the patience window, the alert number hears about it once.
+    'wa_watchdog'   => ['interval' => 900,                 'script' => __DIR__ . '/wa_watchdog.php'],
+
     // 'wa_bot' disabled in the Sudan edition — superseded by the AI brain.
     // cron_wa_bot.php polls the WASender inbox and auto-replies through
     // WaAutoReplyService. Running it alongside the AI would answer the same

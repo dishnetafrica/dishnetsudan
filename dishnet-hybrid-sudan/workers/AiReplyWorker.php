@@ -354,6 +354,19 @@ class AiReplyWorker extends WorkerBase
                 'phone'   => $phone,
                 'reason'  => $reason,
             ], 2, 'ai_reply_worker');
+
+            // Tell a person now. The Inbox tab turning red only works if
+            // someone is looking at it; the phone in their pocket always is.
+            // 30-minute cooldown per conversation, so a customer who trips
+            // escalation three times in a row is one buzz, not three.
+            require_once dirname(__DIR__) . '/lib/AlertService.php';
+            $alerts = new \AlertService($this->store, $this->config, $this->evo);
+            $alerts->notify(
+                'escalate:conv:' . $convId,
+                "🔴 DishNet: the AI needs a human for {$phone} ({$channel})"
+                . ($reason !== '' ? " — {$reason}" : '') . '. Open Engage → WhatsApp → Inbox.',
+                30
+            );
         } catch (\Throwable $e) {
             $this->log('error', 'escalation failed: ' . $e->getMessage());
         }

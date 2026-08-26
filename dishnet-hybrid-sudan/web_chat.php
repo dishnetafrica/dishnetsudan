@@ -412,6 +412,14 @@ try {
             $store->getPdo()->prepare(
                 "UPDATE wa_conversations SET state = 'needs_human', updated_at = datetime('now') WHERE id = ?"
             )->execute([$convId]);
+            // And a person hears about it, same as WhatsApp escalations.
+            require_once __DIR__ . '/lib/AlertService.php';
+            (new AlertService($store, $config))->notify(
+                'escalate:conv:' . $convId,
+                '🔴 DishNet: the website chat needs a human (visitor ' . substr($session, 0, 8)
+                . '…). Open Engage → WhatsApp → Inbox → Website.',
+                30
+            );
         }
     }
 } catch (\Throwable $e) { /* a lost transcript must not lose the reply */ } catch (\Throwable $e) { /* a lost transcript must not lose the reply */ }

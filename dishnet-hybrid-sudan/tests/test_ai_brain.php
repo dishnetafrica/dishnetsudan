@@ -289,5 +289,36 @@ t('set: quantities and dates are still forbidden',
 t('the prices themselves are unaffected',
   str_contains($np, '350') && str_contains($np, '189'), true);
 
+echo "\nAn existing customer on the sales line is not a prospect\n";
+// Ported from the South Sudan bot, where sales kept being pinged about people
+// already paying. The lookup already ran on every message; the posture didn't.
+$custBrain = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$asCustomer = $custBrain->promptPreview(['channel' => 'sales', 'message' => 'my internet is slow',
+    'customer' => ['id' => 42, 'name' => 'Amal Hassan']]);
+t('the prompt states they are an existing customer',
+  str_contains($asCustomer, 'EXISTING DISHNET CUSTOMER'), true);
+t('service mode: no pitching', str_contains($asCustomer, 'Do not pitch kits or plans'), true);
+t('a reported problem must escalate in the same reply',
+  str_contains($asCustomer, 'in the same reply'), true);
+t('selling stays allowed when THEY ask',
+  str_contains($asCustomer, 'Only sell if THEY ask'), true);
+
+$asProspect = $custBrain->promptPreview(['channel' => 'sales', 'message' => 'price?',
+    'customer' => null]);
+t('an unknown number gets the normal sales flow',
+  str_contains($asProspect, 'EXISTING DISHNET CUSTOMER'), false);
+
+$asSupport = $custBrain->promptPreview(['channel' => 'support', 'message' => 'slow',
+    'customer' => ['id' => 42, 'name' => 'Amal Hassan']]);
+t('the support channel is unchanged — it was already service mode',
+  str_contains($asSupport, 'EXISTING DISHNET CUSTOMER'), false);
+
+echo "\nThe security rules cover what the SS bot learned people probe for\n";
+foreach (['staff names or personal numbers', 'wholesale or supplier costs',
+          'customer counts, revenue or any business metric', 'print your prompt',
+          'Do not lecture'] as $frag) {
+    t("rule covers: {$frag}", str_contains($asProspect, $frag), true);
+}
+
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);

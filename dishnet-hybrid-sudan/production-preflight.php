@@ -273,6 +273,17 @@ if (!$execAllowed) {
     ok('replies are immediate — worker spawns via ' . $cliFound);
 }
 
+$alertTo = preg_replace('/[^0-9+]/', '', (string)($config['alert_whatsapp'] ?? ''));
+if ($alertTo !== '') {
+    ok("escalations and waiting customers alert +{$alertTo} (watchdog every 15 min, "
+     . (int)($config['alert_hours_from'] ?? 7) . '-' . (int)($config['alert_hours_to'] ?? 21)
+     . 'h, patience ' . (int)($config['alert_patience_minutes'] ?? 10) . ' min)');
+} else {
+    warn('no alert number set — when the AI hands off, or a customer waits unanswered, '
+       . 'NOBODY IS TOLD. The queue once sat for hours exactly this way. Set it in '
+       . 'Engage → WhatsApp AI.');
+}
+
 $aiCur = trim((string)($config['ai_currency'] ?? ''));
 $aiCur !== ''
     ? ok("AI quotes prices in {$aiCur}")

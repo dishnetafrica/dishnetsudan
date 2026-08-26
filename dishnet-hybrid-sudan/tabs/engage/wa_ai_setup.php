@@ -129,6 +129,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => $ok, 'text' => $ok ? 'AI settings saved.' : $err];
         $_wCfg = PluginConfig::load($_wRoot, $_wData);
 
+    } elseif ($act === 'save_alerts') {
+        list($ok, $err) = PluginConfig::saveOverrides($_wData, [
+            'alert_whatsapp'         => trim((string)($_POST['alert_whatsapp'] ?? '')),
+            'alert_hours_from'       => trim((string)($_POST['alert_hours_from'] ?? '')),
+            'alert_hours_to'         => trim((string)($_POST['alert_hours_to'] ?? '')),
+            'alert_patience_minutes' => trim((string)($_POST['alert_patience_minutes'] ?? '')),
+        ]);
+        $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Alert settings saved.' : $err];
+        $_wCfg = PluginConfig::load($_wRoot, $_wData);
+
     } elseif ($act === 'save_stock') {
         list($ok, $err) = PluginConfig::saveOverrides($_wData,
             ['stock_statement' => trim((string)($_POST['stock_statement'] ?? ''))]);
@@ -407,6 +417,35 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     </div>
     <div class="wa-row"><button class="wa-btn p" type="submit">Save AI settings</button></div>
   </form>
+  <form method="post"><?= $_csrf ?>
+    <input type="hidden" name="wa_action" value="save_alerts">
+    <div class="wa-row">
+      <span class="n">Alert a human on</span>
+      <input type="text" name="alert_whatsapp" style="min-width:200px" placeholder="+249XXXXXXXXX"
+             value="<?= h((string)($_wCfg['alert_whatsapp'] ?? '')) ?>">
+      <label style="font-size:13px">hours
+        <input type="number" min="0" max="23" name="alert_hours_from" style="width:60px"
+               placeholder="7" value="<?= h((string)($_wCfg['alert_hours_from'] ?? '')) ?>">&ndash;<input
+               type="number" min="1" max="24" name="alert_hours_to" style="width:60px"
+               placeholder="21" value="<?= h((string)($_wCfg['alert_hours_to'] ?? '')) ?>"></label>
+      <label style="font-size:13px">patience
+        <input type="number" min="2" max="240" name="alert_patience_minutes" style="width:65px"
+               placeholder="10" value="<?= h((string)($_wCfg['alert_patience_minutes'] ?? '')) ?>">min</label>
+      <button class="wa-btn p" type="submit">Save</button>
+    </div>
+    <div class="wa-row">
+      <span class="n"></span>
+      <span style="color:#5a6b60;font-size:12px;max-width:75ch">
+        This number gets a WhatsApp message when the AI hands a conversation to a human, and
+        when any customer &mdash; website or WhatsApp &mdash; has waited longer than the patience
+        window with no reply, checked every 15 minutes inside the hours above (Sudan time).
+        <strong>Use a personal number, not one connected to the bot</strong> &mdash; alerts sent
+        to a bot-connected number would be answered by the bot. Blank switches alerts off, and
+        the preflight will keep reminding you.
+      </span>
+    </div>
+  </form>
+
   <form method="post"><?= $_csrf ?>
     <input type="hidden" name="wa_action" value="save_stock">
     <div class="wa-row" style="display:block">
