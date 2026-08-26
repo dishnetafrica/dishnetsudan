@@ -201,7 +201,10 @@ class AiReplyWorker extends WorkerBase
 
         if ($convId > 0) {
             try {
-                $msgs = $this->convSvc->getMessages($convId, 10, 0);
+                // Twenty, to match the website: a WhatsApp customer answers in single
+                // words even more than a web one, so the model needs to still see the
+                // question those words are answering.
+                $msgs = $this->convSvc->getMessages($convId, 20, 0);
                 foreach ($msgs as $m) {
                     $ctx['history'][] = [
                         'role' => ($m['direction'] ?? 'in') === 'in' ? 'customer' : 'dishnet',

@@ -317,7 +317,8 @@ $ctx = [
     'transport' => 'web',
     'message'   => $message,
     'customer'  => null,
-    'history'   => array_slice($history, -10),
+    // Twenty entries is ten exchanges; the brain trims again if it needs to.
+    'history'   => array_slice($history, -20),
 ];
 if ($products['ok']) {
     $ctx['products'] = $products['data'];
@@ -353,7 +354,7 @@ try {
 
 $history[] = ['role' => 'customer', 'text' => mb_substr($message, 0, 400)];
 $history[] = ['role' => 'dishnet',  'text' => mb_substr($reply, 0, 400)];
-$history   = array_slice($history, -20);
+$history   = array_slice($history, -40);   // keep more than we send
 try {
     $payload = ['session' => $session, 'turns' => json_encode($history, JSON_UNESCAPED_UNICODE),
                 'updated' => gmdate('c')];

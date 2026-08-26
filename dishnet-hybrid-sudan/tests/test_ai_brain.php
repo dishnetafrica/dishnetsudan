@@ -119,8 +119,11 @@ echo "\nHistory window is bounded\n";
 $hist = [];
 for ($i=0;$i<40;$i++) $hist[] = ['role'=>'customer','text'=>'msg '.$i];
 $turns = call($brain,'buildTurns',[['message'=>'latest','history'=>$hist]]);
-t('history capped at 10 + current turn', count($turns), 11);
-t('current message is last', $turns[10]['content'], 'latest');
+// The cap moved from 10 to 20: five exchanges was not enough to still contain
+// the question a one-word answer belongs to. Indexed from the end so the next
+// change to the window does not need this line edited too.
+t('history capped at 20 + current turn', count($turns), 21);
+t('current message is last', end($turns)['content'], 'latest');
 $turns = call($brain,'buildTurns',[['message'=>'only','history'=>[['role'=>'customer','text'=>'  ']]]]);
 t('blank history entries dropped', count($turns), 1);
 
@@ -208,6 +211,58 @@ $typed = $leadBrain->promptPreview(array_merge($webCtx2,
     ['message' => 'call me on 0912345678']));
 t('a number typed into the chat IS part of what is sent',
   str_contains($typed . 'call me on 0912345678', '0912345678'), true);
+
+echo "\nA qualification flow survives the context window\n";
+// The reported failure: bot asks "how many people?", customer says "5", bot
+// treats it as an isolated message. Two causes, both pinned here -- the window
+// was too short to still contain the question, and nothing told the model that
+// a bare number answers it.
+$qb = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$flow = [
+    ['role' => 'customer', 'text' => 'Hi'],
+    ['role' => 'dishnet',  'text' => 'Hello. Is this for a home or a business?'],
+    ['role' => 'customer', 'text' => 'home'],
+    ['role' => 'dishnet',  'text' => 'How many people will be using it?'],
+    ['role' => 'customer', 'text' => '5'],
+    ['role' => 'dishnet',  'text' => 'Which city are you in?'],
+    ['role' => 'customer', 'text' => 'Khartoum'],
+    ['role' => 'dishnet',  'text' => 'Thank you.'],
+];
+$prompt = $qb->promptPreview(['channel' => 'sales', 'transport' => 'web',
+                              'message' => 'how much?', 'history' => $flow]);
+t('the model is told a short answer answers its last question',
+  str_contains($prompt, 'read it as the answer to the LAST question YOU asked'), true);
+t('and told not to re-ask what it already has',
+  str_contains($prompt, 'never ask again for something they have already given you'), true);
+t('and told to carry place and size forward',
+  str_contains($prompt, 'Hold on to what they have told you'), true);
+
+// The window has to still contain the question the answer belongs to.
+// Fifteen exchanges is well past the cap, so the trim actually runs.
+$long = [];
+for ($i = 0; $i < 15; $i++) {
+    $long[] = ['role' => 'customer', 'text' => "question {$i}"];
+    $long[] = ['role' => 'dishnet',  'text' => "answer {$i}"];
+}
+$reflect = new ReflectionMethod('DishNetAiBrain', 'buildTurns');
+$reflect->setAccessible(true);
+$turns = $reflect->invoke($qb, ['message' => 'how much?', 'history' => $long]);
+t('window trims to 20 history turns plus the new message', count($turns), 21);
+t('the oldest turns are the ones dropped', $turns[0]['content'], 'question 5');
+t('the newest exchange survives',
+  $turns[count($turns) - 2]['content'], 'answer 14');
+// Ten exchanges must fit untrimmed -- that is the qualification flow itself.
+$ten = array_slice($long, 0, 20);
+t('ten exchanges pass through whole',
+  count($reflect->invoke($qb, ['message' => 'how much?', 'history' => $ten])), 21);
+t('the current message is last', end($turns)['content'], 'how much?');
+t('and it is attributed to the customer', end($turns)['role'], 'user');
+
+// Roles must not be swapped: the model has to know which line was its own.
+$roles = $reflect->invoke($qb, ['message' => 'x', 'history' => $flow]);
+t('customer turns map to user', $roles[0]['role'], 'user');
+t('our turns map to assistant', $roles[1]['role'], 'assistant');
+t('order is oldest to newest', $roles[0]['content'], 'Hi');
 
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);

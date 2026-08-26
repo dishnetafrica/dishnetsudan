@@ -168,7 +168,14 @@ class DishNetAiBrain
             . "Arabic. If they mix Arabic and English, mirror that. Do not announce which "
             . "language you are using.\n";
         $p .= "- Use the customer's name when you know it, once, not in every message.\n";
-        $p .= "- Ask at most one question per message.\n\n";
+        $p .= "- Ask at most one question per message.\n";
+        $p .= "- People answer chat messages in one or two words. If their message is a bare "
+            . "number, a single word, or a fragment (\"5\", \"home\", \"yes\", \"Khartoum\", "
+            . "\"2 rooms\"), read it as the answer to the LAST question YOU asked and carry on "
+            . "from there. Never tell them you did not understand a short answer, and never ask "
+            . "again for something they have already given you earlier in this conversation.\n";
+        $p .= "- Hold on to what they have told you: place, home or business, how many people or "
+            . "devices, and what they want. Use it when you recommend and when you quote.\n\n";
 
         // ── Channel role ────────────────────────────────────────────────
         $p .= $this->channelRules($channel);
@@ -427,8 +434,12 @@ class DishNetAiBrain
                 'content' => mb_substr($text, 0, 400),
             ];
         }
-        // Keep the window small: recent turns matter, old ones cost tokens.
-        if (count($turns) > 10) $turns = array_slice($turns, -10);
+        // Ten entries is five exchanges, and a qualification flow -- hello, home
+        // or business, how many people, which city, how much -- spends that
+        // before the customer has asked anything. Past the edge the model stops
+        // seeing its own question, so a bare "5" arrives with nothing to attach
+        // to. Twenty turns at 400 characters each is still a small prompt.
+        if (count($turns) > 20) $turns = array_slice($turns, -20);
 
         $turns[] = ['role' => 'user', 'content' => (string)$ctx['message']];
         return $turns;
