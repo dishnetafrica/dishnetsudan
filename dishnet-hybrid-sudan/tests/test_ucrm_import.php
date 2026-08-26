@@ -69,5 +69,46 @@ t('customer price comes from uCRM', $importedPlan['customer_price'], 189.0);
 $importedHw = ['name' => 'Starlink Mini Kit', 'price' => 350.0, 'ucrm_product_id' => 3];
 t('hardware DOES carry its product id', $importedHw['ucrm_product_id'], 3);
 
+echo "\nThe importer writes the field names the screens actually read\n";
+// The first version wrote name/price/active. The plans screen reads is_active,
+// and the hardware screen reads title/sell_price/buy_price -- so every imported
+// row rendered blank while the import reported success. That combination is
+// worse than a failure, so the field names are checked against the screens
+// rather than against memory.
+$root = dirname(__DIR__);
+$importer = file_get_contents($root . '/tools/import-from-ucrm.php');
+$plansUi  = file_get_contents($root . '/tabs/sales/subscription_plans.php');
+$hwUi     = file_get_contents($root . '/tabs/sales/hardware.php');
+
+foreach (['name', 'type', 'speed', 'supplier', 'customer_price', 'starlink_cost', 'is_active']
+         as $f) {
+    t("plans: importer writes '{$f}'", str_contains($importer, "'{$f}'"), true);
+}
+t('plans screen reads is_active', str_contains($plansUi, "['is_active']"), true);
+t('and the importer does not write the wrong "active"',
+  (bool)preg_match("/'active'\s*=>/", $importer), false);
+t('plan type is lowercase, matching the screen\'s tabs',
+  str_contains($importer, "'type'            => 'starlink'"), true);
+t('the screen filters on that lowercase value',
+  str_contains($plansUi, "byType['starlink']"), true);
+
+foreach (['title', 'sku', 'sell_price', 'buy_price', 'is_active', 'ucrm_product_id'] as $f) {
+    t("hardware: importer writes '{$f}'", str_contains($importer, "'{$f}'"), true);
+}
+t('hardware screen reads title', str_contains($hwUi, "['title']"), true);
+t('hardware screen reads sell_price', str_contains($hwUi, "['sell_price']"), true);
+
+echo "\nRe-running matches on each table's own name field\n";
+// Hardware calls it title. Matching on 'name' would duplicate the catalogue
+// on every run.
+t('hardware existence is checked by title',
+  str_contains($importer, "existingNames(\$store, 'kyc_devices.json', 'title')"), true);
+
+echo "\nA bad import can be undone without touching hand-entered rows\n";
+t('rows are stamped on the way in', str_contains($importer, "'imported_from'"), true);
+t('undo exists', str_contains($importer, "--undo"), true);
+t('and it removes only stamped rows',
+  str_contains($importer, "(\$row['imported_from'] ?? '') === \$stamp"), true);
+
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail > 0 ? 1 : 0);

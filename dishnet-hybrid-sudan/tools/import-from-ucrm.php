@@ -37,6 +37,7 @@ require_once $root . '/lib/PluginConfig.php';
 require_once $root . '/lib/DishNetTools.php';
 
 $apply = in_array('--import', $argv, true);
+$undo  = in_array('--undo', $argv, true);
 
 $dataDir = getDataDir($root);
 $config  = PluginConfig::load($root, $dataDir);
@@ -55,15 +56,36 @@ if (empty($cat['ok'])) {
     exit(2);
 }
 
+// Undo removes only what this tool wrote. Rows are stamped on the way in, so
+// anything typed by hand has no stamp and is never touched.
+if ($undo) {
+    $removed = 0;
+    foreach (['subscription_plans.json' => 'ucrm-service-plans',
+              'kyc_devices.json'        => 'ucrm-products'] as $file => $stamp) {
+        try {
+            $kept = [];
+            foreach ($store->load($file) as $row) {
+                if (($row['imported_from'] ?? '') === $stamp) { $removed++; continue; }
+                $kept[] = $row;
+            }
+            $store->save($file, $kept);
+        } catch (\Throwable $e) { /* nothing there */ }
+    }
+    printf("Removed %d imported row(s). Anything entered by hand is untouched.\n", $removed);
+    exit(0);
+}
+
 echo $apply ? "Importing.\n\n" : "DRY RUN — nothing will be written.\n\n";
 
 /** Names already present, lowercased, so nothing typed in is overwritten. */
-function existingNames($store, string $file): array
+function existingNames($store, string $file, string $field = 'name'): array
 {
     $out = [];
     try {
         foreach ($store->load($file) as $r) {
-            $n = strtolower(trim((string)($r['name'] ?? '')));
+            // Hardware calls it title, plans call it name. Matching the wrong
+            // one makes every re-run duplicate the whole catalogue.
+            $n = strtolower(trim((string)($r[$field] ?? $r['name'] ?? $r['title'] ?? '')));
             if ($n !== '') $out[$n] = true;
         }
     } catch (\Throwable $e) { /* empty */ }
@@ -91,14 +113,14 @@ foreach ($plans as $p) {
 
     $store->appendWithId('subscription_plans.json', [
         'name'            => $name,
-        'type'            => 'Starlink',
+        'type'            => 'starlink',    // the screen's tabs filter on lowercase
         'speed'           => (string)($p['download_speed'] ?? ''),
         'supplier'        => 'Starlink',
         // What uCRM bills the customer. Cost is yours to fill in -- uCRM does
         // not know it, and guessing a margin would be inventing a number.
         'customer_price'  => (float)$p['price'],
         'starlink_cost'   => 0,
-        'active'          => true,
+        'is_active'       => true,          // the screen reads is_active, not active
         'ucrm_product_id' => null,          // see the note at the top
         'imported_from'   => 'ucrm-service-plans',
         'imported_at'     => gmdate('c'),
@@ -107,7 +129,7 @@ foreach ($plans as $p) {
 if (!$plans) echo "  (uCRM returned no active service plans)\n";
 
 // ── Hardware ──────────────────────────────────────────────────────────────
-$haveH = existingNames($store, 'kyc_devices.json');
+$haveH = existingNames($store, 'kyc_devices.json', 'title');
 $hw    = $cat['data']['hardware'] ?? [];
 $addedH = $skipH = 0;
 
@@ -125,13 +147,19 @@ foreach ($hw as $h) {
     $addedH++;
     if (!$apply) continue;
 
+    // The hardware screen reads title / sell_price / buy_price / is_active.
+    // Writing name and price left every row rendering blank -- the import
+    // reported success while the screen showed nothing, which is the worst
+    // combination. Field names now come from what the screen actually reads.
     $store->appendWithId('kyc_devices.json', [
-        'name'            => $name,
+        'title'           => $name,
         'sku'             => '',
-        'price'           => ($h['price'] ?? null) === null ? 0 : (float)$h['price'],
+        'description'     => 'Imported from uCRM',
+        'sell_price'      => ($h['price'] ?? null) === null ? 0 : (float)$h['price'],
+        'buy_price'       => 0,             // yours to fill in; uCRM does not hold cost
         // Both sides are uCRM products here, so the link is exact and safe.
         'ucrm_product_id' => $h['id'] ?? null,
-        'active'          => true,
+        'is_active'       => true,
         'imported_from'   => 'ucrm-products',
         'imported_at'     => gmdate('c'),
     ]);
