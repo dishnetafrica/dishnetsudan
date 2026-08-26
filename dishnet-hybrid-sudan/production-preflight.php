@@ -181,6 +181,56 @@ if (is_file($logFile)) {
     warn('no ai_platform.log yet — no message has been processed since install');
 }
 
+// ══ 3b. Website chat — the second door to the same brain ════════════════
+echo "\n== website chat ==\n";
+require_once __DIR__ . '/lib/WebChatGuard.php';
+$wcOn = PluginConfig::toBool($config['web_chat_enabled'] ?? false);
+if (!$wcOn) {
+    warn('website chat is OFF — visitors without WhatsApp have no way to ask');
+} else {
+    ok('web_chat_enabled = true');
+
+    $origins = array_filter(array_map('trim', explode(',', (string)($config['web_chat_origins'] ?? ''))));
+    if (!$origins) {
+        warn('no allowed websites set — the endpoint falls back to the dishnetsudan.com default');
+    } elseif (in_array('*', $origins, true)) {
+        bad('web_chat_origins contains * — any site could spend your AI budget');
+    } else {
+        foreach ($origins as $o) {
+            strpos($o, 'https://') === 0
+                ? ok('accepts ' . $o)
+                : bad("allowed website '{$o}' is not https — the browser will refuse it");
+        }
+    }
+
+    $wcWa = preg_replace('/\D+/', '', (string)($config['web_chat_whatsapp'] ?? ''));
+    $wcWa !== ''
+        ? ok('hands off to +' . $wcWa)
+        : warn('no handoff number — a capped or escalated visitor is told to wait rather than message');
+
+    $guard = new WebChatGuard($store, $config);
+    $st    = $guard->stats();
+    if ($guard->ratesConfigured()) {
+        $pct = $st['budget_usd'] > 0 ? ($st['spent_month_usd'] / $st['budget_usd']) * 100 : 0;
+        $line = sprintf('spend this month $%.2f of $%.2f (%.0f%%)',
+                        $st['spent_month_usd'], $st['budget_usd'], $pct);
+        if ($pct >= 100)     bad($line . ' — the chat is refusing visitors');
+        elseif ($pct >= 80)  warn($line);
+        else                 ok($line);
+    } else {
+        warn('token rates not set, so the monthly budget cannot be enforced — '
+           . "the message caps are the ceiling ({$st['daily_max']}/day)");
+    }
+    ok(sprintf('%d message(s) today, %d this month', $st['today'], $st['month']));
+
+    // The endpoint answers as the same brain. If the provider key is missing it
+    // degrades to a WhatsApp handoff, which is safe but should not be a surprise.
+    $brainOk = (new DishNetAiBrain($config))->isConfigured();
+    $brainOk
+        ? ok('provider key present — the website chat can answer')
+        : warn('no provider key — the website chat will only offer WhatsApp');
+}
+
 // ══ 4. uCRM catalogue — the source of truth ═════════════════════════════
 echo "\n== uCRM catalogue (live) ==\n";
 $tools = new DishNetTools($store, $config, __DIR__);

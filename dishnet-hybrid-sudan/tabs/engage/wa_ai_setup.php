@@ -129,6 +129,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => $ok, 'text' => $ok ? 'AI settings saved.' : $err];
         $_wCfg = PluginConfig::load($_wRoot, $_wData);
 
+    } elseif ($act === 'save_web_chat') {
+        // None of these are secrets, so they go through the ordinary override
+        // path. The provider key is shared with WhatsApp and is set above.
+        $changes = [
+            'web_chat_enabled'       => (($_POST['web_chat_enabled'] ?? '') === '1'),
+            'web_chat_whatsapp'      => trim((string)($_POST['web_chat_whatsapp'] ?? '')),
+            'web_chat_origins'       => trim((string)($_POST['web_chat_origins'] ?? '')),
+            'web_chat_daily_max'     => trim((string)($_POST['web_chat_daily_max'] ?? '')),
+            'web_chat_session_max'   => trim((string)($_POST['web_chat_session_max'] ?? '')),
+            'web_chat_ip_max'        => trim((string)($_POST['web_chat_ip_max'] ?? '')),
+            'web_chat_monthly_usd'   => trim((string)($_POST['web_chat_monthly_usd'] ?? '')),
+            'web_chat_usd_per_1m_in' => trim((string)($_POST['web_chat_usd_per_1m_in'] ?? '')),
+            'web_chat_usd_per_1m_out'=> trim((string)($_POST['web_chat_usd_per_1m_out'] ?? '')),
+        ];
+        list($ok, $err) = PluginConfig::saveOverrides($_wData, $changes);
+        $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Website chat settings saved.' : $err];
+        $_wCfg = PluginConfig::load($_wRoot, $_wData);
+
     } elseif ($act === 'test_ai') {
         // Isolation test: the brain only, with no WhatsApp involved. If this
         // works and a real message does not, the fault is in the pipeline
@@ -343,6 +361,100 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
         placeholder="Office hours, payment methods, locations. Cannot override the rules that stop the AI inventing prices."><?= h((string)($_wCfg['bot_custom_instructions'] ?? '')) ?></textarea>
     </div>
     <div class="wa-row"><button class="wa-btn p" type="submit">Save AI settings</button></div>
+  </form>
+</div>
+
+<?php
+  require_once $_wRoot . '/lib/WebChatGuard.php';
+  // This tab has no store of its own; public.php built one before rendering.
+  // Fall back to opening the same database rather than showing no counters.
+  $_wcStore = $GLOBALS['store'] ?? null;
+  if (!$_wcStore) {
+      require_once $_wRoot . '/lib/StoreInterface.php';
+      require_once $_wRoot . '/lib/SqliteStore.php';
+      try { $_wcStore = SqliteStore::create($_wData); } catch (\Throwable $e) { $_wcStore = null; }
+  }
+  $_wcGuard = new WebChatGuard($_wcStore, $_wCfg);
+  $_wcStats = $_wcStore ? $_wcGuard->stats() : null;
+  $_wcOn    = PluginConfig::toBool($_wCfg['web_chat_enabled'] ?? false);
+?>
+<div class="wa-card">
+  <h3>Website chat</h3>
+  <p style="margin:0 0 12px;color:#5a6b60;font-size:13px;max-width:70ch">
+    The same assistant, answering on dishnetsudan.com for visitors who have not
+    opened WhatsApp. It uses the same uCRM catalogue, so the two cannot quote
+    different prices. A website visitor is anonymous, so it never sees or
+    discusses account details &mdash; those go to the portal or WhatsApp.
+  </p>
+  <?php if ($_wcStats): ?>
+  <div class="wa-row">
+    <span class="n">This month</span>
+    <span><?= (int)$_wcStats['month'] ?> message(s),
+      <?= number_format((int)$_wcStats['tokens_in_month'] + (int)$_wcStats['tokens_out_month']) ?> tokens<?php
+      if ($_wcStats['spent_month_usd'] !== null): ?>,
+        $<?= number_format((float)$_wcStats['spent_month_usd'], 2) ?> of
+        $<?= number_format((float)$_wcStats['budget_usd'], 2) ?><?php endif; ?>.
+      <?= (int)$_wcStats['today'] ?> today.</span>
+  </div>
+  <?php endif; ?>
+  <form method="post"><?= $_csrf ?>
+    <input type="hidden" name="wa_action" value="save_web_chat">
+    <div class="wa-row">
+      <span class="n">Chat on the website</span>
+      <label><input type="checkbox" name="web_chat_enabled" value="1" <?= $_wcOn ? 'checked' : '' ?>>
+        enabled</label>
+      <span class="wa-pill <?= $_wcOn ? 'wa-ok' : 'wa-b' ?>"><?= $_wcOn ? 'on' : 'off' ?></span>
+    </div>
+    <div class="wa-row">
+      <span class="n">Hand off to</span>
+      <input type="text" name="web_chat_whatsapp" style="min-width:220px"
+             placeholder="+249900083481"
+             value="<?= h((string)($_wCfg['web_chat_whatsapp'] ?? '')) ?>">
+      <span style="color:#5a6b60;font-size:12px">the number the chat sends buyers to</span>
+    </div>
+    <div class="wa-row" style="display:block">
+      <span class="n" style="display:block;margin-bottom:6px">Allowed websites</span>
+      <input type="text" name="web_chat_origins" style="width:100%"
+             placeholder="https://dishnetsudan.com,https://www.dishnetsudan.com"
+             value="<?= h((string)($_wCfg['web_chat_origins'] ?? '')) ?>">
+      <span style="color:#5a6b60;font-size:12px">Comma separated. Only these pages may use the
+        assistant &mdash; this is what stops another site spending your budget.</span>
+    </div>
+    <div class="wa-row">
+      <span class="n">Limits</span>
+      <label style="font-size:13px">per IP / 10 min
+        <input type="number" min="0" name="web_chat_ip_max" style="width:80px"
+               placeholder="8" value="<?= h((string)($_wCfg['web_chat_ip_max'] ?? '')) ?>"></label>
+      <label style="font-size:13px">per visitor / day
+        <input type="number" min="0" name="web_chat_session_max" style="width:80px"
+               placeholder="30" value="<?= h((string)($_wCfg['web_chat_session_max'] ?? '')) ?>"></label>
+      <label style="font-size:13px">whole site / day
+        <input type="number" min="0" name="web_chat_daily_max" style="width:90px"
+               placeholder="600" value="<?= h((string)($_wCfg['web_chat_daily_max'] ?? '')) ?>"></label>
+    </div>
+    <div class="wa-row">
+      <span class="n">Monthly budget</span>
+      <label style="font-size:13px">$
+        <input type="number" min="0" step="0.01" name="web_chat_monthly_usd" style="width:100px"
+               placeholder="25" value="<?= h((string)($_wCfg['web_chat_monthly_usd'] ?? '')) ?>"></label>
+      <label style="font-size:13px">$/1M in
+        <input type="number" min="0" step="0.01" name="web_chat_usd_per_1m_in" style="width:90px"
+               value="<?= h((string)($_wCfg['web_chat_usd_per_1m_in'] ?? '')) ?>"></label>
+      <label style="font-size:13px">$/1M out
+        <input type="number" min="0" step="0.01" name="web_chat_usd_per_1m_out" style="width:90px"
+               value="<?= h((string)($_wCfg['web_chat_usd_per_1m_out'] ?? '')) ?>"></label>
+    </div>
+    <div class="wa-row">
+      <span class="n"></span>
+      <span style="color:#5a6b60;font-size:12px;max-width:70ch">
+        The budget can only be enforced once both token rates are filled in from your
+        provider's pricing page &mdash; we will not guess them.
+        <?= $_wcGuard->ratesConfigured()
+              ? 'Rates are set, so the budget is enforced.'
+              : 'Until then the three message limits above are the ceiling.' ?>
+      </span>
+    </div>
+    <div class="wa-row"><button class="wa-btn p" type="submit">Save website chat</button></div>
   </form>
   <div class="wa-row">
     <span class="n">Test</span>
