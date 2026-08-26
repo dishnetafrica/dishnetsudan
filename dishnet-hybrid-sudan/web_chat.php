@@ -31,6 +31,20 @@ if (!function_exists('str_contains')) {
     function str_contains(string $h, string $n): bool { return $n === '' || strpos($h, $n) !== false; }
 }
 
+// public.php discards its buffer before handing over, so from here anything
+// printed goes straight down the wire. A single PHP warning in front of the
+// JSON makes the whole body unparseable, and the browser reports 200 with no
+// usable content -- which is indistinguishable from the assistant being off.
+// Buffer our own output and let out() decide what actually ships.
+ob_start();
+
+// Warnings and notices go to the log, never to the body. Returning false keeps
+// PHP's normal logging behaviour intact.
+set_error_handler(function (int $no, string $msg, string $file, int $line) {
+    error_log(sprintf('[web_chat] %s in %s:%d', $msg, basename($file), $line));
+    return true;                      // handled: do not print it
+}, E_ALL & ~E_ERROR & ~E_PARSE);
+
 require_once __DIR__ . '/lib/bootstrap_data.php';
 $dataDir = getDataDir(__DIR__);
 if (!is_dir($dataDir)) @mkdir($dataDir, 0755, true);
@@ -42,6 +56,7 @@ require_once __DIR__ . '/lib/WebChatGuard.php';
 require_once __DIR__ . '/lib/DishNetTools.php';
 require_once __DIR__ . '/lib/DishNetAiBrain.php';
 
+$GLOBALS['_webChatDataDir'] = $dataDir;
 $store  = SqliteStore::create($dataDir);
 
 // Config: the files and the vault first, the store only for genuine gaps.
@@ -99,7 +114,22 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
 
 function out(array $body, int $code = 200): void
 {
+    // Anything printed before us is a bug somewhere upstream, not part of the
+    // response. Take it out of the body and put it in the log, where it can be
+    // read, instead of letting it corrupt the JSON.
+    $stray = '';
+    while (ob_get_level() > 0) { $stray .= (string)ob_get_clean(); }
+    if (trim($stray) !== '') {
+        $dir = $GLOBALS['_webChatDataDir'] ?? '';
+        if ($dir !== '') {
+            @file_put_contents($dir . '/ai_platform.log', sprintf(
+                "[%s] web_chat: stray output before the response, suppressed — %s\n",
+                gmdate('c'), trim(preg_replace('/\s+/', ' ', strip_tags($stray)))
+            ), FILE_APPEND);
+        }
+    }
     http_response_code($code);
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }

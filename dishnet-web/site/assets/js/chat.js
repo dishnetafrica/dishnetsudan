@@ -334,7 +334,18 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     }).then(function (r) {
-      return r.json().catch(function () { return null; });
+      // Read as text first. A 200 whose body will not parse is a real failure
+      // mode -- a stray PHP warning in front of the JSON does exactly that --
+      // and silently swallowing it leaves nothing to debug from.
+      return r.text().then(function (raw) {
+        try {
+          return JSON.parse(raw);
+        } catch (e) {
+          console.error('[DishNet chat] ' + r.status +
+                        ' response was not JSON:', raw.slice(0, 400));
+          return null;
+        }
+      });
     }).then(function (data) {
       done();
       if (!data) { if (text) { say('them', T.offline); offerWhatsApp(); } return; }
