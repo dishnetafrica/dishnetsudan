@@ -705,9 +705,32 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     </div>
     <form method="post" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><?= $_csrf ?>
       <input type="hidden" name="wa_action" value="save_public_url">
+      <?php
+        // A generic placeholder is worse than none here: plugin paths differ
+        // between a standalone uCRM (/_plugins/...) and the UISP bundle
+        // (/crm/_plugins/...), and a wrong base means the webhook is registered
+        // against a 404 and WhatsApp silently never works. uCRM already knows
+        // the right one, so show that -- and offer the port-less form when a
+        // proxy makes it available, since it is the better address to give out.
+        $_ucrmJson = @json_decode((string)@file_get_contents($_wRoot . '/ucrm.json'), true);
+        $_pubHint  = rtrim(preg_replace('~/public\.php.*$~', '',
+                       (string)($_ucrmJson['pluginPublicUrl'] ?? '')), '/');
+        $_noPort   = $_pubHint !== '' ? preg_replace('~^(https?://[^/:]+):\d+~', '$1', $_pubHint) : '';
+      ?>
       <input type="text" name="public_url" style="min-width:460px"
              value="<?= h((string)($_wCfg['plugin_public_url'] ?? '')) ?>"
-             placeholder="https://crm.dishnetsudan.com/_plugins/dishnet-hybrid-sudan">
+             placeholder="<?= h($_pubHint ?: 'https://your-crm/_plugins/dishnet-hybrid-sudan') ?>">
+      <?php if ($_pubHint !== ''): ?>
+        <div style="color:#5a6b60;font-size:12px;margin-top:4px;max-width:70ch">
+          uCRM reports <code><?= h($_pubHint) ?></code>.
+          <?php if ($_noPort !== $_pubHint): ?>
+            If a reverse proxy serves this host without the port, prefer
+            <code><?= h($_noPort) ?></code> &mdash; it is the address customers
+            and Evolution should use. Leave blank to work it out from your browser,
+            which gets it wrong when you reach the plugin by IP.
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
       <button class="wa-btn p" type="submit">Save address</button>
     </form>
     <div class="wa-note" style="padding:8px 0 0">
