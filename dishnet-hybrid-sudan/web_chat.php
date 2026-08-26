@@ -254,8 +254,33 @@ try {
 } catch (\Throwable $e) { /* history is optional */ }
 
 // ── Context: sales posture, no identity ───────────────────────────────────
-$tools    = new DishNetTools($store, $config, __DIR__);
-$products = $tools->getProducts();
+// Everything from here can touch the network -- uCRM for the catalogue, the
+// provider for the answer. An exception in any of it used to escape into the
+// generic error handler, which returns a 500 with no 'reply' field, and the
+// widget rendered its own "unavailable" text. That looked identical to the
+// chat being switched off, so nothing pointed at the real fault. Catch it,
+// name it in the log, and answer the visitor properly.
+function webChatFail(string $dataDir, string $stage, \Throwable $e, string $handoff): void
+{
+    @file_put_contents($dataDir . '/ai_platform.log', sprintf(
+        "[%s] web_chat: %s FAILED — %s in %s:%d\n",
+        gmdate('c'), $stage, $e->getMessage(), basename($e->getFile()), $e->getLine()
+    ), FILE_APPEND);
+    bail('Sorry — I could not answer that just now. Message us on WhatsApp and we will help you there.',
+         $handoff, 200, 'error_' . $stage);
+}
+
+try {
+    $tools    = new DishNetTools($store, $config, __DIR__);
+    $products = $tools->getProducts();
+} catch (\Throwable $e) {
+    // The catalogue is not fatal on its own: the brain refuses to quote prices
+    // without it, which is the safe behaviour. Log it and carry on.
+    @file_put_contents($dataDir . '/ai_platform.log', sprintf(
+        "[%s] web_chat: catalogue lookup threw — %s in %s:%d\n",
+        gmdate('c'), $e->getMessage(), basename($e->getFile()), $e->getLine()), FILE_APPEND);
+    $products = ['ok' => false, 'error' => $e->getMessage()];
+}
 
 $ctx = [
     'channel'   => 'sales',
@@ -274,8 +299,12 @@ if ($products['ok']) {
         gmdate('c'), (string)($products['error'] ?? 'unknown')), FILE_APPEND);
 }
 
-$result = $brain->reply($ctx);
-$reply  = trim((string)($result['reply'] ?? ''));
+try {
+    $result = $brain->reply($ctx);
+} catch (\Throwable $e) {
+    webChatFail($dataDir, 'ai', $e, $handoff);
+}
+$reply = trim((string)($result['reply'] ?? ''));
 
 if ($reply === '') {
     // An escalation with no text still needs to say something to the visitor.
@@ -283,8 +312,14 @@ if ($reply === '') {
          $handoff, 200, 'escalated');
 }
 
-// Only a real answer costs the visitor part of their allowance.
-$guard->record($ip, $session, $brain->getLastUsage() ?: []);
+// Only a real answer costs the visitor part of their allowance. Accounting
+// must never be able to swallow a reply the visitor is already owed.
+try {
+    $guard->record($ip, $session, $brain->getLastUsage() ?: []);
+} catch (\Throwable $e) {
+    @file_put_contents($dataDir . '/ai_platform.log', sprintf(
+        "[%s] web_chat: usage accounting failed — %s\n", gmdate('c'), $e->getMessage()), FILE_APPEND);
+}
 
 $history[] = ['role' => 'customer', 'text' => mb_substr($message, 0, 400)];
 $history[] = ['role' => 'dishnet',  'text' => mb_substr($reply, 0, 400)];
@@ -300,6 +335,7 @@ try {
 } catch (\Throwable $e) { /* a lost transcript must not lose the reply */ }
 
 $leadMode = (string)($config['web_chat_lead_mode'] ?? 'after');
+// From here nothing may throw: the answer exists and must reach the visitor.
 if (!in_array($leadMode, ['before', 'after', 'off'], true)) $leadMode = 'after';
 $haveLead = false;
 try {
