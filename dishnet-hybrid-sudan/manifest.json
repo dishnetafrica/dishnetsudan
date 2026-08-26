@@ -2,10 +2,10 @@
     "version": "1",
     "information": {
         "name": "dishnet-hybrid-sudan",
-        "displayName": "DishNet Hybrid \u2014 Sudan Edition",
-        "description": "The full DishNet Hybrid platform for a fresh Sudan deployment, with the AI WhatsApp brain built in. Carries the complete mature feature set \u2014 CRM, customer portal and PWA, sales and KYC, support and field operations, accounting and cashbook, HRM and payroll, retailers, stock, LTE, Starlink, reporting and the existing APIs, webhooks and automation \u2014 and adds Sales, Support and Accounts on WhatsApp through Evolution API, answered by one AI brain grounded in live UISP/uCRM data. Ships with no data: no customers, no employees, no accounting records, and no default passwords. The first administrator is created through a setup step on first run.",
+        "displayName": "DishNet Hybrid — Sudan Edition",
+        "description": "The full DishNet Hybrid platform for a fresh Sudan deployment, with the AI WhatsApp brain built in. Carries the complete mature feature set — CRM, customer portal and PWA, sales and KYC, support and field operations, accounting and cashbook, HRM and payroll, retailers, stock, LTE, Starlink, reporting and the existing APIs, webhooks and automation — and adds Sales, Support and Accounts on WhatsApp through Evolution API, answered by one AI brain grounded in live UISP/uCRM data. Ships with no data: no customers, no employees, no accounting records, and no default passwords. The first administrator is created through a setup step on first run.",
         "url": "https://dishnetafrica.com",
-        "version": "5.2.3",
+        "version": "5.3.0",
         "ucrmVersionCompliability": {
             "min": "2.14.0",
             "max": null
@@ -35,14 +35,14 @@
         {
             "key": "admin_token",
             "label": "Setup tab fallback token",
-            "description": "OPTIONAL \u2014 leave blank. The plugin page recognises you from your UISP login automatically. Set a token here only as a way back in if that stops working.",
+            "description": "OPTIONAL — leave blank. The plugin page recognises you from your UISP login automatically. Set a token here only as a way back in if that stops working.",
             "required": 0,
             "type": "text"
         },
         {
             "key": "evo_api_url",
             "label": "Evolution API URL",
-            "description": "Base URL with no trailing slash, e.g. https://evo-evolution-api.example.easypanel.host \u2014 must be HTTPS.",
+            "description": "Base URL with no trailing slash, e.g. https://evo-evolution-api.example.easypanel.host — must be HTTPS.",
             "required": 1,
             "type": "text"
         },

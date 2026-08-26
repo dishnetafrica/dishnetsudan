@@ -365,6 +365,23 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     </div>
     <div class="wa-row"><button class="wa-btn p" type="submit">Save AI settings</button></div>
   </form>
+  <div class="wa-row">
+    <span class="n">Test</span>
+    <span class="d">Ask the AI "Hello" directly, with no WhatsApp involved.</span>
+    <form method="post" style="margin-left:auto"><?= $_csrf ?>
+      <input type="hidden" name="wa_action" value="test_ai">
+      <button class="wa-btn" type="submit">Test AI now</button>
+    </form>
+  </div>
+  <?php if ($_wAiTest !== null): ?>
+    <div class="wa-row" style="display:block;background:#f8fbfa">
+      <div class="wa-note" style="padding:0 0 6px"><b>AI replied:</b></div>
+      <div style="white-space:pre-wrap;font-size:14px"><?= h((string)$_wAiTest['reply']) ?: '<em>(nothing)</em>' ?></div>
+      <?php if (!empty($_wAiTest['escalate'])): ?>
+        <div class="wa-note" style="padding:6px 0 0">Handover requested: <?= h((string)$_wAiTest['escalate_reason']) ?></div>
+      <?php endif; ?>
+    </div>
+  <?php endif; ?>
 </div>
 
 <?php
@@ -519,24 +536,9 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     </table>
     <?php endif; ?>
   </div>
-  <div class="wa-row">
-    <span class="n">Test</span>
-    <span class="d">Ask the AI "Hello" directly, with no WhatsApp involved.</span>
-    <form method="post" style="margin-left:auto"><?= $_csrf ?>
-      <input type="hidden" name="wa_action" value="test_ai">
-      <button class="wa-btn" type="submit">Test AI now</button>
-    </form>
-  </div>
-  <?php if ($_wAiTest !== null): ?>
-    <div class="wa-row" style="display:block;background:#f8fbfa">
-      <div class="wa-note" style="padding:0 0 6px"><b>AI replied:</b></div>
-      <div style="white-space:pre-wrap;font-size:14px"><?= h((string)$_wAiTest['reply']) ?: '<em>(nothing)</em>' ?></div>
-      <?php if (!empty($_wAiTest['escalate'])): ?>
-        <div class="wa-note" style="padding:6px 0 0">Handover requested: <?= h((string)$_wAiTest['escalate_reason']) ?></div>
-      <?php endif; ?>
-    </div>
-  <?php endif; ?>
 </div>
+
+
 
 <?php if ($_wDetected): ?>
 <div class="wa-card">
