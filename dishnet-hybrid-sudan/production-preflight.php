@@ -186,11 +186,41 @@ if (is_file($logFile)) {
 // pluginDataDir -- and the plugin directory IS served over HTTP, so that
 // fallback puts customer contact details behind a guessable URL.
 $dbFile = $dataDir . '/plugin.sqlite3';
-if (strpos(realpath($dataDir) ?: $dataDir, realpath(__DIR__) ?: __DIR__) === 0) {
-    bad('the database is INSIDE the web-served plugin directory (' . $dataDir . ') — '
-      . 'set pluginDataDir in ucrm.json to a path outside the web root');
-} else {
+$inWebDir = strpos(realpath($dataDir) ?: $dataDir, realpath(__DIR__) ?: __DIR__) === 0;
+if (!$inWebDir) {
     ok('database is outside the plugin web directory');
+} else {
+    // The path alone is not the question -- whether it can be FETCHED is.
+    // uCRM decides pluginDataDir; on installs that do not set it the data
+    // directory lands inside the plugin, and older uCRM has no way to move it.
+    // So ask the server instead of inferring from the layout: if the file is
+    // not reachable over HTTP, the location is a note, not a fault.
+    $probe = '';
+    $ucrmJson = @json_decode((string)@file_get_contents(__DIR__ . '/ucrm.json'), true);
+    $pub = (string)($ucrmJson['pluginPublicUrl'] ?? '');
+    if ($pub !== '') $probe = preg_replace('~/public\.php.*$~', '', $pub) . '/data/plugin.sqlite3';
+
+    if ($probe === '') {
+        warn('database sits inside the plugin directory (' . $dataDir . ') and no public URL '
+           . 'is known, so reachability could not be tested — check it by hand');
+    } else {
+        $ch = curl_init($probe);
+        curl_setopt_array($ch, [CURLOPT_NOBODY => true, CURLOPT_RETURNTRANSFER => true,
+                                CURLOPT_TIMEOUT => 8, CURLOPT_SSL_VERIFYPEER => false,
+                                CURLOPT_SSL_VERIFYHOST => 0]);
+        curl_exec($ch);
+        $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code === 200) {
+            bad('THE DATABASE IS DOWNLOADABLE at ' . $probe . ' — it holds customer contact '
+              . 'details and chat transcripts. Block it before anything else.');
+        } elseif ($code === 0) {
+            warn('could not reach ' . $probe . ' to test whether the database is downloadable '
+               . '— test it from outside the server');
+        } else {
+            ok(sprintf('database is inside the plugin directory but not served (HTTP %d)', $code));
+        }
+    }
 }
 if (is_file($dbFile)) {
     $perms = substr(sprintf('%o', fileperms($dbFile)), -4);
