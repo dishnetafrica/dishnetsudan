@@ -247,8 +247,12 @@ def main():
                 return m.group(0)
             n += 1
             return f'<div class="kit-photo" data-kit="{m.group(1)}">{art}</div>'
-        text = re.sub(r'<div class="kit-photo" data-kit="([a-z]+)">.*?</div>\s*(?=<span|<strong)',
-                      lambda m: sub(m) , text, flags=re.S)
+        # No lookahead: the slot is now wrapped in an <a> to the product page,
+        # so what follows the closing </div> is not what it used to be. The
+        # slot holds one <img> or one <svg>, neither of which nests a <div>,
+        # so the non-greedy match still stops at the right closing tag.
+        text = re.sub(r'<div class="kit-photo" data-kit="([a-z]+)">.*?</div>',
+                      sub, text, flags=re.S)
         return text, n
 
     total = 0
