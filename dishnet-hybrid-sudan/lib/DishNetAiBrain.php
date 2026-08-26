@@ -286,6 +286,22 @@ class DishNetAiBrain
      * Only what the tools actually returned goes in here. Absent sections are
      * absent on purpose — rule 1 turns that into a handover instead of a guess.
      */
+    /**
+     * What the numbers are denominated in.
+     *
+     * Empty by default: naming a currency we were never told is exactly the
+     * kind of invented commercial fact the rest of this prompt forbids. Set
+     * ai_currency in settings and every price is stated with it.
+     */
+    private function currencyRule(): string
+    {
+        $cur = trim((string)($this->config['ai_currency'] ?? ''));
+        return $cur !== ''
+            ? "Every price above is in {$cur}. Always state the currency with the number.\n"
+            : "Currency is whatever our system uses for this customer's country — if you are not "
+              . "certain, give the number without naming a currency.\n";
+    }
+
     private function dataBlock(array $ctx): string
     {
         $d = "DATA — the ONLY facts you may state:\n";
@@ -323,8 +339,14 @@ class DishNetAiBrain
                 if (!empty($p['data_limit']))     $d .= ', data limit ' . $p['data_limit'];
                 $d .= "\n";
             }
-            $d .= "Currency is whatever our system uses for this customer's country — if you are not "
-                . "certain, give the number without naming a currency.\n";
+            // uCRM's plan and product responses carry no currency, so the brain was
+            // told to stay silent rather than guess one. That was right while
+            // nothing else stated it -- but the website quotes $ on every page,
+            // and an assistant giving bare numbers beside it invites a customer
+            // to read them as SDG. The operator names the currency once, in
+            // settings, and it is used verbatim; unset, the careful old
+            // behaviour stands.
+            $d .= $this->currencyRule();
         } elseif (($ctx['channel'] ?? '') === 'sales') {
             $d .= "\nPLANS: unavailable right now. Do not name any plan or price. Take their "
                 . "requirements and hand over.\n";
@@ -340,6 +362,7 @@ class DishNetAiBrain
                     : ' — price not listed (say you will confirm)';
                 $d .= " one-time\n";
             }
+            $d .= $this->currencyRule();
         } elseif (($ctx['channel'] ?? '') === 'sales') {
             $d .= "\nHARDWARE: no kit or installation prices are in your data. If asked what "
                 . "equipment costs, say you will confirm and take their details.\n";

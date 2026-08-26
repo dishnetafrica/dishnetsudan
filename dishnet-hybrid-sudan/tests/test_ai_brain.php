@@ -160,5 +160,28 @@ t('no number configured means no number quoted', str_contains($noWaPrompt, '+249
 t('and it escalates instead', str_contains($noWaPrompt, 'have someone follow up'), true);
 
 
+echo "\nCurrency is stated only when the operator has said what it is\n";
+$plans = ['products' => ['products' => [
+            ['name' => 'Starlink Priority 1TB', 'price' => 189, 'period_months' => 1]],
+          'hardware' => [['name' => 'Starlink Standard Kit', 'price' => 600]]]];
+
+$silent = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$sp = $silent->promptPreview(array_merge(['channel' => 'sales', 'message' => 'price?'], $plans));
+t('unset: still refuses to name one', str_contains($sp, 'without naming a currency'), true);
+t('unset: no currency asserted', str_contains($sp, 'Every price above is in'), false);
+
+$named = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai',
+                             'ai_currency' => 'USD']);
+$np = $named->promptPreview(array_merge(['channel' => 'sales', 'message' => 'price?'], $plans));
+t('set: the currency is stated', str_contains($np, 'Every price above is in USD'), true);
+t('set: and required on every number',
+  str_contains($np, 'Always state the currency with the number'), true);
+t('set: the old hedge is gone', str_contains($np, 'without naming a currency'), false);
+// It has to reach the hardware section too, or the kit price stays bare while
+// the monthly price is qualified -- which is worse than neither being.
+t('set: hardware is covered as well',
+  substr_count($np, 'Every price above is in USD') >= 2, true);
+t('the figures themselves are untouched', str_contains($np, '189') && str_contains($np, '600'), true);
+
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);

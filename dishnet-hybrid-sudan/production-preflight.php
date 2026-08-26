@@ -181,6 +181,12 @@ if (is_file($logFile)) {
     warn('no ai_platform.log yet — no message has been processed since install');
 }
 
+$aiCur = trim((string)($config['ai_currency'] ?? ''));
+$aiCur !== ''
+    ? ok("AI quotes prices in {$aiCur}")
+    : warn('no currency set — the AI gives bare numbers while the website quotes $, '
+         . 'so a customer can read a price as SDG');
+
 // ══ 3b. Website chat — the second door to the same brain ════════════════
 echo "\n== website chat ==\n";
 require_once __DIR__ . '/lib/WebChatGuard.php';

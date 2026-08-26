@@ -129,6 +129,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => $ok, 'text' => $ok ? 'AI settings saved.' : $err];
         $_wCfg = PluginConfig::load($_wRoot, $_wData);
 
+    } elseif ($act === 'save_currency') {
+        list($ok, $err) = PluginConfig::saveOverrides($_wData,
+            ['ai_currency' => trim((string)($_POST['ai_currency'] ?? ''))]);
+        $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Currency saved.' : $err];
+        $_wCfg = PluginConfig::load($_wRoot, $_wData);
+
     } elseif ($act === 'save_web_chat') {
         // None of these are secrets, so they go through the ordinary override
         // path. The provider key is shared with WhatsApp and is set above.
@@ -364,6 +370,20 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
         placeholder="Office hours, payment methods, locations. Cannot override the rules that stop the AI inventing prices."><?= h((string)($_wCfg['bot_custom_instructions'] ?? '')) ?></textarea>
     </div>
     <div class="wa-row"><button class="wa-btn p" type="submit">Save AI settings</button></div>
+  </form>
+  <form method="post"><?= $_csrf ?>
+    <input type="hidden" name="wa_action" value="save_currency">
+    <div class="wa-row">
+      <span class="n">Currency</span>
+      <input type="text" name="ai_currency" style="width:110px" placeholder="e.g. USD"
+             value="<?= h((string)($_wCfg['ai_currency'] ?? '')) ?>">
+      <button class="wa-btn" type="submit">Save</button>
+      <span style="color:#5a6b60;font-size:12px;max-width:60ch">
+        uCRM does not tell us what its prices are denominated in. Left blank the AI gives the
+        number and names no currency; fill it in and every price is quoted with it. The website
+        quotes $, so leaving this blank means the two do not match.
+      </span>
+    </div>
   </form>
   <div class="wa-row">
     <span class="n">Test</span>
