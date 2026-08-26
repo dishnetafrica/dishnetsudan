@@ -251,6 +251,28 @@ $retDays > 0
     : warn('retention is 0 — chat contact details and transcripts are kept forever, '
          . 'which must match what privacy.html tells visitors');
 
+// Whether a reply is immediate or waits for cron. The webhook spawns a worker
+// the moment a message arrives -- but only if it can find a PHP CLI binary.
+// PHP_BINARY under php-fpm is the FPM master, not a CLI, so the spawn silently
+// never ran and every customer waited for the five-minute scheduled run.
+$cliCandidates = array_filter([
+    defined('PHP_BINDIR') && PHP_BINDIR !== '' ? PHP_BINDIR . '/php' : null,
+    '/usr/local/bin/php', '/usr/bin/php',
+]);
+$cliFound = '';
+foreach ($cliCandidates as $c) { if (@is_executable($c)) { $cliFound = $c; break; } }
+$execAllowed = function_exists('exec')
+    && !in_array('exec', array_map('trim', explode(',', (string)ini_get('disable_functions'))), true);
+
+if (!$execAllowed) {
+    warn('exec() is disabled — replies cannot be immediate and will wait for the scheduled run');
+} elseif ($cliFound === '') {
+    bad('no PHP CLI binary found (' . implode(', ', $cliCandidates) . ') — every reply waits for '
+      . 'the scheduled run instead of a few seconds');
+} else {
+    ok('replies are immediate — worker spawns via ' . $cliFound);
+}
+
 $aiCur = trim((string)($config['ai_currency'] ?? ''));
 $aiCur !== ''
     ? ok("AI quotes prices in {$aiCur}")

@@ -203,9 +203,37 @@ foreach ($messages as $msg) {
 // picks the work up within a minute instead. Nothing is lost either way.
 if ($queued > 0) {
     $worker = __DIR__ . '/run_worker.php';
-    if (is_file($worker) && function_exists('exec') && !in_array('exec', array_map('trim', explode(',', (string)ini_get('disable_functions'))), true)) {
-        $php = defined('PHP_BINARY') && PHP_BINARY !== '' ? PHP_BINARY : 'php';
-        @exec(escapeshellarg($php) . ' ' . escapeshellarg($worker) . ' > /dev/null 2>&1 &');
+    $execOk = function_exists('exec')
+        && !in_array('exec', array_map('trim', explode(',', (string)ini_get('disable_functions'))), true);
+
+    if (is_file($worker) && $execOk) {
+        // PHP_BINARY is NOT the CLI binary here. Under php-fpm it is the FPM
+        // master -- running "php-fpm run_worker.php" does nothing, and
+        // run_worker.php refuses to start unless the SAPI is cli, so it would
+        // exit even if it did. The spawn silently never happened and every
+        // reply waited for the five-minute scheduler instead of the seven
+        // seconds the work actually takes.
+        $php = '';
+        $candidates = [];
+        if (defined('PHP_BINDIR') && PHP_BINDIR !== '') $candidates[] = PHP_BINDIR . '/php';
+        $candidates[] = '/usr/local/bin/php';
+        $candidates[] = '/usr/bin/php';
+        // Only if it really is a CLI binary rather than the FPM one.
+        if (defined('PHP_BINARY') && PHP_BINARY !== '' && basename(PHP_BINARY) === 'php') {
+            $candidates[] = PHP_BINARY;
+        }
+        foreach ($candidates as $c) {
+            if (@is_executable($c)) { $php = $c; break; }
+        }
+
+        if ($php !== '') {
+            @exec(escapeshellarg($php) . ' ' . escapeshellarg($worker) . ' > /dev/null 2>&1 &');
+        } else {
+            // Worth saying out loud: without this the customer waits for cron.
+            error_log('[evo_webhook] no PHP CLI binary found — replies will wait for the '
+                    . 'scheduled run instead of being immediate. Looked in: '
+                    . implode(', ', $candidates));
+        }
     }
 }
 

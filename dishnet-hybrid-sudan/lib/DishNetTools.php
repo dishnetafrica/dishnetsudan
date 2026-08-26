@@ -362,6 +362,26 @@ class DishNetTools
         $crm = $this->crm();
         if ($crm === null) return $this->err('CRM is not configured');
 
+        // Two uCRM round trips per customer message, for five plans and three
+        // products that change a few times a year. It was costing roughly four
+        // seconds of every reply. Cached briefly instead: uCRM remains the
+        // source of truth, it is simply not asked twice inside the same minute.
+        // catalogue_cache_seconds = 0 disables it.
+        $ttl = $this->config['catalogue_cache_seconds'] ?? null;
+        $ttl = ($ttl === null || $ttl === '' || !is_numeric($ttl)) ? 60 : max(0, (int)$ttl);
+        $cacheFile = '';
+        if ($ttl > 0) {
+            $cacheFile = sys_get_temp_dir() . '/dishnet_catalogue_'
+                . substr(sha1((string)($this->config['crm_base_url'] ?? '') . '|' . $limit), 0, 16) . '.json';
+            if (is_file($cacheFile) && (time() - (int)@filemtime($cacheFile)) < $ttl) {
+                $hit = @json_decode((string)@file_get_contents($cacheFile), true);
+                // Only a successful lookup is ever served from cache. Caching a
+                // failure would stop the AI quoting prices for a whole minute
+                // after uCRM had already recovered.
+                if (is_array($hit) && !empty($hit['ok'])) return $hit;
+            }
+        }
+
         try {
             $plans = $crm->get('service-plans?limit=' . $limit) ?? [];
             $out   = [];
@@ -386,7 +406,7 @@ class DishNetTools
             } catch (\Throwable $e) {
                 $hardwareError = $e->getMessage();
             }
-            return $this->ok([
+            $result = $this->ok([
                 'products'         => $out,
                 'count'            => count($out),
                 'hardware'         => $hardware,
@@ -395,6 +415,15 @@ class DishNetTools
                 '_schema_verified' => false,
                 '_note'            => 'Fields absent from UCRM are null. Never present a null field as a fact.',
             ]);
+            // Only cache a complete answer. A run where the hardware endpoint
+            // failed would otherwise freeze an empty kit list in place, and the
+            // AI would tell customers it cannot quote a kit price for a minute
+            // after uCRM was fine again.
+            if ($cacheFile !== '' && $hardwareError === null && $out) {
+                @file_put_contents($cacheFile, json_encode($result), LOCK_EX);
+                @chmod($cacheFile, 0600);
+            }
+            return $result;
         } catch (\Throwable $e) {
             return $this->err('Product lookup failed: ' . $e->getMessage());
         }
