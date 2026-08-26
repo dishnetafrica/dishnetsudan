@@ -122,24 +122,39 @@ if (!$evo->canReachApi()) {
             $phone = (string)($inst['phone'] ?? '');
             $line  = "instance '{$name}' state={$state}" . ($chan !== '' ? " channel={$chan}" : ' (unmapped)')
                    . ($phone !== '' ? " number={$phone}" : '');
+            if ($chan === '') {
+                // Unmapped: nothing routes here, so a webhook would be dropped
+                // as unknown_instance anyway. Worth seeing, not worth failing.
+                echo "  info  {$line}\n";
+                continue;
+            }
+
             if ($chan === 'sales') {
                 $found = true;
                 !empty($inst['connected']) ? ok($line) : bad($line . ' — sales number is not connected');
-                // The registration Evolution actually holds — a local token
-                // proves nothing about delivery.
-                $wh   = $evo->getWebhook($name);
-                $whS  = json_encode($wh['data'] ?? []);
-                if (!($wh['ok'] ?? false)) {
-                    bad("cannot read the webhook registration for '{$name}': " . (string)($wh['error'] ?? '?'));
-                } elseif (strpos($whS, 'page=evo_webhook') === false) {
-                    bad("Evolution has NO webhook registered for '{$name}' — inbound messages will never arrive. Register it in Engage → WhatsApp AI.");
-                } elseif ($whToken !== '' && strpos($whS, $whToken) === false) {
-                    bad("Evolution's webhook for '{$name}' carries a DIFFERENT token than ours — inbound will be rejected. Re-register it.");
-                } else {
-                    ok("Evolution webhook registered for '{$name}' with our current token");
-                }
             } else {
-                echo "  info  {$line}\n";
+                // Support and accounts are not the sales line, so a disconnected
+                // one is a warning rather than a failure -- but it is still a
+                // number customers write to.
+                !empty($inst['connected']) ? ok($line) : warn($line . ' — not connected');
+            }
+
+            // Every MAPPED instance needs its own webhook. Checking only sales
+            // meant a support number could be silently undeliverable: mapped,
+            // connected, and never receiving anything, with the preflight
+            // reporting it as fine.
+            $wh  = $evo->getWebhook($name);
+            $whS = json_encode($wh['data'] ?? []);
+            if (!($wh['ok'] ?? false)) {
+                bad("cannot read the webhook registration for '{$name}': " . (string)($wh['error'] ?? '?'));
+            } elseif (strpos($whS, 'page=evo_webhook') === false) {
+                bad("Evolution has NO webhook registered for '{$name}' ({$chan}) — inbound messages "
+                  . 'will never arrive. Register it in Engage → WhatsApp AI.');
+            } elseif ($whToken !== '' && strpos($whS, $whToken) === false) {
+                bad("Evolution's webhook for '{$name}' carries a DIFFERENT token than ours — "
+                  . 'inbound will be rejected. Re-register it.');
+            } else {
+                ok("Evolution webhook registered for '{$name}' ({$chan}) with our current token");
             }
         }
         $found || bad("no instance is mapped to the 'sales' channel — assign one in Engage → WhatsApp AI");
