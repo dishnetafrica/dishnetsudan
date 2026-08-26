@@ -10,6 +10,9 @@ try {
     $_unreadSupport = (int)($_stats['unread_support'] ?? 0);
     $_unreadAccounts = (int)($_stats['unread_accounts'] ?? 0);
     $_needsHuman = (int)($_stats['needs_human'] ?? 0);
+    // Website chats are a channel in the same tables, so the count comes from
+    // getStats the same way Support and Accounts do.
+    $_unreadWeb  = (int)($_stats['unread_web'] ?? 0);
 } catch (Throwable $_e) {
     // Tables may not exist yet — migration 017 not run. That's OK.
 }
@@ -166,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_wai_action'] ?? '') === '
         </div>
         <div class="wai-tabs" id="waiTabs">
             <div class="wai-tab<?= $_defaultChannel === '' ? ' active' : '' ?>" data-ch="">All<?php if($_totalUnread > 0): ?> <span class="wai-badge" style="background:#64748b;"><?= $_totalUnread ?></span><?php endif; ?></div>
+            <div class="wai-tab<?= $_defaultChannel === 'web' ? ' active' : '' ?>" data-ch="web">Website<?php if($_unreadWeb > 0): ?> <span class="wai-badge" style="background:#0891b2;"><?= $_unreadWeb ?></span><?php endif; ?></div>
             <div class="wai-tab<?= $_defaultChannel === 'support' ? ' active' : '' ?>" data-ch="support">Support<?php if($_unreadSupport > 0): ?> <span class="wai-badge" style="background:#2563eb;"><?= $_unreadSupport ?></span><?php endif; ?></div>
             <div class="wai-tab<?= $_defaultChannel === 'accounts' ? ' active' : '' ?>" data-ch="accounts">Accounts<?php if($_unreadAccounts > 0): ?> <span class="wai-badge" style="background:#d97706;"><?= $_unreadAccounts ?></span><?php endif; ?></div>
             <?php if ($_needsHuman > 0): ?><div class="wai-tab" data-ch="__needs_human" style="color:#dc2626;">🔴 Needs Reply <span class="wai-badge" style="background:#dc2626;"><?= $_needsHuman ?></span></div><?php endif; ?>
@@ -354,7 +358,15 @@ function renderChat(conv, msgs, isNewConv, hasNew){
         var time=(m.sent_at||'').substring(11,16);
         var body=esc(m.body||'').replace(/\n/g,'<br>');
         if(m.media_type&&m.media_type!=='null') body='<span class="media-tag">['+esc(m.media_type)+']</span> '+body;
-        var agent=(dir==='out'&&m.agent_name)?'<div class="ag">'+esc(m.agent_name)+'</div>':'';
+        // Who said it, on every line. Reviewing a conversation means asking
+        // "did the AI quote the right price, and did a human step in?" -- a
+        // faint caption under some bubbles does not answer that at a glance.
+        var who, whoCol;
+        if(dir==='in'){ who='CUSTOMER'; whoCol='#475569'; }
+        else if(role==='assistant'){ who='AI'; whoCol='#7c3aed'; }
+        else if(role==='system'){ who='SYSTEM'; whoCol='#94a3b8'; }
+        else { who='HUMAN' + (m.agent_name?' \u2014 '+esc(m.agent_name):''); whoCol='#16a34a'; }
+        var agent='<div class="ag" style="color:'+whoCol+';font-weight:700;letter-spacing:.4px;">'+who+'</div>';
         html+='<div class="wai-msg '+cls+'">'+agent+body+'<span class="mt">'+time+'</span></div>';
     }
     var wasAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;

@@ -465,7 +465,8 @@ class ConversationService
     {
         $stats = ['by_channel' => [], 'by_direction' => [], 'by_category' => [],
                   'messages_today' => 0, 'active_7d' => 0, 'total_unread' => 0,
-                  'unread_support' => 0, 'unread_accounts' => 0, 'needs_human' => 0];
+                  'unread_support' => 0, 'unread_accounts' => 0, 'unread_web' => 0,
+                  'needs_human' => 0];
 
         try {
             $stmt = $this->db->query("SELECT channel, COUNT(*) as cnt, SUM(message_count) as msgs FROM wa_conversations GROUP BY channel");
@@ -489,6 +490,8 @@ class ConversationService
             // Per-channel unread counts
             $stmt = $this->db->query("SELECT COALESCE(SUM(unread_count), 0) FROM wa_conversations WHERE channel = 'support'");
             $stats['unread_support'] = (int)$stmt->fetchColumn();
+            $stmt = $this->db->query("SELECT COALESCE(SUM(unread_count), 0) FROM wa_conversations WHERE channel = 'web'");
+            $stats['unread_web'] = (int)$stmt->fetchColumn();
             $stmt = $this->db->query("SELECT COALESCE(SUM(unread_count), 0) FROM wa_conversations WHERE channel = 'accounts'");
             $stats['unread_accounts'] = (int)$stmt->fetchColumn();
 

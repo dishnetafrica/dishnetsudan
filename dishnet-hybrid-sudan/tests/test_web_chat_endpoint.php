@@ -263,12 +263,17 @@ foreach (['web_chat_sessions.json', 'web_chat_leads.json'] as $file) {
 // appendWithId, and plain append() next to an updateOne on the same file is
 // the exact mistake that shipped twice.
 $src = file_get_contents($tmp . '/web_chat.php');
-foreach (['web_chat_sessions.json', 'web_chat_leads.json', '$HIST'] as $file) {
-    $needle = "append(" . (str_starts_with($file, '$') ? $file : "'{$file}'");
-    t("web_chat.php does not plain-append {$file}",
-      str_contains($src, '->' . $needle), false);
-}
-t('and it does use appendWithId', substr_count($src, '->appendWithId('), 2);
+t('web_chat.php does not plain-append leads',
+  str_contains($src, "->append('web_chat_leads.json'"), false);
+t('leads are written with appendWithId', substr_count($src, '->appendWithId('), 1);
+// Transcripts moved to the conversation system; the blob table is frozen as
+// the migration's rollback path and must not be written to any more.
+t('the old session blob is no longer written',
+  str_contains($src, 'web_chat_sessions'), false);
+t('transcripts go through ConversationService',
+  str_contains($src, '$convSvc->storeMessage('), true);
+t('and the visitor is keyed by session, not a fabricated phone',
+  str_contains($src, "'web:' . \$session"), true);
 
 // And the shape web_chat reads back must survive a round trip unchanged.
 $sid = 'roundtrip01';

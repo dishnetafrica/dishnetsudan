@@ -227,6 +227,33 @@ class WebChatGuard
         if ($days <= 0) return [0, 0];          // 0 disables, deliberately
         $cutoff = time() - ($days * 86400);
 
+        // Conversations live in the shared tables now, so the delete has to be
+        // narrowed by hand. Three conditions, all of which a WhatsApp row fails:
+        // channel = 'web', a phone that starts with "web:", and older than the
+        // period. WhatsApp conversations are business records with a retention
+        // question nobody has answered yet, and this must never be the thing
+        // that answers it.
+        $convGone = 0;
+        try {
+            $pdo = method_exists($this->store, 'getPdo') ? $this->store->getPdo() : null;
+            if ($pdo) {
+                $cut = gmdate('Y-m-d H:i:s', $cutoff);
+                $sel = $pdo->prepare(
+                    "SELECT id FROM wa_conversations
+                      WHERE channel = 'web' AND phone LIKE 'web:%'
+                        AND COALESCE(last_message_at, updated_at, created_at) < ?"
+                );
+                $sel->execute([$cut]);
+                $ids = $sel->fetchAll(\PDO::FETCH_COLUMN);
+                if ($ids) {
+                    $in = implode(',', array_fill(0, count($ids), '?'));
+                    $pdo->prepare("DELETE FROM wa_messages WHERE conversation_id IN ({$in})")->execute($ids);
+                    $pdo->prepare("DELETE FROM wa_conversations WHERE id IN ({$in})")->execute($ids);
+                    $convGone = count($ids);
+                }
+            }
+        } catch (\Throwable $e) { /* reported by the caller as zero */ }
+
         $gone = 0;
         foreach (['web_chat_leads.json' => 'created', 'web_chat_sessions.json' => 'updated'] as $file => $field) {
             $kept = [];
@@ -247,7 +274,10 @@ class WebChatGuard
             if ($file === 'web_chat_leads.json') $leads = $removed;
         }
         $leads = $leads ?? 0;
-        return [$leads, $gone - $leads];
+        // Transcripts counted from both places: the frozen blob table, which
+        // still holds pre-migration chats, and the conversation tables where
+        // everything since lives.
+        return [$leads, ($gone - $leads) + $convGone];
     }
 
     /**
@@ -257,6 +287,25 @@ class WebChatGuard
     public function forget(string $session): array
     {
         $out = ['lead' => false, 'session' => false];
+
+        // The conversation is the transcript now. Same three conditions as
+        // prune(), so a malformed session can never reach a WhatsApp row.
+        try {
+            $pdo = method_exists($this->store, 'getPdo') ? $this->store->getPdo() : null;
+            if ($pdo && preg_match('/^[a-f0-9]{6,64}$/', $session)) {
+                $sel = $pdo->prepare(
+                    "SELECT id FROM wa_conversations WHERE channel = 'web' AND phone = ?"
+                );
+                $sel->execute(['web:' . $session]);
+                $ids = $sel->fetchAll(\PDO::FETCH_COLUMN);
+                if ($ids) {
+                    $in = implode(',', array_fill(0, count($ids), '?'));
+                    $pdo->prepare("DELETE FROM wa_messages WHERE conversation_id IN ({$in})")->execute($ids);
+                    $pdo->prepare("DELETE FROM wa_conversations WHERE id IN ({$in})")->execute($ids);
+                    $out['session'] = true;
+                }
+            }
+        } catch (\Throwable $e) { /* report what did happen */ }
         foreach (['web_chat_leads.json' => 'lead', 'web_chat_sessions.json' => 'session'] as $file => $key) {
             try {
                 $kept = [];

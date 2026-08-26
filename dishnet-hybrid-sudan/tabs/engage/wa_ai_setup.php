@@ -572,6 +572,12 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
   ?>
   <div class="wa-row" style="display:block;margin-top:10px">
     <span class="n" style="display:block;margin-bottom:6px">Contact details left in the chat</span>
+    <p style="margin:0 0 8px;color:#5a6b60;font-size:12.5px;max-width:70ch">
+      This is contact details only. To read what visitors actually asked and what the AI
+      answered, open <strong>WhatsApp &rarr; Inbox</strong> and choose the
+      <strong>Website</strong> tab &mdash; website chats and WhatsApp conversations are in the
+      same place. Deleting below removes the contact details <em>and</em> the conversation.
+    </p>
     <?php if (!$_leads): ?>
       <span style="color:#5a6b60;font-size:13px">Nothing yet.</span>
     <?php else: ?>

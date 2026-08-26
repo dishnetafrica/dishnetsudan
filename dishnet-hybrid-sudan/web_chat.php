@@ -55,6 +55,7 @@ require_once __DIR__ . '/lib/PluginConfig.php';
 require_once __DIR__ . '/lib/WebChatGuard.php';
 require_once __DIR__ . '/lib/DishNetTools.php';
 require_once __DIR__ . '/lib/DishNetAiBrain.php';
+require_once __DIR__ . '/lib/ConversationService.php';
 
 $GLOBALS['_webChatDataDir'] = $dataDir;
 $store  = SqliteStore::create($dataDir);
@@ -276,18 +277,55 @@ if (!$brain->isConfigured()) {
          $handoff, 200, 'no_provider');
 }
 
-// ── History ───────────────────────────────────────────────────────────────
-// Kept server-side and keyed to the session: a browser-supplied transcript
-// would be a way to put words in the assistant's mouth.
-$HIST = 'web_chat_sessions.json';
+// ── The conversation ──────────────────────────────────────────────────────
+// Website chats live in the same tables as WhatsApp, as channel = 'web', so
+// the Inbox shows both and an admin can read what the AI is telling people.
+// The visitor is keyed by their session behind a "web:" prefix -- they have no
+// phone number, and a session is what identifies them across messages.
+//
+// History is read server-side and never taken from the browser: a
+// client-supplied transcript would be a way to put words in the assistant's
+// mouth.
+$convSvc = new ConversationService($dataDir, $store->getPdo());
+$convId  = 0;
 $history = [];
 try {
-    $row = $store->findOne($HIST, 'session', $session);
-    if ($row && !empty($row['turns'])) {
-        $turns = json_decode((string)$row['turns'], true);
-        if (is_array($turns)) $history = $turns;
+    $leadRow  = $store->findOne('web_chat_leads.json', 'session', $session);
+    $vname    = trim((string)($leadRow['name'] ?? '')) ?: 'Website visitor';
+    $conv     = $convSvc->ensureConversation('web:' . $session, 'web', $vname, 'web_chat');
+    $convId   = (int)($conv['id'] ?? 0);
+
+    // Read the prior turns BEFORE recording this one, or the current message
+    // would arrive twice: once as history and once as the message being asked.
+    foreach ($convSvc->getMessages($convId, 20, 0) as $m) {
+        $history[] = [
+            'role' => ($m['direction'] ?? 'in') === 'in' ? 'customer' : 'dishnet',
+            'text' => mb_substr((string)($m['body'] ?? ''), 0, 400),
+        ];
     }
-} catch (\Throwable $e) { /* history is optional */ }
+
+    // Record the question now, not after the answer. A message that fails to
+    // get a reply is exactly what an admin needs to see in the Inbox.
+    $convSvc->storeMessage($convId, [
+        'direction' => 'in',
+        'role'      => 'customer',
+        'body'      => $message,
+        'metadata'  => json_encode(['channel' => 'web']),
+    ]);
+    // Contact details, once given, belong on the conversation -- but never as
+    // its key, which stays the session.
+    if ($leadRow) {
+        $contact = trim((string)($leadRow['phone'] ?? $leadRow['email'] ?? ''));
+        if ($contact !== '') {
+            $store->getPdo()->prepare('UPDATE wa_conversations SET tags = ? WHERE id = ?')
+                  ->execute([json_encode(['contact' => $contact]), $convId]);
+        }
+    }
+} catch (\Throwable $e) {
+    // Monitoring must never cost a customer their answer.
+    @file_put_contents($dataDir . '/ai_platform.log', sprintf(
+        "[%s] web_chat: conversation record failed — %s\n", gmdate('c'), $e->getMessage()), FILE_APPEND);
+}
 
 // ── Context: sales posture, no identity ───────────────────────────────────
 // Everything from here can touch the network -- uCRM for the catalogue, the
@@ -358,24 +396,25 @@ try {
         "[%s] web_chat: usage accounting failed — %s\n", gmdate('c'), $e->getMessage()), FILE_APPEND);
 }
 
-$history[] = ['role' => 'customer', 'text' => mb_substr($message, 0, 400)];
-$history[] = ['role' => 'dishnet',  'text' => mb_substr($reply, 0, 400)];
-$history   = array_slice($history, -40);   // keep more than we send
+// The assistant's reply, attributed, so the Inbox can show who said what.
 try {
-    $payload = ['session' => $session, 'turns' => json_encode($history, JSON_UNESCAPED_UNICODE),
-                'updated' => gmdate('c')];
-    if ($store->findOne($HIST, 'session', $session)) {
-        $store->updateOne($HIST, 'session', $session, $payload);
-    } else {
-        // appendWithId, not append. updateOne locates a row by its id and
-        // append() writes none, so every update after the first silently did
-        // nothing and the transcript froze at the opening exchange -- the model
-        // saw the greeting and the current message and nothing in between, so
-        // it re-asked questions the customer had already answered. Exactly the
-        // bug fixed for leads a few lines above; this call site was missed.
-        $store->appendWithId($HIST, $payload);
+    if ($convId > 0) {
+        $convSvc->storeMessage($convId, [
+            'direction'  => 'out',
+            'role'       => 'assistant',
+            'body'       => $reply,
+            'agent_name' => 'DishNet AI',
+            'metadata'   => json_encode(['channel' => 'web']),
+        ]);
+        if (!empty($result['escalate'])) {
+            // Same signal WhatsApp uses, so it lands in the Inbox's Needs Reply
+            // tab rather than being invisible until someone reads a log.
+            $store->getPdo()->prepare(
+                "UPDATE wa_conversations SET state = 'needs_human', updated_at = datetime('now') WHERE id = ?"
+            )->execute([$convId]);
+        }
     }
-} catch (\Throwable $e) { /* a lost transcript must not lose the reply */ }
+} catch (\Throwable $e) { /* a lost transcript must not lose the reply */ } catch (\Throwable $e) { /* a lost transcript must not lose the reply */ }
 
 $leadMode = (string)($config['web_chat_lead_mode'] ?? 'after');
 // From here nothing may throw: the answer exists and must reach the visitor.
