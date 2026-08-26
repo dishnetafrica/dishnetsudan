@@ -656,6 +656,16 @@ if ($page === 'ai_tools') {
     exit;
 }
 
+// ── Website chat: the AI assistant on dishnetsudan.com ──────────────
+// Public and unauthenticated by design -- it answers catalogue questions for
+// anonymous visitors. Everything that makes that safe (origin allowlist, rate
+// limits, spend ceiling, no account data) is inside web_chat.php.
+if ($page === 'web_chat') {
+    while (ob_get_level() > 0) ob_end_clean();
+    require __DIR__ . '/web_chat.php';
+    exit;
+}
+
 //  Evolution API Webhook 
 // URL: public.php?page=evo_webhook
 if ($page === 'evo_webhook') {

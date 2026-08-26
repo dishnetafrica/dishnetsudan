@@ -124,5 +124,41 @@ t('current message is last', $turns[10]['content'], 'latest');
 $turns = call($brain,'buildTurns',[['message'=>'only','history'=>[['role'=>'customer','text'=>'  ']]]]);
 t('blank history entries dropped', count($turns), 1);
 
+// ══════════════════════════════════════════════════════════════════════════
+// Web transport — same brain, different door.
+// The point of these: a website visitor is anonymous, so the prompt must
+// remove any suggestion that account data is reachable, and must not start
+// telling people they are on WhatsApp when they are not.
+// ══════════════════════════════════════════════════════════════════════════
+echo "\nWeb transport\n";
+$webBrain = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai',
+                                'web_chat_whatsapp' => '+249 900 083 481']);
+$webCtx = ['channel' => 'sales', 'transport' => 'web', 'message' => 'how much is the mini?'];
+$webPrompt = $webBrain->promptPreview($webCtx);
+
+t('says website, not WhatsApp', str_contains($webPrompt, 'chat window on our website'), true);
+t('does not claim to be on WhatsApp',
+  str_contains($webPrompt, 'replying to a customer on WhatsApp'), false);
+t('states the visitor is unidentified', str_contains($webPrompt, 'You do not know who this person is'), true);
+t('forbids account detail', str_contains($webPrompt, 'CANNOT see balances'), true);
+t('forbids asking for credentials', str_contains($webPrompt, 'Do not ask for a password'), true);
+t('offers the WhatsApp handoff number', str_contains($webPrompt, '+249 900 083 481'), true);
+t('still carries the never-invent rule',
+  str_contains($webPrompt, 'NEVER invent a product name, price'), true);
+
+// The WhatsApp path must be untouched by all of the above.
+$waBrain  = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$waPrompt = $waBrain->promptPreview(['channel' => 'sales', 'message' => 'hi']);
+t('WhatsApp prompt still says WhatsApp',
+  str_contains($waPrompt, 'replying to a customer on WhatsApp'), true);
+t('WhatsApp prompt has no web rules', str_contains($waPrompt, 'WHERE YOU ARE'), false);
+
+// Without a handoff number the web prompt must escalate rather than invent one.
+$noWa = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$noWaPrompt = $noWa->promptPreview($webCtx);
+t('no number configured means no number quoted', str_contains($noWaPrompt, '+249'), false);
+t('and it escalates instead', str_contains($noWaPrompt, 'have someone follow up'), true);
+
+
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);

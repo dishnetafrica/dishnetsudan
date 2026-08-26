@@ -131,10 +131,15 @@ class DishNetAiBrain
     private function buildSystemPrompt(array $ctx): string
     {
         $channel = (string)($ctx['channel'] ?? 'support');
+        // Which pipe the customer is on. WhatsApp is the default so every
+        // existing caller behaves exactly as before; 'web' is the chat widget
+        // on dishnetsudan.com, where we know nothing about who is typing.
+        $transport = (string)($ctx['transport'] ?? 'whatsapp');
         $p = '';
 
         // ── Identity ────────────────────────────────────────────────────
-        $p .= "You are the DishNet assistant, replying to a customer on WhatsApp.\n";
+        $where = $transport === 'web' ? 'in the chat window on our website' : 'on WhatsApp';
+        $p .= "You are the DishNet assistant, replying to a customer {$where}.\n";
         $p .= "DishNet is an internet service provider. Be warm, direct and brief.\n\n";
 
         // ── Non-negotiable rules ────────────────────────────────────────
@@ -157,7 +162,7 @@ class DishNetAiBrain
 
         // ── Style ───────────────────────────────────────────────────────
         $p .= "STYLE:\n";
-        $p .= "- WhatsApp length: 2-5 short sentences. No headings, no bullet lists unless "
+        $p .= "- Keep it to 2-5 short sentences. No headings, no bullet lists unless "
             . "listing plans. Never send a wall of text.\n";
         $p .= "- Reply in the SAME language the customer used. If they write in Arabic, reply in "
             . "Arabic. If they mix Arabic and English, mirror that. Do not announce which "
@@ -167,6 +172,30 @@ class DishNetAiBrain
 
         // ── Channel role ────────────────────────────────────────────────
         $p .= $this->channelRules($channel);
+
+        // ── Transport rules ─────────────────────────────────────────────
+        // A website visitor is anonymous. There is no phone number, so there
+        // is no uCRM identity, so there is nothing account-shaped this reply
+        // may contain -- and saying so plainly is better than a vague deflection.
+        if ($transport === 'web') {
+            $wa = trim((string)($this->config['web_chat_whatsapp'] ?? ''));
+            $p .= "\nWHERE YOU ARE:\n";
+            $p .= "- This is the public website. You do not know who this person is: there is no "
+                . "phone number, no account, and no login.\n";
+            $p .= "- You therefore CANNOT see balances, invoices, payments, service status or any "
+                . "other account detail, and must never appear to. If asked, say you cannot see "
+                . "account details here, and point them to the customer portal or WhatsApp.\n";
+            $p .= "- Do not ask for a password, an ID number, a card number or a full address. "
+                . "Asking for a first name or a phone number so a person can follow up is fine.\n";
+            if ($wa !== '') {
+                $p .= "- When they want to order, or when the answer needs a real person, invite "
+                    . "them to continue on WhatsApp at {$wa}. Do not pretend to place an order "
+                    . "yourself.\n";
+            } else {
+                $p .= "- When they want to order, or when the answer needs a real person, offer to "
+                    . "have someone follow up and " . $this->markerHint(self::MARKER_ESCALATE) . ".\n";
+            }
+        }
 
         // ── Markers ─────────────────────────────────────────────────────
         $p .= "\nACTIONS — put these on their own line at the very END of your reply when needed. "
