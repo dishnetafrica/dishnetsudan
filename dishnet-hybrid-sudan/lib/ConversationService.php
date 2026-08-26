@@ -399,10 +399,18 @@ class ConversationService
     {
         // Fetch newest messages first (DESC), then reverse so UI shows oldest→newest.
         // This fixes showing old messages when a conversation has >100 entries.
+        //
+        // id is the tiebreaker, and it is not optional. sent_at has one-second
+        // resolution, and an AI reply almost always lands in the same second as
+        // the message it answers -- with sent_at alone SQLite is free to order
+        // ties however it likes, and it returned whole transcripts backwards.
+        // That is visible in the Inbox, and worse, AiReplyWorker feeds this
+        // exact function to the model as conversation history.
         $stmt = $this->db->prepare(
             'SELECT * FROM (
-                SELECT * FROM wa_messages WHERE conversation_id = ? ORDER BY sent_at DESC LIMIT ? OFFSET ?
-             ) sub ORDER BY sent_at ASC'
+                SELECT * FROM wa_messages WHERE conversation_id = ?
+                ORDER BY sent_at DESC, id DESC LIMIT ? OFFSET ?
+             ) sub ORDER BY sent_at ASC, id ASC'
         );
         $stmt->execute([$conversationId, $limit, $offset]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -657,6 +665,16 @@ class ConversationService
 
     private function normalisePhone(string $phone): string
     {
+        // A website visitor has no phone number. They are keyed by their chat
+        // session behind a "web:" prefix, which has to survive intact: stripping
+        // it to digits would lose the session AND risk colliding with a real
+        // customer's number. No real phone number can start with "web:", so this
+        // branch cannot capture one.
+        if (strpos($phone, 'web:') === 0) {
+            // Lowercased first: session ids are lowercase hex from bin2hex(),
+            // and folding case is safer than silently dropping characters.
+            return 'web:' . preg_replace('/[^a-f0-9]/', '', strtolower(substr($phone, 4)));
+        }
         return preg_replace('/[^0-9]/', '', $phone);
     }
 
