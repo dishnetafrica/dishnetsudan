@@ -266,6 +266,33 @@ sys.exit(0)
 PYCSS
 [ $fail -eq 0 ] && echo "  no unsupportable claims, no unsold products, no undefined classes"
 
+python3 - "$HERE/site" <<'PYIMG' || fail=1
+# The site once pulled its product photos from dishnetafrica.com's CMS and lost
+# every one of them when that host became unreachable. No <img> may point off
+# this site again, and none may point at a file that is not there.
+import sys, re, glob, os
+root = sys.argv[1]; bad = 0
+for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True):
+    rel = os.path.relpath(f, root)
+    t = open(f, encoding='utf-8', errors='ignore').read()
+    for tag in re.findall(r'<img[^>]*>', t):
+        m = re.search(r'src="([^"]+)"', tag)
+        if not m:
+            print(f'  {rel}: <img> with no src'); bad = 1; continue
+        src = m.group(1)
+        if re.match(r'https?://|//', src):
+            print(f'  {rel}: <img> hotlinks {src[:60]}'); bad = 1; continue
+        if src.startswith('data:'):
+            continue
+        target = os.path.normpath(os.path.join(os.path.dirname(f), src.lstrip('/')))
+        if not os.path.exists(target):
+            print(f'  {rel}: <img> src not on disk -> {src}'); bad = 1
+        if not re.search(r'\salt="', tag):
+            print(f'  {rel}: <img> without alt -> {src}'); bad = 1
+sys.exit(bad)
+PYIMG
+[ $fail -eq 0 ] && echo "  every <img> is a local file that exists, with alt text"
+
 echo "== commercial rules =="
 # These are the rules a silent regression would cost money on. All published
 # pages, held pages excluded from the branding/price rules where noted.

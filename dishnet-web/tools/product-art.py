@@ -1,80 +1,116 @@
 #!/usr/bin/env python3
-"""Product illustrations for the Starlink kits, drawn to the real hardware.
+"""Product visuals for the Starlink kits.
 
-Proportions come from Starlink's specification sheets, so the two kits are
-distinguishable at a glance the way they are in life: the Standard is a wide
-slab (59.4 x 38.3 cm, ratio 1.55:1) and the Mini is nearly square
-(29.8 x 25.9 cm, ratio 1.15:1). Dark phased-array face, white rear shell and
-kickstand, matching the product as it actually looks.
+Real photographs if we have them, drawings if we do not.
 
-These are our own drawings, so there is no licensing question and nothing to
-download at page load. They are replaced by photographs the moment real ones
-exist -- swap_photo() in this file is the single place that happens.
+Drop photos into site/assets/img/products/ named standard-kit.* and mini-kit.*
+(jpg, png or webp) and run this script: every illustration on the site is
+replaced by an <img> pointing at the local file, with width, height and alt
+filled in so nothing shifts as the page loads. Nothing is hotlinked -- the
+site previously pulled these from dishnetafrica.com's CMS and broke when that
+host was unreachable, which is the whole reason this file exists.
+
+Until the photos land, the drawings stand in. They are traced from the real
+hardware as it is actually photographed: a very thin flat panel at a shallow
+angle on a fold-out kickstand, seen in three-quarter view -- not the thick,
+steeply-tilted rectangle an icon set would give you. The Standard is a wide
+slab shown back-up, so its face reads white with the dark array edge banding
+the rim, and it ships with the separate router. The Mini is nearly square,
+shown face-up so the dark array is the top surface over a silver underside,
+and has no router because its WiFi is built in.
 
 Run:  python3 tools/product-art.py
 """
-import os, re, glob
+import os, re, sys, glob
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from imgsize import size as imgsize
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = os.path.join(ROOT, 'site')
+PHOTOS = os.path.join(SITE, 'assets', 'img', 'products')
 
 DEFS = '''<defs>
-  <linearGradient id="face{u}" x1="0" y1="0" x2="0.35" y2="1">
-    <stop offset="0" stop-color="#3A3E45"/><stop offset="0.55" stop-color="#2A2D33"/>
-    <stop offset="1" stop-color="#1F2126"/>
+  <linearGradient id="top{u}" x1="0.1" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E8E5E0"/>
   </linearGradient>
-  <linearGradient id="shell{u}" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DEDBD6"/>
+  <linearGradient id="dark{u}" x1="0.1" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#3C4047"/><stop offset="1" stop-color="#23262B"/>
   </linearGradient>
-  <linearGradient id="stand{u}" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0" stop-color="#F2F0EC"/><stop offset="1" stop-color="#CFCBC5"/>
+  <linearGradient id="rim{u}" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#2B2E33"/><stop offset="1" stop-color="#1A1C20"/>
+  </linearGradient>
+  <linearGradient id="silver{u}" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#F4F2EF"/><stop offset="1" stop-color="#CDC9C3"/>
   </linearGradient>
 </defs>'''
 
 
-def dish(u, w, h, cx, cy, rot, scale=1.0, stand=True):
-    """One dish: rear shell offset below a dark phased-array face, plus kickstand."""
-    x, y = cx - w / 2, cy - h / 2
-    r = 16 * scale
-    depth = 9 * scale
-    parts = [f'<g transform="rotate({rot} {cx} {cy}) scale({scale} {scale}) '
-             f'translate({cx * (1 - 1 / scale):.1f} {cy * (1 - 1 / scale):.1f})">']
+def _poly(pts):
+    return ' '.join(f'{x:.1f},{y:.1f}' for x, y in pts)
+
+
+def panel(u, p1, p2, depth=9, face='light', stand=None, seam=True):
+    """A flat panel in three-quarter view.
+
+    p1 is the far edge as (x, y) of its left end, p2 the far edge's right end;
+    the near edge is derived by the fixed viewing offset, so every panel on the
+    site shares one camera. face 'light' shows the white back with the array
+    banding the rim; face 'dark' shows the array itself over a silver body.
+    """
+    (x1, y1), (x2, y2) = p1, p2
+    ox, oy = -0.216 * (x2 - x1), 0.47 * (x2 - x1) * 0.30   # near-edge offset
+    p4 = (x1 + ox, y1 + oy)
+    p3 = (x2 + ox, y2 + oy)
+    top = [p1, p2, p3, p4]
+    parts = []
+
     if stand:
-        # Kickstand behind, angled the way the real one folds out.
+        # The leg has to start on the panel's underside and finish on the ground,
+        # or it reads as a triangle floating in space. Both ends are derived from
+        # the panel rather than positioned by hand, so they cannot drift apart.
+        frac, ground, lean = stand
+        ax = p4[0] + (p3[0] - p4[0]) * frac
+        ay = p4[1] + (p3[1] - p4[1]) * frac + depth * 0.7
         parts.append(
-            f'<path d="M{cx + w * 0.06:.0f} {y + h - 4:.0f} '
-            f'L{cx + w * 0.02:.0f} {y + h + 62:.0f} '
-            f'L{cx + w * 0.20:.0f} {y + h + 62:.0f} Z" '
-            f'fill="url(#stand{u})" stroke="#C4BFB8" stroke-width="1.5" stroke-linejoin="round"/>')
-        parts.append(
-            f'<rect x="{cx - w * 0.16:.0f}" y="{y + h + 58:.0f}" width="{w * 0.42:.0f}" '
-            f'height="7" rx="3.5" fill="url(#stand{u})" stroke="#C4BFB8" stroke-width="1.2"/>')
-    # rear shell (the white body), visible as a lip under the face
-    parts.append(f'<rect x="{x:.0f}" y="{y + depth:.0f}" width="{w:.0f}" height="{h:.0f}" '
-                 f'rx="{r:.0f}" fill="url(#shell{u})" stroke="#C9C4BD" stroke-width="1.6"/>')
-    # dark phased-array face
-    parts.append(f'<rect x="{x:.0f}" y="{y:.0f}" width="{w:.0f}" height="{h:.0f}" '
-                 f'rx="{r:.0f}" fill="url(#face{u})"/>')
-    # subtle inner bezel + brand-red status point, the one spot of colour
-    parts.append(f'<rect x="{x + 9:.0f}" y="{y + 9:.0f}" width="{w - 18:.0f}" height="{h - 18:.0f}" '
-                 f'rx="{max(r - 6, 4):.0f}" fill="none" stroke="#454A52" stroke-width="1.4"/>')
-    parts.append(f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{4.5 * scale:.1f}" fill="#C8102E" opacity=".92"/>')
-    parts.append('</g>')
+            f'<path d="M{ax - 5:.1f} {ay:.1f} L{ax + 6:.1f} {ay:.1f} '
+            f'L{ax + lean + 7:.1f} {ground:.1f} L{ax + lean - 4:.1f} {ground:.1f} Z" '
+            f'fill="url(#silver{u})" stroke="#BFBAB3" stroke-width="1.3" '
+            f'stroke-linejoin="round"/>')
+
+    top_fill = f'url(#top{u})' if face == 'light' else f'url(#dark{u})'
+    edge_fill = f'url(#rim{u})' if face == 'light' else f'url(#silver{u})'
+
+    # The near edge extruded downward: the thin band that makes it read as a slab.
+    parts.append(f'<polygon points="{_poly([p4, p3, (p3[0], p3[1] + depth), (p4[0], p4[1] + depth)])}" '
+                 f'fill="{edge_fill}"/>')
+    parts.append(f'<polygon points="{_poly([p2, p3, (p3[0], p3[1] + depth), (p2[0], p2[1] + depth)])}" '
+                 f'fill="{edge_fill}" opacity=".82"/>')
+    parts.append(f'<polygon points="{_poly(top)}" fill="{top_fill}" '
+                 f'stroke="{"#1F2126" if face == "light" else "#191B1F"}" stroke-width="1.6" '
+                 f'stroke-linejoin="round"/>')
+    if seam:
+        # Inset seam line: the panel edge, a millimetre in from the rim.
+        ins = [(x + (top[(i + 2) % 4][0] - x) * 0.035, y + (top[(i + 2) % 4][1] - y) * 0.035)
+               for i, (x, y) in enumerate(top)]
+        parts.append(f'<polygon points="{_poly(ins)}" fill="none" '
+                     f'stroke="{"#C9C4BD" if face == "light" else "#4A4F57"}" stroke-width="1.1" '
+                     f'opacity=".8"/>')
     return '\n'.join(parts)
 
 
-def router(u, x, y, w=104, h=40):
-    """Gen 3 router: white slab, rounded, with its indicator ring."""
-    return (f'<g><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="9" '
-            f'fill="url(#shell{u})" stroke="#C9C4BD" stroke-width="1.6"/>'
-            f'<circle cx="{x + w * 0.30:.0f}" cy="{y + h / 2:.0f}" r="9" fill="none" '
-            f'stroke="#C9C4BD" stroke-width="1.6"/>'
-            f'<circle cx="{x + w * 0.30:.0f}" cy="{y + h / 2:.0f}" r="2.6" fill="#C8102E" opacity=".85"/>'
+def router(u, x, y, w=126, h=60):
+    """Gen 3 router: a plain white slab with its indicator ring."""
+    return (f'<g><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="7" '
+            f'fill="url(#top{u})" stroke="#C9C4BD" stroke-width="1.5"/>'
+            f'<circle cx="{x + w * 0.31:.0f}" cy="{y + h / 2:.0f}" r="{h * 0.24:.0f}" fill="none" '
+            f'stroke="#CFCAC3" stroke-width="1.5"/>'
+            f'<circle cx="{x + w * 0.31:.0f}" cy="{y + h / 2:.0f}" r="2.4" fill="#C8102E" opacity=".8"/>'
             f'</g>')
 
 
-def shadow(cx, cy, rx, ry=7):
-    return f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="#1A1A1A" opacity=".08"/>'
+def shadow(cx, cy, rx, ry=6):
+    return f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="#1A1A1A" opacity=".07"/>'
 
 
 def wrap(u, vb, inner, label, style):
@@ -82,71 +118,150 @@ def wrap(u, vb, inner, label, style):
             + DEFS.replace('{u}', u) + inner + '</svg>')
 
 
-# ── the four illustrations the site uses ─────────────────────────────────
-# Standard: wide slab (1.55:1), kickstand, paired router — as it ships.
+# ── the drawings ─────────────────────────────────────────────────────────
+# Standard: wide slab shown back-up beside its router, as Starlink shoots it.
 STANDARD = wrap('s', '0 0 420 300',
-    shadow(215, 268, 118) + dish('s', 236, 152, 232, 130, -11) + router('s', 30, 214),
-    'Starlink Standard kit: dish and Gen 3 WiFi router',
+    shadow(250, 236, 118) + router('s', 14, 176)
+    + panel('s', (150, 112), (400, 184), depth=10, face='light', stand=(0.46, 236, 9)),
+    'Starlink Standard kit: dish and WiFi router',
     'width:100%;height:auto;max-width:340px;display:block;margin:0 auto;')
 
-# Mini: nearly square (1.15:1), WiFi built into the dish, so no separate router.
+# Mini: near-square, face-up so the array is the top surface, no router.
 MINI = wrap('m', '0 0 420 300',
-    shadow(210, 262, 92) + dish('m', 168, 146, 210, 130, -9),
+    shadow(214, 232, 88)
+    + panel('m', (128, 132), (330, 190), depth=8, face='dark', stand=(0.80, 232, 7)),
     'Starlink Mini: compact dish with built-in WiFi',
     'width:100%;height:auto;max-width:300px;display:block;margin:0 auto;')
 
-# Hero: the Standard against a soft sky card with signal arcs.
 HERO = wrap('h', '0 0 460 360',
     '<rect x="8" y="8" width="444" height="344" rx="30" fill="#FCF6F6"/>'
     '<g fill="#C8102E" opacity=".5">'
     '<circle cx="392" cy="56" r="3.6"/><circle cx="336" cy="36" r="2.4"/>'
     '<circle cx="424" cy="100" r="2.4"/></g>'
     '<g stroke="#C8102E" fill="none" stroke-width="3.2" stroke-linecap="round">'
-    '<path d="M306 116 q36 -46 82 -60" opacity=".85"/>'
-    '<path d="M318 138 q28 -34 62 -46" opacity=".55"/>'
-    '<path d="M330 160 q19 -23 41 -31" opacity=".3"/></g>'
-    + shadow(212, 306, 108) + dish('h', 226, 146, 214, 176, -11),
+    '<path d="M300 150 q40 -56 92 -74" opacity=".85"/>'
+    '<path d="M312 172 q32 -42 70 -56" opacity=".55"/>'
+    '<path d="M324 194 q22 -28 47 -38" opacity=".3"/></g>'
+    + shadow(250, 282, 108)
+    + panel('h', (140, 168), (400, 242), depth=10, face='light', stand=(0.46, 282, 9)),
     'Starlink dish connecting to satellites over Sudan',
     'width:100%;height:auto;max-width:440px;display:block;margin:0 auto;')
 
-# Card-sized versions for product grids.
 STANDARD_SM = wrap('a', '0 0 260 200',
-    shadow(132, 178, 74) + dish('a', 150, 96, 142, 86, -10, stand=True),
+    shadow(146, 158, 76) + router('a', 10, 120, w=76, h=36)
+    + panel('a', (96, 74), (248, 118), depth=7, face='light', stand=(0.46, 158, 6)),
     'Starlink Standard dish', 'width:82%;height:auto;display:block;margin:10px auto;')
+
 MINI_SM = wrap('b', '0 0 260 200',
-    shadow(130, 176, 58) + dish('b', 104, 90, 132, 86, -8, stand=True),
+    shadow(136, 156, 58)
+    + panel('b', (76, 84), (208, 122), depth=6, face='dark', stand=(0.78, 156, 5)),
     'Starlink Mini dish', 'width:82%;height:auto;display:block;margin:10px auto;')
 
 
-def replace_by_label(text, label_fragment, new_svg):
-    """Swap any existing <svg> whose aria-label mentions the fragment."""
-    pat = re.compile(r'<svg[^>]*aria-label="[^"]*' + re.escape(label_fragment) + r'[^"]*"[^>]*>.*?</svg>', re.S)
-    return pat.subn(new_svg, text)
+# ── photographs, when they exist ─────────────────────────────────────────
+def find_photo(stem):
+    for ext in ('webp', 'jpg', 'jpeg', 'png'):
+        hits = sorted(glob.glob(os.path.join(PHOTOS, f'{stem}.{ext}')))
+        if hits:
+            return hits[0]
+    return None
+
+
+def photo_tag(stem, alt, style, depth):
+    """<img> for a real photo, or None. depth = how deep the page is in the tree."""
+    p = find_photo(stem)
+    if not p:
+        return None
+    dim = imgsize(p)
+    if not dim:
+        print(f'  ! {os.path.basename(p)}: unrecognised image format, skipped')
+        return None
+    w, h, _ = dim
+    kb = os.path.getsize(p) / 1024
+    if kb > 400:
+        print(f'  ! {os.path.basename(p)} is {kb:.0f} KB -- compress it before shipping')
+    prefix = '../' * depth
+    src = f'{prefix}assets/img/products/{os.path.basename(p)}'
+    return (f'<img src="{src}" alt="{alt}" width="{w}" height="{h}" '
+            f'loading="lazy" decoding="async" style="{style}">')
+
+
+def visual(stem, alt, drawing, style, depth=0):
+    return photo_tag(stem, alt, style, depth) or drawing
+
+
+def replace_by_label(text, label_fragment, new_markup):
+    """Swap any <svg> or <img> whose aria-label/alt mentions the fragment."""
+    frag = re.escape(label_fragment)
+    n = 0
+    pat_svg = re.compile(r'<svg[^>]*aria-label="[^"]*' + frag + r'[^"]*"[^>]*>.*?</svg>', re.S)
+    text, k = pat_svg.subn(lambda m: new_markup, text); n += k
+    pat_img = re.compile(r'<img[^>]*alt="[^"]*' + frag + r'[^"]*"[^>]*>')
+    text, k = pat_img.subn(lambda m: new_markup, text); n += k
+    return text, n
 
 
 def main():
+    card = 'width:82%;height:auto;display:block;margin:10px auto;'
+    big = 'width:100%;height:auto;max-width:340px;display:block;margin:0 auto;'
+    hero = 'width:100%;height:auto;max-width:440px;display:block;margin:0 auto;'
+
+    std_alt = 'Starlink Standard kit: dish and WiFi router'
+    mini_alt = 'Starlink Mini: compact dish with built-in WiFi'
+
+    have = [s for s in ('standard-kit', 'mini-kit') if find_photo(s)]
+    print(f'photos found: {", ".join(have) if have else "none -- using drawings"}')
+
     swaps = [
-        ('site/index.html', [('dish connecting to satellites', HERO),
-                             ('Starlink Mini', MINI_SM),
-                             ('Starlink Standard', STANDARD_SM)]),
-        ('site/starlink-kits.html', [('Starlink Mini outline', MINI),
-                                     ('Starlink Mini', MINI),
-                                     ('Starlink Standard dish outline', STANDARD),
-                                     ('Starlink Standard', STANDARD)]),
-        ('site/blog.html', [('Starlink Standard', STANDARD_SM),
-                            ('Starlink dish', STANDARD_SM)]),
+        ('site/index.html', [
+            ('dish connecting to satellites',
+             visual('standard-kit', 'Starlink dish connecting to satellites over Sudan', HERO, hero)),
+            ('Starlink Mini', visual('mini-kit', mini_alt, MINI_SM, card)),
+            ('Starlink Standard', visual('standard-kit', std_alt, STANDARD_SM, card)),
+        ]),
+        ('site/starlink-kits.html', [
+            ('Starlink Mini outline', visual('mini-kit', mini_alt, MINI, big)),
+            ('Starlink Mini', visual('mini-kit', mini_alt, MINI, big)),
+            ('Starlink Standard dish outline', visual('standard-kit', std_alt, STANDARD, big)),
+            ('Starlink Standard', visual('standard-kit', std_alt, STANDARD, big)),
+        ]),
+        ('site/blog.html', [
+            ('Starlink Standard', visual('standard-kit', std_alt, STANDARD_SM, card)),
+            ('Starlink dish', visual('standard-kit', std_alt, STANDARD_SM, card)),
+        ]),
     ]
+    # Cards carry an empty <div class="kit-photo" data-kit="..."> slot; fill it.
+    # Label-matching alone cannot reach a slot that has no artwork in it yet.
+    slot_art = {'mini': visual('mini-kit', mini_alt, MINI_SM, card),
+                'standard': visual('standard-kit', std_alt, STANDARD_SM, card)}
+
+    def fill_slots(text):
+        n = 0
+        def sub(m):
+            nonlocal n
+            art = slot_art.get(m.group(1))
+            if not art:
+                return m.group(0)
+            n += 1
+            return f'<div class="kit-photo" data-kit="{m.group(1)}">{art}</div>'
+        text = re.sub(r'<div class="kit-photo" data-kit="([a-z]+)">.*?</div>\s*(?=<span|<strong)',
+                      lambda m: sub(m) , text, flags=re.S)
+        return text, n
+
     total = 0
     for rel, jobs in swaps:
         p = os.path.join(ROOT, rel)
         if not os.path.exists(p):
             continue
         t = open(p, encoding='utf-8').read()
-        for frag, svg in jobs:
-            t, n = replace_by_label(t, frag, svg)
+        for frag, markup in jobs:
+            t, n = replace_by_label(t, frag, markup)
             total += n
+        t, n = fill_slots(t)
+        total += n
         open(p, 'w', encoding='utf-8').write(t)
-    print(f'replaced {total} illustrations with product-accurate art')
+    kind = 'photographs' if have else 'drawings'
+    print(f'placed {total} product {kind}')
 
 
 if __name__ == '__main__':
