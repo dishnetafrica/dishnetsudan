@@ -11,7 +11,13 @@ function t(string $n, $got, $want){ global $pass,$fail;
   else{$fail++;printf("  FAIL %s\n       got  %s\n       want %s\n",$n,var_export($got,true),var_export($want,true));}}
 
 $root = dirname(__DIR__);
-$tmp  = sys_get_temp_dir() . '/dishnet_webchat_' . getmypid();
+// The plugin copy goes inside its own parent directory, because ConfigVault
+// writes to dirname(pluginRoot). Copying straight into /tmp puts the vault at
+// /tmp/.dishnet-sudan.vault.json, shared by every test run on the machine --
+// which is how a fake API key from one test ended up configuring the next one
+// and made a 'no provider' assertion pass for the wrong reason.
+$sandbox = sys_get_temp_dir() . '/dishnet_webchat_' . getmypid();
+$tmp     = $sandbox . '/plugin';
 @mkdir($tmp . '/data', 0700, true);
 
 // A copy, so the test cannot touch the real plugin's data directory.
@@ -175,12 +181,51 @@ $r = call($base, 'POST', '{"message":"what does the mini cost?"}', [$OK, $JSON])
 t('a question with no contact details still gets a response',
   isset($r['body']['reply']) && $r['body']['reply'] !== '', true);
 
+echo "\nLive settings beat the migration snapshot in the store\n";
+// The real failure this pins: saveAiSettings writes kyc_config.json, but
+// SqliteStore migrated an older copy into SQLite on first boot. Merging the
+// store over the files let that stale snapshot pick the wrong ai_provider, so
+// the brain looked for a key that was never set and the website reported
+// itself unavailable while WhatsApp kept working.
+require_once $tmp . '/lib/StoreInterface.php';
+require_once $tmp . '/lib/SqliteStore.php';
+$s = SqliteStore::create($tmp . '/data');
+$snapshot = $s->load('kyc_config.json');
+$snapshot['ai_provider']    = 'claude';        // stale: what the store remembers
+$snapshot['claude_api_key'] = '';              // and it has no key
+$s->save('kyc_config.json', $snapshot);
+
+// What the operator actually set, on the files, where PluginConfig reads it.
+$live = json_decode((string)file_get_contents($tmp . '/data/kyc_config.json'), true) ?: [];
+$live['ai_provider']    = 'openai';
+$live['openai_api_key'] = 'sk-test-not-a-real-key';
+file_put_contents($tmp . '/data/kyc_config.json', json_encode($live));
+
+$r = call($base, 'POST', '{"message":"how much is the mini?"}', [$OK, $JSON]);
+// With a provider key present the endpoint must get past its own gate. The key
+// is fake so the provider call fails, but 'no_provider' would mean it never
+// even tried -- which is exactly the bug.
+t('a stale store provider no longer hides the live key',
+  ($r['body']['reason'] ?? '') === 'no_provider', false);
+
+// And the store must still fill a genuine gap.
+$live2 = $live; unset($live2['web_chat_whatsapp']);
+file_put_contents($tmp . '/data/kyc_config.json', json_encode($live2));
+$snapshot['web_chat_whatsapp'] = '+249111222333';
+$s->save('kyc_config.json', $snapshot);
+$r = call($base . '&probe=1', 'GET', null, [$OK]);
+t('the store still supplies what the files do not have',
+  str_contains((string)($r['body']['handoff'] ?? ''), '249111222333'), true);
+
+// Restore for anything after this.
+writeConfig($tmp);
+
 echo "\nNothing was written outside the test data directory\n";
 t('no session file in the real plugin', file_exists($root . '/data/web_chat_sessions.json'), false);
 t('no usage file in the real plugin', file_exists($root . '/data/web_chat_usage.json'), false);
 
 if (is_resource($srv)) { proc_terminate($srv); proc_close($srv); }
-exec('rm -rf ' . escapeshellarg($tmp));
+exec('rm -rf ' . escapeshellarg($sandbox));   // takes the vault with it
 
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail > 0 ? 1 : 0);

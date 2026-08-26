@@ -44,22 +44,29 @@ require_once __DIR__ . '/lib/DishNetAiBrain.php';
 
 $store  = SqliteStore::create($dataDir);
 
-// Config comes from two places and needs both.
+// Config: the files and the vault first, the store only for genuine gaps.
 //
-// PluginConfig::load() reads the files and the vault, which is where the
-// provider keys live -- they are deliberately not writable from a plugin page.
-// But SqliteStore::create() migrates kyc_config.json into SQLite on first boot
-// and REMOVES the file, so on any real install the operator's own settings
-// (including web_chat_enabled) exist only in the store. Reading just the files
-// meant this endpoint reported itself switched off forever; reading just the
-// store meant no API key. Operator settings win, secrets fill the gaps.
+// PluginConfig::load() is what AiReplyWorker uses, so reading it the same way
+// is what keeps the website and WhatsApp on the same provider and the same key.
+// The store is consulted only because SqliteStore migrates kyc_config.json into
+// SQLite on first boot and removes the file, so on an install that has never
+// re-saved its settings they exist only there.
+//
+// The direction matters and getting it wrong is what broke this once already:
+// merging the store OVER the files let a stale ai_provider from the migration
+// snapshot override the live one, so the brain looked for a key that had never
+// been set and the website reported itself permanently unavailable while
+// WhatsApp carried on working. Gap-filling only, exactly like ConfigVault.
 $config = PluginConfig::load(__DIR__, $dataDir);
 try {
     $stored = $store->load('kyc_config.json');
     if (is_array($stored)) {
-        $config = array_merge($config, array_filter($stored, function ($v) {
-            return $v !== null && $v !== '';
-        }));
+        foreach ($stored as $k => $v) {
+            if ($v === null || $v === '') continue;
+            if (!array_key_exists($k, $config) || $config[$k] === '' || $config[$k] === null) {
+                $config[$k] = $v;
+            }
+        }
     }
 } catch (\Throwable $e) { /* files alone are better than nothing */ }
 
@@ -223,6 +230,12 @@ if (!$gate['ok']) {
 
 $brain = new DishNetAiBrain($config);
 if (!$brain->isConfigured()) {
+    // The visitor gets a courteous fallback; the operator needs to know which
+    // key is missing, or this is invisible until someone reports it.
+    @file_put_contents($dataDir . '/ai_platform.log', sprintf(
+        "[%s] web_chat: no API key for provider '%s' — website chat is answering with the "
+        . "WhatsApp fallback only\n",
+        gmdate('c'), (string)($config['ai_provider'] ?? 'claude')), FILE_APPEND);
     bail('Our chat assistant is unavailable. Message us on WhatsApp and we will answer you there.',
          $handoff, 200, 'no_provider');
 }
