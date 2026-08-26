@@ -34,6 +34,8 @@
         }
 
         html { scroll-behavior: smooth; }
+        /* The header is fixed, so an anchor jump used to land under it. */
+        section[id], [id] { scroll-margin-top: 96px; }
         body {
             font-family: var(--font-body);
             background: var(--bg);
@@ -291,7 +293,7 @@
             position: relative;
             z-index: 2;
         }
-        .hero-img-wrap {
+        .hero-img-wrap { background:#FFFFFF;
             border-radius: 20px;
             overflow: hidden;
             box-shadow: var(--shadow-lg);
@@ -337,6 +339,8 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 24px;
+            max-width: 720px;
+            margin: 0 auto;
         }
         .product-card {
             background: var(--bg);
@@ -351,9 +355,13 @@
             border-color: transparent;
         }
         .product-img {
-            aspect-ratio: 1;
-            background: var(--surface-alt);
+            background: #FFFFFF;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            border-bottom: 1px solid var(--border);
         }
         .product-img img { width: 100%; height: 100%; object-fit: cover; transition: var(--transition); }
         .product-card:hover .product-img img { transform: scale(1.05); }
@@ -959,7 +967,7 @@
         <div class="products-header">
             <span class="badge-label">Our Hardware</span>
             <h2 class="section-title">Starlink Kits</h2>
-            <p class="section-subtitle">Genuine Starlink hardware with local warranty, professional installation, and ongoing support.</p>
+            <p class="section-subtitle">Genuine Starlink hardware, professional installation, and support on WhatsApp.</p>
         </div>
         <div class="products-grid">
             <div class="product-card">
@@ -969,7 +977,7 @@
                 <div class="product-info">
                     <h3 class="product-name">Starlink Mini</h3>
                     <div class="product-price">$350 <small>one-time</small></div>
-                    <a href="starlink-kits.html" class="product-btn">View Kits</a>
+                    <a href="starlink-mini-kit-sudan.html" class="product-btn">View details</a>
                 </div>
             </div>
             <div class="product-card">
@@ -979,7 +987,7 @@
                 <div class="product-info">
                     <h3 class="product-name">Starlink Standard</h3>
                     <div class="product-price">$600 <small>one-time</small></div>
-                    <a href="starlink-kits.html" class="product-btn">View Kits</a>
+                    <a href="starlink-standard-kit-sudan.html" class="product-btn">View details</a>
                 </div>
             </div>
             
