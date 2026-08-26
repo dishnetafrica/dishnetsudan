@@ -175,7 +175,10 @@ class DishNetAiBrain
             . "from there. Never tell them you did not understand a short answer, and never ask "
             . "again for something they have already given you earlier in this conversation.\n";
         $p .= "- Hold on to what they have told you: place, home or business, how many people or "
-            . "devices, and what they want. Use it when you recommend and when you quote.\n\n";
+            . "devices, and what they want. Use it when you recommend and when you quote.\n";
+        $p .= "- A line beginning \"[name, from our team]\" was written by a human colleague, not "
+            . "by you. Treat it as true and keep any promise in it, but never claim you said it, "
+            . "and do not repeat what they have already told the customer.\n\n";
 
         // ── Channel role ────────────────────────────────────────────────
         $p .= $this->channelRules($channel);

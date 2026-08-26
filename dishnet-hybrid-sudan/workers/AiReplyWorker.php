@@ -206,9 +206,24 @@ class AiReplyWorker extends WorkerBase
                 // question those words are answering.
                 $msgs = $this->convSvc->getMessages($convId, 20, 0);
                 foreach ($msgs as $m) {
+                    $inbound = ($m['direction'] ?? 'in') === 'in';
+                    $text    = mb_substr((string)($m['body'] ?? ''), 0, 400);
+
+                    // An outbound message is not necessarily ours. A colleague
+                    // replying by hand was being handed to the model as its own
+                    // previous turn, so the AI would carry on as though it had
+                    // promised whatever the person promised. Name them instead:
+                    // the AI reads it, honours it, and does not claim it.
+                    if (!$inbound) {
+                        $who = trim((string)($m['agent_name'] ?? ''));
+                        if (($m['role'] ?? '') === 'agent' && $who !== '' && $who !== 'DishNet AI') {
+                            $text = '[' . $who . ', from our team] ' . $text;
+                        }
+                    }
+
                     $ctx['history'][] = [
-                        'role' => ($m['direction'] ?? 'in') === 'in' ? 'customer' : 'dishnet',
-                        'text' => mb_substr((string)($m['body'] ?? ''), 0, 400),
+                        'role' => $inbound ? 'customer' : 'dishnet',
+                        'text' => $text,
                     ];
                 }
             } catch (\Throwable $e) { /* history is optional */ }
@@ -302,8 +317,24 @@ class AiReplyWorker extends WorkerBase
             $stmt->execute([$convId]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             if (!$row || ($row['state'] ?? '') !== 'human_active') return false;
+
+            // How long the AI stays quiet after a colleague replies.
+            //
+            // The point of the pause is that two answers to one question, from
+            // a person and a bot at the same time, is worse than a slow answer.
+            // But 24 hours meant one staff reply took a customer off the AI for
+            // the rest of the day, which is far longer than anyone is actually
+            // still typing. It is a setting now: minutes, and 0 means the AI
+            // never stands down -- it simply reads what the colleague said and
+            // carries on from there.
+            $mins = $this->config['wa_human_cooldown_minutes'] ?? null;
+            $mins = ($mins === null || $mins === '' || !is_numeric($mins))
+                  ? 1440                      // unchanged default: 24 hours
+                  : max(0, (int)$mins);
+            if ($mins === 0) return false;
+
             $last = strtotime((string)($row['last_human_reply_at'] ?? '2000-01-01'));
-            return (time() - $last) < 24 * 3600;   // same cooldown the old bot used
+            return (time() - $last) < $mins * 60;
         } catch (\Throwable $e) {
             return false;
         }

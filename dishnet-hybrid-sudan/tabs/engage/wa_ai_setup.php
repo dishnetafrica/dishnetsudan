@@ -129,6 +129,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => $ok, 'text' => $ok ? 'AI settings saved.' : $err];
         $_wCfg = PluginConfig::load($_wRoot, $_wData);
 
+    } elseif ($act === 'save_handover') {
+        list($ok, $err) = PluginConfig::saveOverrides($_wData,
+            ['wa_human_cooldown_minutes' => trim((string)($_POST['wa_human_cooldown_minutes'] ?? ''))]);
+        $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Saved.' : $err];
+        $_wCfg = PluginConfig::load($_wRoot, $_wData);
+
     } elseif ($act === 'save_currency') {
         list($ok, $err) = PluginConfig::saveOverrides($_wData,
             ['ai_currency' => trim((string)($_POST['ai_currency'] ?? ''))]);
@@ -395,6 +401,29 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     </div>
     <div class="wa-row"><button class="wa-btn p" type="submit">Save AI settings</button></div>
   </form>
+  <form method="post"><?= $_csrf ?>
+    <input type="hidden" name="wa_action" value="save_handover">
+    <div class="wa-row">
+      <span class="n">After a colleague replies</span>
+      <?php $_cd = (string)($_wCfg['wa_human_cooldown_minutes'] ?? ''); ?>
+      <input type="number" min="0" max="10080" name="wa_human_cooldown_minutes" style="width:90px"
+             placeholder="1440" value="<?= h($_cd) ?>">
+      <span style="font-size:13px">minutes of silence</span>
+      <button class="wa-btn" type="submit">Save</button>
+    </div>
+    <div class="wa-row">
+      <span class="n"></span>
+      <span style="color:#5a6b60;font-size:12px;max-width:70ch">
+        Two answers to one question &mdash; one from a person, one from the AI, at the same
+        moment &mdash; is worse than a slow answer, so the AI pauses after a colleague replies.
+        Default 1440 (24 hours), which is far longer than anyone is still typing.
+        <strong>0 means the AI never stands down</strong>: it reads what the colleague wrote,
+        keeps any promise in it, and carries on. Whatever you choose, the colleague&rsquo;s
+        message is always part of what the AI sees.
+      </span>
+    </div>
+  </form>
+
   <form method="post"><?= $_csrf ?>
     <input type="hidden" name="wa_action" value="save_currency">
     <div class="wa-row">
