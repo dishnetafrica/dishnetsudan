@@ -372,6 +372,22 @@ class DishNetAiBrain
                     : ' — price not listed (say you will confirm)';
                 $d .= " one-time\n";
             }
+
+            // Availability. uCRM's product records carry no stock figure the
+            // plugin reads today, so this is the operator's own statement --
+            // one field they change the day it stops being true. Left blank,
+            // the AI says it will check rather than guessing, which is the
+            // safe default and was the behaviour before this existed.
+            $stock = trim((string)($this->config['stock_statement'] ?? ''));
+            if ($stock !== '') {
+                $d .= "AVAILABILITY: {$stock}\n";
+                $d .= "If a customer asks whether a kit is in stock or available, answer from that "
+                    . "line directly and confidently. Do not say you will check, and do not invent "
+                    . "quantities, delivery dates or reservation times -- only what the line says.\n";
+            } else {
+                $d .= "AVAILABILITY: not stated. If asked whether something is in stock, say you "
+                    . "will confirm and take their details. Never guess.\n";
+            }
             $d .= $this->currencyRule();
         } elseif (($ctx['channel'] ?? '') === 'sales') {
             $d .= "\nHARDWARE: no kit or installation prices are in your data. If asked what "

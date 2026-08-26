@@ -129,6 +129,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
         $_wMsg = ['ok' => $ok, 'text' => $ok ? 'AI settings saved.' : $err];
         $_wCfg = PluginConfig::load($_wRoot, $_wData);
 
+    } elseif ($act === 'save_stock') {
+        list($ok, $err) = PluginConfig::saveOverrides($_wData,
+            ['stock_statement' => trim((string)($_POST['stock_statement'] ?? ''))]);
+        $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Saved.' : $err];
+        $_wCfg = PluginConfig::load($_wRoot, $_wData);
+
     } elseif ($act === 'save_handover') {
         list($ok, $err) = PluginConfig::saveOverrides($_wData,
             ['wa_human_cooldown_minutes' => trim((string)($_POST['wa_human_cooldown_minutes'] ?? ''))]);
@@ -401,6 +407,24 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
     </div>
     <div class="wa-row"><button class="wa-btn p" type="submit">Save AI settings</button></div>
   </form>
+  <form method="post"><?= $_csrf ?>
+    <input type="hidden" name="wa_action" value="save_stock">
+    <div class="wa-row" style="display:block">
+      <span class="n" style="display:block;margin-bottom:6px">Stock &amp; availability</span>
+      <input type="text" name="stock_statement" style="width:100%"
+             placeholder="Both Starlink kits are in stock."
+             value="<?= h((string)($_wCfg['stock_statement'] ?? '')) ?>">
+      <div style="color:#5a6b60;font-size:12px;margin-top:4px;max-width:75ch">
+        What the AI may say when someone asks if a kit is available. Written here, it is your
+        statement rather than a guess &mdash; and it is one field to change the day it stops
+        being true. <strong>Leave it blank and the AI says it will check</strong>, which is what
+        it does now. It will not invent quantities or delivery dates either way, so keep this to
+        availability only.
+      </div>
+      <div style="margin-top:8px"><button class="wa-btn p" type="submit">Save availability</button></div>
+    </div>
+  </form>
+
   <form method="post"><?= $_csrf ?>
     <input type="hidden" name="wa_action" value="save_handover">
     <div class="wa-row">

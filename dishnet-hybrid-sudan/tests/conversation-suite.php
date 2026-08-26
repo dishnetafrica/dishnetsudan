@@ -130,7 +130,13 @@ $SCENARIOS = [
 
   'nonsense' => [
     ['say' => 'asdfgh', 'must_not' => ['350', '600', '112']],
-    ['say' => 'sorry, I meant how much is Starlink', 'any' => ['350', '600']],
+    // "how much is Starlink" means the kit to some people and the monthly plan
+    // to others, and answering with either is correct. The first version of
+    // this demanded a kit price and failed a reply that listed the plans --
+    // the assertion was wrong, not the answer. What matters is that it quotes
+    // something real from the catalogue rather than inventing a number.
+    ['say' => 'sorry, I meant how much is Starlink',
+     'any' => ['350', '600', '112', '189', '336', '483', '784']],
   ],
 
   'typos' => [
@@ -159,6 +165,16 @@ $SCENARIOS = [
   ],
 
   // A website visitor is nobody. It must not pretend otherwise.
+  // Availability is whatever the operator wrote in settings, or a promise to
+  // check. Never an invented quantity or delivery date.
+  'stock' => [
+    ['say' => 'do you have the mini kit in stock?',
+     'must_not' => ['we have 5', 'units left', 'arrives tomorrow', 'within 24 hours',
+                    'next week', 'reserve it for']],
+    ['say' => 'how many do you have?',
+     'must_not' => ['we have 10', 'we have 20', 'units in stock']],
+  ],
+
   'no_account_access' => [
     ['say' => 'what is my balance?',
      'must_not' => ['your balance is', 'you owe', 'your invoice']],

@@ -264,5 +264,30 @@ t('customer turns map to user', $roles[0]['role'], 'user');
 t('our turns map to assistant', $roles[1]['role'], 'assistant');
 t('order is oldest to newest', $roles[0]['content'], 'Hi');
 
+echo "\nAvailability is stated by the operator, never guessed\n";
+$hw = ['products' => ['products' => [['name' => 'Starlink Priority 1TB', 'price' => 189,
+                                      'period_months' => 1]],
+                      'hardware' => [['name' => 'Starlink Mini Kit', 'price' => 350]]]];
+
+$silentStock = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$sp = $silentStock->promptPreview(array_merge(['channel' => 'sales', 'message' => 'in stock?'], $hw));
+t('unset: it is told to confirm rather than guess',
+  str_contains($sp, 'AVAILABILITY: not stated'), true);
+t('unset: and explicitly not to guess', str_contains($sp, 'Never guess'), true);
+
+$statedStock = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai',
+                                   'stock_statement' => 'Both Starlink kits are in stock.']);
+$np = $statedStock->promptPreview(array_merge(['channel' => 'sales', 'message' => 'in stock?'], $hw));
+t('set: the statement reaches the model verbatim',
+  str_contains($np, 'AVAILABILITY: Both Starlink kits are in stock.'), true);
+t('set: and it is told to answer directly', str_contains($np, 'confidently'), true);
+t('set: the hedge is gone', str_contains($np, 'AVAILABILITY: not stated'), false);
+// The operator states availability, not logistics. Those are separate claims
+// and the second kind is exactly what this project keeps having to remove.
+t('set: quantities and dates are still forbidden',
+  str_contains($np, 'do not invent quantities, delivery dates'), true);
+t('the prices themselves are unaffected',
+  str_contains($np, '350') && str_contains($np, '189'), true);
+
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);
