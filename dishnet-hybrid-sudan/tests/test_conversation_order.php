@@ -67,6 +67,52 @@ t('real timestamps still order correctly',
   array_map(function ($m) { return $m['body']; }, $svc->getMessages($c2, 100, 0)),
   ['first', 'second', 'third']);
 
+echo "\nThe history the MODEL receives, not just what the Inbox draws\n";
+// The Inbox rendering correctly is not the same as the AI receiving it
+// correctly. This walks the real path: getMessages -> AiReplyWorker's mapping
+// -> DishNetAiBrain::buildTurns, and asserts what actually reaches the model.
+require_once $root . '/lib/DishNetAiBrain.php';
+
+$conv3 = $svc->ensureConversation('+249900000003', 'sales', 'Test3', 'test');
+$c3 = (int)$conv3['id'];
+$exchange = [
+    ['in',  'customer',  'I need Starlink for my home.'],
+    ['out', 'assistant', 'Which city are you in?'],
+    ['in',  'customer',  "I'm in Sudan."],
+    ['out', 'assistant', 'How many people will use it?'],
+    ['in',  'customer',  'How much?'],
+];
+foreach ($exchange as $m) {
+    $svc->storeMessage($c3, ['direction' => $m[0], 'role' => $m[1], 'body' => $m[2]]);
+}
+
+// Exactly what AiReplyWorker::buildContext does with getMessages.
+$history = [];
+foreach ($svc->getMessages($c3, 20, 0) as $m) {
+    $history[] = [
+        'role' => ($m['direction'] ?? 'in') === 'in' ? 'customer' : 'dishnet',
+        'text' => mb_substr((string)($m['body'] ?? ''), 0, 400),
+    ];
+}
+t('the worker builds history in the order it happened',
+  array_column($history, 'text'), array_column($exchange, 2));
+
+$brain = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$r = new ReflectionMethod('DishNetAiBrain', 'buildTurns'); $r->setAccessible(true);
+$turns = $r->invoke($brain, ['message' => 'and installation?', 'history' => $history]);
+
+$asModelSees = array_map(function ($x) { return $x['role'] . ': ' . $x['content']; }, $turns);
+t('the model reads the request before the location', 
+  array_search('user: I need Starlink for my home.', $asModelSees, true)
+  < array_search("user: I'm in Sudan.", $asModelSees, true), true);
+t('and the location before the price question',
+  array_search("user: I'm in Sudan.", $asModelSees, true)
+  < array_search('user: How much?', $asModelSees, true), true);
+t('the newest message is the one being answered', end($turns)['content'], 'and installation?');
+t('roles alternate as they did in life',
+  array_column($turns, 'role'),
+  ['user', 'assistant', 'user', 'assistant', 'user', 'user']);
+
 array_map('unlink', glob("$dir/*") ?: []); @rmdir($dir);
 printf("\n%d passed, %d failed\n", $pass, $fail);
 exit($fail > 0 ? 1 : 0);
