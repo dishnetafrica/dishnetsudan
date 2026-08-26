@@ -128,6 +128,53 @@ $sess = (string)($r['body']['session'] ?? '');
 // instead: what matters is that a forged id is never echoed back as accepted.
 t('a forged session id is not accepted', $sess === '../../etc/passwd', false);
 
+echo "\nThe config probe tells the widget whether to render at all\n";
+$r = call($base . '&probe=1', 'GET', null, [$OK]);
+t('probe answers', [$r['code'], $r['body']['ok'] ?? null], [200, true]);
+t('reports enabled', $r['body']['enabled'] ?? null, true);
+t('reports the lead mode', $r['body']['lead_mode'] ?? null, 'after');
+t('carries the handoff number', str_contains((string)($r['body']['handoff'] ?? ''), '249900083481'), true);
+$r = call($base . '&probe=1', 'GET', null, [$BAD]);
+t('probe refuses another site', $r['code'], 403);
+
+echo "\nContact details are stored, and never required to get an answer\n";
+function leads(string $tmp): array {
+    require_once $tmp . '/lib/StoreInterface.php';
+    require_once $tmp . '/lib/SqliteStore.php';
+    $s = SqliteStore::create($tmp . '/data');
+    try { return $s->load('web_chat_leads.json'); } catch (\Throwable $e) { return []; }
+}
+
+// A lead on its own is a complete request: no model call, nothing metered.
+$r = call($base, 'POST', json_encode(['message' => '', 'lead' =>
+        ['name' => 'Amal', 'phone' => '+249 91 234 5678', 'email' => 'amal@example.com']]),
+     [$OK, $JSON]);
+t('lead alone is accepted', [$r['code'], $r['body']['lead_saved'] ?? null], [200, true]);
+
+$rows = leads($tmp);
+$last = $rows ? end($rows) : [];
+t('name stored', $last['name'] ?? null, 'Amal');
+t('phone normalised to digits, keeping the +', $last['phone'] ?? null, '+249912345678');
+t('email stored', $last['email'] ?? null, 'amal@example.com');
+
+// A junk email must not be stored as if it were reachable.
+call($base, 'POST', json_encode(['message' => '', 'session' => $last['session'] ?? '',
+     'lead' => ['phone' => '0912000000', 'email' => 'not-an-email']]), [$OK, $JSON]);
+$rows = leads($tmp);
+$found = null;
+foreach ($rows as $row) { if (($row['phone'] ?? '') === '0912000000') $found = $row; }
+t('invalid email dropped', $found['email'] ?? 'MISSING', '');
+t('but the phone is kept', $found['phone'] ?? null, '0912000000');
+
+// An entirely empty submission is still a bad request, not a silent success.
+$r = call($base, 'POST', json_encode(['message' => '', 'lead' => ['name' => '  ']]), [$OK, $JSON]);
+t('empty lead and empty message is refused', [$r['code'], $r['body']['reason'] ?? null], [400, 'empty']);
+
+// And asking a question without any lead must still work.
+$r = call($base, 'POST', '{"message":"what does the mini cost?"}', [$OK, $JSON]);
+t('a question with no contact details still gets a response',
+  isset($r['body']['reply']) && $r['body']['reply'] !== '', true);
+
 echo "\nNothing was written outside the test data directory\n";
 t('no session file in the real plugin', file_exists($root . '/data/web_chat_sessions.json'), false);
 t('no usage file in the real plugin', file_exists($root . '/data/web_chat_usage.json'), false);

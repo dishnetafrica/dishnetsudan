@@ -36,14 +36,24 @@
     greeting: 'مرحباً! اسألني عن أطقم ستارلينك والأسعار والباقات الشهرية والتركيب.',
     wa: 'المتابعة عبر واتساب',
     offline: 'المساعد غير متاح الآن. راسلنا على واتساب وسنساعدك هناك.',
-    thinking: 'يكتب…'
+    thinking: 'يكتب…',
+    teaser: 'هل لديك سؤال عن ستارلينك؟ اسألني.',
+    leadIntro: 'حتى يتمكن أحد الزملاء من متابعة طلبك، اترك رقمك أو بريدك الإلكتروني.',
+    fName: 'الاسم (اختياري)', fPhone: 'رقم الهاتف', fEmail: 'البريد الإلكتروني',
+    fSave: 'إرسال', fSkip: 'تخطي', fNeed: 'الرجاء إدخال رقم هاتف أو بريد إلكتروني.',
+    fThanks: 'شكراً. سنتواصل معك.'
   } : {
     title: 'DishNet Assistant', open: 'Chat with us', close: 'Close',
     placeholder: 'Ask about Starlink in Sudan…', send: 'Send',
     greeting: 'Hello. Ask me about Starlink kits, prices, monthly plans or installation.',
     wa: 'Continue on WhatsApp',
     offline: 'The assistant is unavailable right now. Message us on WhatsApp and we will help you there.',
-    thinking: 'Typing…'
+    thinking: 'Typing…',
+    teaser: 'Question about Starlink? Ask me.',
+    leadIntro: 'So a colleague can follow up, leave a phone number or an email.',
+    fName: 'Name (optional)', fPhone: 'Phone number', fEmail: 'Email',
+    fSave: 'Send', fSkip: 'Skip', fNeed: 'Please give a phone number or an email.',
+    fThanks: 'Thank you. We will be in touch.'
   };
 
   var css = [
@@ -79,7 +89,25 @@
     ' color:#fff;font:600 14px/1 system-ui,sans-serif;cursor:pointer}',
     '.dnchat-form button:disabled{opacity:.55;cursor:default}',
     '.dnchat-note{padding:8px 14px;font-size:11.5px;color:#8A857E;background:#fff;text-align:center;flex-shrink:0}',
-    '@media (max-width:520px){.dnchat-launch{' + (RTL ? 'left' : 'right') + ':86px;padding:0 14px}',
+    '.dnchat-teaser{position:fixed;bottom:88px;' + (RTL ? 'left' : 'right') + ':24px;z-index:95;',
+    ' max-width:min(280px,calc(100vw - 48px));background:#fff;border:1px solid #E5E4E0;',
+    ' border-radius:14px;padding:13px 34px 13px 15px;box-shadow:0 10px 30px rgba(0,0,0,.14);',
+    ' font:400 14px/1.45 system-ui,sans-serif;color:#1A1A1A;cursor:pointer}',
+    '.dnchat-teaser[hidden]{display:none}',
+    '.dnchat-teaser button{position:absolute;top:6px;' + (RTL ? 'left' : 'right') + ':8px;border:none;',
+    ' background:transparent;font-size:17px;line-height:1;color:#8A857E;cursor:pointer;padding:2px 5px}',
+    '.dnchat-lead{align-self:stretch;background:#fff;border:1px solid #E5E4E0;border-radius:14px;padding:13px}',
+    '.dnchat-lead p{margin:0 0 9px;font-size:13.5px;color:#5A5A58}',
+    '.dnchat-lead input{width:100%;margin-bottom:7px;padding:9px 11px;border:1px solid #DDDBD6;',
+    ' border-radius:8px;font:inherit;font-size:14px}',
+    '.dnchat-lead input:focus{outline:2px solid #C8102E;outline-offset:1px;border-color:transparent}',
+    '.dnchat-lead .dnchat-err{color:#C8102E;font-size:12.5px;margin:0 0 7px;display:block}',
+    '.dnchat-lead-row{display:flex;gap:8px;align-items:center}',
+    '.dnchat-lead-row button{flex:1;padding:9px;border:none;border-radius:100px;background:#C8102E;',
+    ' color:#fff;font:600 14px/1 system-ui,sans-serif;cursor:pointer}',
+    '.dnchat-lead-row .dnchat-skip{flex:0 0 auto;background:transparent;color:#6B6862;',
+    ' text-decoration:underline;font-weight:400;padding:9px 10px}',
+    '@media (max-width:520px){.dnchat-teaser{bottom:84px}.dnchat-launch{' + (RTL ? 'left' : 'right') + ':86px;padding:0 14px}',
     ' .dnchat-panel{bottom:0;' + (RTL ? 'left' : 'right') + ':0;width:100vw;height:100dvh;border-radius:0;border:none}}'
   ].join('');
 
@@ -164,12 +192,28 @@
     try { if (id) sessionStorage.setItem(SESSION_KEY, id); } catch (e) { /* private mode */ }
   }
 
-  var opened = false;
+  // ── State ───────────────────────────────────────────────────────────────
+  var opened    = false;
+  var leadMode  = 'after';     // 'before' | 'after' | 'off'
+  var leadDone  = false;       // captured, or the visitor chose to skip
+  var pendingLead = null;      // rides along with the next message
+  var answered  = false;       // the assistant has replied at least once
+
+  var DISMISS_KEY = 'dishnet_chat_teaser_dismissed';
+
+  function stash(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+  function stashed(k)  { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+
   function open() {
+    hideTeaser();
     panel.hidden = false;
     launch.hidden = true;
-    if (!opened) { opened = true; say('them', T.greeting); }
-    input.focus();
+    if (!opened) {
+      opened = true;
+      say('them', T.greeting);
+      if (leadMode === 'before' && !leadDone) showLeadForm();
+    }
+    if (!form.hidden) input.focus();
   }
   function close() {
     panel.hidden = true;
@@ -182,42 +226,161 @@
     if (e.key === 'Escape' && !panel.hidden) close();
   });
 
+  // ── The nudge ───────────────────────────────────────────────────────────
+  // Once per session, after a delay, and never again once dismissed. A box
+  // that reopens itself on every page is the reason people hate these.
+  var teaser = null;
+  function showTeaser(text, delay) {
+    if (!text || stashed(DISMISS_KEY) === '1' || stashed(SESSION_KEY)) return;
+    setTimeout(function () {
+      if (!panel.hidden || stashed(DISMISS_KEY) === '1') return;
+      teaser = el('div', 'dnchat-teaser');
+      teaser.setAttribute('role', 'button');
+      teaser.tabIndex = 0;
+      teaser.appendChild(el('span', null, text));
+      var x = el('button', null, '×');
+      x.type = 'button';
+      x.setAttribute('aria-label', T.close);
+      x.addEventListener('click', function (e) { e.stopPropagation(); dismissTeaser(); });
+      teaser.appendChild(x);
+      teaser.addEventListener('click', open);
+      teaser.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      });
+      document.body.appendChild(teaser);
+    }, delay * 1000);
+  }
+  function hideTeaser() { if (teaser) { teaser.hidden = true; } }
+  function dismissTeaser() { stash(DISMISS_KEY, '1'); hideTeaser(); }
+
+  // ── Contact details ─────────────────────────────────────────────────────
+  // Never a gate on getting an answer unless the operator asks for it, and
+  // always skippable: the visitor who will not give a number before asking a
+  // question is the one this channel exists to keep.
+  function showLeadForm() {
+    if (leadDone || document.querySelector('.dnchat-lead')) return;
+    var box = el('div', 'dnchat-lead');
+    box.appendChild(el('p', null, T.leadIntro));
+    var err = el('span', 'dnchat-err');
+    err.hidden = true;
+
+    var name  = el('input'); name.type  = 'text';  name.placeholder  = T.fName;
+    var phone = el('input'); phone.type = 'tel';   phone.placeholder = T.fPhone;
+    var email = el('input'); email.type = 'email'; email.placeholder = T.fEmail;
+    [name, phone, email].forEach(function (i) {
+      i.autocomplete = i === phone ? 'tel' : (i === email ? 'email' : 'name');
+      i.setAttribute('aria-label', i.placeholder);
+      box.appendChild(i);
+    });
+    box.appendChild(err);
+
+    var row  = el('div', 'dnchat-lead-row');
+    var save = el('button', null, T.fSave); save.type = 'button';
+    var skip = el('button', 'dnchat-skip', T.fSkip); skip.type = 'button';
+    row.appendChild(save);
+    row.appendChild(skip);
+    box.appendChild(row);
+
+    save.addEventListener('click', function () {
+      var lead = { name: name.value.trim(), phone: phone.value.trim(), email: email.value.trim() };
+      if (!lead.phone && !lead.email) {
+        err.textContent = T.fNeed;
+        err.hidden = false;
+        phone.focus();
+        return;
+      }
+      leadDone = true;
+      box.parentNode.removeChild(box);
+      say('them', T.fThanks);
+      // Send it now rather than waiting for another message that may never come.
+      post('', lead);
+      if (form.hidden) { form.hidden = false; input.focus(); }
+    });
+    skip.addEventListener('click', function () {
+      leadDone = true;
+      box.parentNode.removeChild(box);
+      if (form.hidden) { form.hidden = false; input.focus(); }
+    });
+
+    log.appendChild(box);
+    log.scrollTop = log.scrollHeight;
+    // 'before' means the form stands in place of the input until it is dealt with.
+    if (leadMode === 'before') form.hidden = true;
+    phone.focus();
+  }
+
+  // ── Talking to the server ───────────────────────────────────────────────
+  function post(text, lead) {
+    var body = { message: text, session: session() };
+    if (lead) body.lead = lead;
+    else if (pendingLead) { body.lead = pendingLead; pendingLead = null; }
+
+    var wait = null;
+    if (text) {
+      sending = true;
+      send.disabled = true;
+      wait = el('div', 'dnchat-wait', T.thinking);
+      log.appendChild(wait);
+      log.scrollTop = log.scrollHeight;
+    }
+    var done = function () {
+      sending = false;
+      send.disabled = false;
+      if (wait && wait.parentNode) wait.parentNode.removeChild(wait);
+    };
+
+    return fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().catch(function () { return null; });
+    }).then(function (data) {
+      done();
+      if (!data) { if (text) { say('them', T.offline); offerWhatsApp(); } return; }
+      remember(data.session);
+      if (data.lead_mode) leadMode = data.lead_mode;
+      if (data.have_lead) leadDone = true;
+      if (!text) return;                       // a lead-only post says nothing
+      say('them', data.reply || T.offline);
+      if (!data.ok || data.escalate) offerWhatsApp(data.handoff);
+      // Ask once, after the visitor has had something useful back.
+      if (data.ok && !answered) {
+        answered = true;
+        if (leadMode === 'after' && !leadDone) setTimeout(showLeadForm, 400);
+      }
+    }).catch(function () {
+      done();
+      if (text) { say('them', T.offline); offerWhatsApp(); }
+    });
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var text = input.value.trim();
     if (!text || sending) return;
     input.value = '';
     say('you', text);
-
-    sending = true;
-    send.disabled = true;
-    var wait = el('div', 'dnchat-wait', T.thinking);
-    log.appendChild(wait);
-    log.scrollTop = log.scrollHeight;
-
-    var done = function () {
-      sending = false;
-      send.disabled = false;
-      if (wait.parentNode) wait.parentNode.removeChild(wait);
-    };
-
-    fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, session: session() })
-    }).then(function (r) {
-      return r.json().catch(function () { return null; });
-    }).then(function (data) {
-      done();
-      if (!data) { say('them', T.offline); offerWhatsApp(); return; }
-      remember(data.session);
-      say('them', data.reply || T.offline);
-      // Anything that is not a normal answer ends with a way to reach a person.
-      if (!data.ok || data.escalate) offerWhatsApp(data.handoff);
-    }).catch(function () {
-      done();
-      say('them', T.offline);
-      offerWhatsApp();
-    });
+    post(text, null);
   });
+
+  // ── Boot ────────────────────────────────────────────────────────────────
+  // Ask the server what it wants before showing anything. A launcher that
+  // opens onto a switched-off assistant is worse than no launcher.
+  launch.hidden = true;
+  fetch(ENDPOINT + '&probe=1', { method: 'GET' })
+    .then(function (r) { return r.json(); })
+    .then(function (cfg) {
+      if (!cfg || !cfg.ok || !cfg.enabled) return;      // stay invisible
+      if (cfg.lead_mode) leadMode = cfg.lead_mode;
+      if (cfg.handoff) WHATSAPP = cfg.handoff.replace(/\D/g, '') || WHATSAPP;
+      launch.hidden = false;
+      showTeaser(cfg.teaser || T.teaser,
+                 typeof cfg.teaser_delay === 'number' ? cfg.teaser_delay : 6);
+    })
+    .catch(function () {
+      // Probe failed. Still offer the launcher: the visitor gets an honest
+      // "unavailable, here is WhatsApp" rather than silence.
+      launch.hidden = false;
+    });
 })();

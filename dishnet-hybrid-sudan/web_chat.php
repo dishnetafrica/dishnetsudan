@@ -82,7 +82,7 @@ header('X-Content-Type-Options: nosniff');
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     if ($originOk) {
-        header('Access-Control-Allow-Methods: POST, OPTIONS');
+        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type');
         header('Access-Control-Max-Age: 86400');
     }
@@ -105,6 +105,27 @@ $handoff   = $waNumber !== '' ? 'https://wa.me/' . $waNumber : '';
 function bail(string $msg, string $handoff, int $code = 200, string $reason = ''): void
 {
     out(['ok' => false, 'reason' => $reason, 'reply' => $msg, 'handoff' => $handoff], $code);
+}
+
+// ── Config probe ──────────────────────────────────────────────────────────
+// The widget needs to know whether it should render at all, and when to ask
+// for contact details, before the visitor has typed anything. This costs no
+// model call, so it is not metered -- but it is still origin-checked, because
+// it reveals which numbers we hand off to.
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET' && isset($_GET['probe'])) {
+    if ($origin !== '' && !$originOk) {
+        out(['ok' => false, 'reason' => 'origin'], 403);
+    }
+    $mode = (string)($config['web_chat_lead_mode'] ?? 'after');
+    if (!in_array($mode, ['before', 'after', 'off'], true)) $mode = 'after';
+    out([
+        'ok'        => true,
+        'enabled'   => PluginConfig::toBool($config['web_chat_enabled'] ?? false),
+        'lead_mode' => $mode,
+        'handoff'   => $handoff,
+        'teaser'    => (string)($config['web_chat_teaser'] ?? ''),
+        'teaser_delay' => max(0, (int)($config['web_chat_teaser_delay'] ?? 6)),
+    ]);
 }
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -131,9 +152,6 @@ if (!is_array($body)) {
 
 $message = trim((string)($body['message'] ?? ''));
 $message = mb_substr($message, 0, 1000);
-if ($message === '') {
-    bail('Ask me anything about Starlink in Sudan.', $handoff, 400, 'empty');
-}
 
 // Session ids are issued here, never accepted on trust: a client-supplied id
 // is only reused if it looks like one of ours, so nobody can forge their way
@@ -150,6 +168,50 @@ $fwd = (string)($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '');
 if ($fwd !== '') {
     $first = trim(explode(',', $fwd)[0]);
     if (filter_var($first, FILTER_VALIDATE_IP)) $ip = $first;
+}
+
+// ── Lead capture ──────────────────────────────────────────────────────────
+// Optional by design. A visitor who will not give a number before asking a
+// question is exactly the visitor this channel exists to keep, so a missing
+// lead is never a reason to refuse an answer.
+$lead = is_array($body['lead'] ?? null) ? $body['lead'] : [];
+$leadStored = false;
+if ($lead) {
+    $leadName  = mb_substr(trim((string)($lead['name'] ?? '')), 0, 80);
+    $leadPhone = mb_substr(trim((string)($lead['phone'] ?? '')), 0, 32);
+    $leadEmail = mb_substr(trim((string)($lead['email'] ?? '')), 0, 120);
+    if ($leadEmail !== '' && !filter_var($leadEmail, FILTER_VALIDATE_EMAIL)) $leadEmail = '';
+    // Digits only, so a phone number is comparable later. Keep a leading +.
+    $leadPhone = preg_replace('/(?!^\+)[^0-9]/', '', $leadPhone);
+    if ($leadPhone !== '' || $leadEmail !== '' || $leadName !== '') {
+        try {
+            $existing = $store->findOne('web_chat_leads.json', 'session', $session);
+            $row = ['session' => $session, 'name' => $leadName, 'phone' => $leadPhone,
+                    'email' => $leadEmail, 'updated' => gmdate('c')];
+            if ($existing) {
+                $store->updateOne('web_chat_leads.json', 'session', $session, $row);
+            } else {
+                $row['created'] = gmdate('c');
+                // appendWithId, not append: updateOne locates a row by its id,
+                // and a row written without one can never be updated afterwards
+                // -- a visitor correcting their number would silently keep the
+                // old one.
+                $store->appendWithId('web_chat_leads.json', $row);
+            }
+            $leadStored = true;
+        } catch (\Throwable $e) { /* never lose the reply over a lead */ }
+    }
+}
+
+// A lead on its own is a complete request: store it, answer nothing, meter
+// nothing. Without this the details would only survive if the visitor happened
+// to send another message afterwards.
+if ($message === '') {
+    if ($leadStored) {
+        out(['ok' => true, 'session' => $session, 'reply' => '',
+             'lead_saved' => true, 'handoff' => $handoff]);
+    }
+    bail('Ask me anything about Starlink in Sudan.', $handoff, 400, 'empty');
 }
 
 $guard = new WebChatGuard($store, $config);
@@ -224,10 +286,20 @@ try {
     }
 } catch (\Throwable $e) { /* a lost transcript must not lose the reply */ }
 
+$leadMode = (string)($config['web_chat_lead_mode'] ?? 'after');
+if (!in_array($leadMode, ['before', 'after', 'off'], true)) $leadMode = 'after';
+$haveLead = false;
+try {
+    $row = $store->findOne('web_chat_leads.json', 'session', $session);
+    $haveLead = $row && (($row['phone'] ?? '') !== '' || ($row['email'] ?? '') !== '');
+} catch (\Throwable $e) { /* treat as not captured */ }
+
 out([
-    'ok'       => true,
-    'session'  => $session,
-    'reply'    => $reply,
-    'escalate' => !empty($result['escalate']),
-    'handoff'  => $handoff,
+    'ok'        => true,
+    'session'   => $session,
+    'reply'     => $reply,
+    'escalate'  => !empty($result['escalate']),
+    'handoff'   => $handoff,
+    'lead_mode' => $leadMode,
+    'have_lead' => $haveLead,
 ]);

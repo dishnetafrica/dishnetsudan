@@ -142,6 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['wa_action'] ?? '') !== '')
             'web_chat_monthly_usd'   => trim((string)($_POST['web_chat_monthly_usd'] ?? '')),
             'web_chat_usd_per_1m_in' => trim((string)($_POST['web_chat_usd_per_1m_in'] ?? '')),
             'web_chat_usd_per_1m_out'=> trim((string)($_POST['web_chat_usd_per_1m_out'] ?? '')),
+            'web_chat_lead_mode'     => trim((string)($_POST['web_chat_lead_mode'] ?? 'after')),
+            'web_chat_teaser'        => trim((string)($_POST['web_chat_teaser'] ?? '')),
+            'web_chat_teaser_delay'  => trim((string)($_POST['web_chat_teaser_delay'] ?? '')),
         ];
         list($ok, $err) = PluginConfig::saveOverrides($_wData, $changes);
         $_wMsg = ['ok' => $ok, 'text' => $ok ? 'Website chat settings saved.' : $err];
@@ -454,8 +457,68 @@ $_csrf    = function_exists('csrfField') ? csrfField() : '';
               : 'Until then the three message limits above are the ceiling.' ?>
       </span>
     </div>
+    <div class="wa-row">
+      <span class="n">Ask for contact details</span>
+      <?php $_lm = (string)($_wCfg['web_chat_lead_mode'] ?? 'after'); ?>
+      <select name="web_chat_lead_mode">
+        <option value="after"  <?= $_lm === 'after'  ? 'selected' : '' ?>>After the first answer (recommended)</option>
+        <option value="before" <?= $_lm === 'before' ? 'selected' : '' ?>>Before the chat starts</option>
+        <option value="off"    <?= $_lm === 'off'    ? 'selected' : '' ?>>Never ask</option>
+      </select>
+    </div>
+    <div class="wa-row">
+      <span class="n"></span>
+      <span style="color:#5a6b60;font-size:12px;max-width:70ch">
+        Asking first captures more numbers per conversation but starts fewer conversations:
+        a visitor who will not give a number before asking anything is exactly the one this
+        channel exists to keep. Either way the visitor can skip it.
+      </span>
+    </div>
+    <div class="wa-row">
+      <span class="n">Pop-up message</span>
+      <input type="text" name="web_chat_teaser" style="min-width:340px"
+             placeholder="Question about Starlink? Ask me."
+             value="<?= h((string)($_wCfg['web_chat_teaser'] ?? '')) ?>">
+      <label style="font-size:13px">after
+        <input type="number" min="0" max="120" name="web_chat_teaser_delay" style="width:70px"
+               placeholder="6" value="<?= h((string)($_wCfg['web_chat_teaser_delay'] ?? '')) ?>">s</label>
+    </div>
+    <div class="wa-row">
+      <span class="n"></span>
+      <span style="color:#5a6b60;font-size:12px;max-width:70ch">
+        Shown once per visit and never again once dismissed. Leave the message blank to use
+        the default; set the delay to 0 to show it immediately.
+      </span>
+    </div>
     <div class="wa-row"><button class="wa-btn p" type="submit">Save website chat</button></div>
   </form>
+
+  <?php
+    $_leads = [];
+    try { $_leads = $_wcStore ? $_wcStore->load('web_chat_leads.json') : []; } catch (\Throwable $e) {}
+    $_leads = array_slice(array_reverse($_leads), 0, 15);
+  ?>
+  <div class="wa-row" style="display:block;margin-top:10px">
+    <span class="n" style="display:block;margin-bottom:6px">Contact details left in the chat</span>
+    <?php if (!$_leads): ?>
+      <span style="color:#5a6b60;font-size:13px">Nothing yet.</span>
+    <?php else: ?>
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+      <tr style="text-align:left;border-bottom:1px solid #dce3de">
+        <th style="padding:5px 8px 5px 0">When</th><th style="padding:5px 8px">Name</th>
+        <th style="padding:5px 8px">Phone</th><th style="padding:5px 8px">Email</th>
+      </tr>
+      <?php foreach ($_leads as $L): ?>
+      <tr style="border-bottom:1px solid #f0f3f1">
+        <td style="padding:5px 8px 5px 0;white-space:nowrap"><?= h(substr((string)($L['created'] ?? $L['updated'] ?? ''), 0, 16)) ?></td>
+        <td style="padding:5px 8px"><?= h((string)($L['name'] ?? '')) ?></td>
+        <td style="padding:5px 8px"><?= h((string)($L['phone'] ?? '')) ?></td>
+        <td style="padding:5px 8px"><?= h((string)($L['email'] ?? '')) ?></td>
+      </tr>
+      <?php endforeach; ?>
+    </table>
+    <?php endif; ?>
+  </div>
   <div class="wa-row">
     <span class="n">Test</span>
     <span class="d">Ask the AI "Hello" directly, with no WhatsApp involved.</span>
