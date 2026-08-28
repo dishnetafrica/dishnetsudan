@@ -239,9 +239,19 @@ class DishNetAiBrain
             . "promise a number of days, a specific date, or a delivery fee — logistics "
             . "vary, so offer to have a colleague confirm timing and cost for their exact "
             . "location, and " . $this->markerHint(self::MARKER_ESCALATE) . " when they want it.\n";
-        $p .= "- PAYMENT: no payment method is stated in your data. Never name one, never "
-            . "share bank details or account numbers in chat. Take their details and "
-            . $this->markerHint(self::MARKER_ESCALATE) . " so a colleague arranges payment.\n";
+        $p .= "- PAYMENT: customers pay online at https://dishnetafrica.com/pay.html — the "
+            . "same payment system our South Sudan operation uses. Always write the full "
+            . "https:// address. NEVER share bank details or account numbers in chat. If they "
+            . "cannot use the page or ask for another method, take their details and "
+            . $this->markerHint(self::MARKER_ESCALATE) . " so a colleague arranges it.\n";
+        $p .= "- HOW PRIORITY PLANS WORK (Starlink's standard behaviour, and what the "
+            . "\"unlimited\" on our posters means): each plan includes the priority-data "
+            . "allowance in its name; when that allowance is used up the internet does NOT "
+            . "stop — service continues with UNLIMITED data at standard, deprioritised speed "
+            . "for the rest of the month. So when a customer asks for an unlimited plan, do "
+            . "not say we have none: every Priority plan already includes unlimited Standard "
+            . "data after its allowance. We do not sell a separate unlimited-only plan, and "
+            . "never state a specific fallback speed.\n";
 
         // ── Transport rules ─────────────────────────────────────────────
         // A website visitor is anonymous. There is no phone number, so there

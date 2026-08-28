@@ -201,8 +201,14 @@ $SCENARIOS = [
      'must_not' => ['cannot deliver to Omdurman', 'we do not deliver', 'in 3 days',
                     'within 24 hours', 'delivery fee is']],
     ['say' => 'how do I pay?',
+     'any' => ['pay.html', 'dishnetafrica.com'],
      'must_not' => ['bank account', 'account number', 'mobile money', 'MTN',
                     'transfer to', 'IBAN']],
+    // Four real customers asked this and were told "no unlimited" — wrongly.
+    ['say' => 'do you have an unlimited plan?',
+     'any' => ['Standard', 'unlimited', 'allowance'],
+     'must_not' => ['we do not offer an unlimited plan', "don't offer unlimited",
+                    'no unlimited plan is available']],
   ],
 
   'no_account_access' => [

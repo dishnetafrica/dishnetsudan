@@ -357,10 +357,18 @@ t('reaching different cities, not only one destination',
 t('but forbids inventing days, dates or fees',
   str_contains($fp, 'Do NOT promise a number of days'), true);
 
-t('payment: never name a method, never share bank details',
-  str_contains($fp, 'never share bank details'), true);
-t('payment questions escalate to a colleague',
-  str_contains($fp, 'a colleague arranges payment'), true);
+t('payment goes to the South Sudan payment page',
+  str_contains($fp, 'https://dishnetafrica.com/pay.html'), true);
+t('bank details stay out of chat regardless',
+  str_contains($fp, 'NEVER share bank details'), true);
+t('the unlimited question is answered, not denied',
+  str_contains($fp, 'do not say we have none'), true);
+t('with Starlink\'s real mechanics: unlimited Standard after the allowance',
+  str_contains($fp, 'UNLIMITED data at standard, deprioritised speed'), true);
+t('but no invented fallback speed',
+  str_contains($fp, 'never state a specific fallback speed'), true);
+t('and no invented cheaper unlimited-only plan',
+  str_contains($fp, 'do not sell a separate unlimited-only plan'), true);
 
 t('tone: human sales agent, not a chatbot',
   str_contains($fp, 'human sales agent at a small business'), true);
