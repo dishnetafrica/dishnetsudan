@@ -220,7 +220,7 @@
         $_convSvc->storeMessage($convId, [
             'direction' => 'out', 'role' => 'agent', 'body' => $text,
             'agent_name' => $staffNm, 'event_key' => 'wa_staff_reply',
-            'sent_at' => date('Y-m-d H:i:s'),
+            'sent_at' => gmdate('Y-m-d H:i:s'),
         ]);
         // Disengage bot — staff is now handling this conversation
         try {
@@ -248,7 +248,7 @@
             'body' => $cap ?: "[Document: {$fname}]",
             'media_type' => 'document', 'media_url' => $docUrl,
             'agent_name' => $retailer['name'] ?? 'Staff',
-            'event_key' => 'wa_send_document', 'sent_at' => date('Y-m-d H:i:s'),
+            'event_key' => 'wa_send_document', 'sent_at' => gmdate('Y-m-d H:i:s'),
         ]);
         $ok2(['sent' => true, 'filename' => $fname]);
     }
@@ -491,7 +491,7 @@
 
                 $fromMe = (bool)$row['fromMe'];
                 $ts = (int)$row['messageTimestamp'];
-                $sentAt = $ts > 0 ? date('Y-m-d H:i:s', $ts) : date('Y-m-d H:i:s');
+                $sentAt = $ts > 0 ? gmdate('Y-m-d H:i:s', $ts) : gmdate('Y-m-d H:i:s');
 
                 $conv = $_convSvc->ensureConversation($phone, $channel, $row['pushName'] ?? null, 'wa_sync');
                 $isNew = (strtotime($conv['created_at'] ?? '') >= time() - 5);

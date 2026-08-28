@@ -367,14 +367,20 @@ class ConversationService
             $waMsgId,
             $msg['event_key'] ?? null,
             isset($msg['metadata']) ? json_encode($msg['metadata']) : null,
-            $msg['sent_at'] ?? date('Y-m-d H:i:s'),
+            // gmdate, not date(): sent_at was written by whichever entry point
+            // happened to run -- the webhook under Africa/Juba, the spawned CLI
+            // worker under UTC -- so one conversation carried two clocks, and
+            // ordering by sent_at put every AI reply two hours before the
+            // question it answered. Both the Inbox and the model's history read
+            // it that way. Storage is UTC everywhere; display localises.
+            $msg['sent_at'] ?? gmdate('Y-m-d H:i:s'),
         ]);
 
         $msgId = (int)$this->db->lastInsertId();
 
         // Update conversation counters
         $dir  = $msg['direction'];
-        $now  = $msg['sent_at'] ?? date('Y-m-d H:i:s');
+        $now  = $msg['sent_at'] ?? gmdate('Y-m-d H:i:s');
         $updates = [
             'message_count = message_count + 1',
             "last_message_at = MAX(COALESCE(last_message_at, ''), '{$now}')",
@@ -645,7 +651,9 @@ class ConversationService
 
         // Timestamp
         $ts = $evoMsg['messageTimestamp'] ?? $evoMsg['timestamp'] ?? null;
-        $sentAt = $ts ? date('Y-m-d H:i:s', is_numeric($ts) ? (int)$ts : strtotime($ts)) : date('Y-m-d H:i:s');
+        // Evolution's messageTimestamp is unix seconds; gmdate keeps it UTC
+        // regardless of the entry point's timezone.
+        $sentAt = $ts ? gmdate('Y-m-d H:i:s', is_numeric($ts) ? (int)$ts : strtotime($ts)) : gmdate('Y-m-d H:i:s');
 
         // Ensure conversation exists
         $conv = $this->ensureConversation($phone, $channel, $pushName, 'import');

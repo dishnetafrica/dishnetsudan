@@ -320,5 +320,18 @@ foreach (['staff names or personal numbers', 'wholesale or supplier costs',
     t("rule covers: {$frag}", str_contains($asProspect, $frag), true);
 }
 
+echo "\nSudan does not quote plans for South Sudan\n";
+// From a real conversation: a customer in Gudele (Juba) asked "is it available
+// in my area" and was quoted this operation's plans as if it covered Juba.
+$geoBrain = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$gp = $geoBrain->promptPreview(['channel' => 'sales', 'message' => 'do you cover gudele?']);
+t('the prompt names the boundary', str_contains($gp, 'This is DishNet SUDAN'), true);
+t('South Sudanese places are called out', str_contains($gp, 'Gudele'), true);
+t('with the sister operation to hand over to', str_contains($gp, '+211 923 400 000'), true);
+t('and an instruction to ask when unsure',
+  str_contains($gp, 'ask which city they are in'), true);
+t('plus: never re-send a list already sent',
+  str_contains($gp, 'do not send it again'), true);
+
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);

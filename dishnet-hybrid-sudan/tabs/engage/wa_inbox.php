@@ -350,12 +350,18 @@ function renderChat(conv, msgs, isNewConv, hasNew){
     var html='', lastDate='';
     for(var i=0;i<msgs.length;i++){
         var m=msgs[i];
-        var d=(m.sent_at||'').substring(0,10);
+        // Storage is UTC; show the browser's local time. Parsing with a 'Z'
+        // suffix is what makes the conversion happen -- without it the string
+        // is read as already-local and everything shifts twice.
+        var loc=new Date(((m.sent_at||'').replace(' ','T'))+'Z');
+        var pad=function(x){return (x<10?'0':'')+x;};
+        var d=isNaN(loc)?(m.sent_at||'').substring(0,10)
+             :loc.getFullYear()+'-'+pad(loc.getMonth()+1)+'-'+pad(loc.getDate());
         if(d&&d!==lastDate){html+='<div class="wai-date-sep">'+formatDate(d)+'</div>';lastDate=d;}
         var dir=m.direction==='in'?'in':'out';
         var role=m.role||'customer';
         var cls=role==='system'?'sys':dir;
-        var time=(m.sent_at||'').substring(11,16);
+        var time=isNaN(loc)?(m.sent_at||'').substring(11,16):pad(loc.getHours())+':'+pad(loc.getMinutes());
         var body=esc(m.body||'').replace(/\n/g,'<br>');
         if(m.media_type&&m.media_type!=='null') body='<span class="media-tag">['+esc(m.media_type)+']</span> '+body;
         // Who said it, on every line. Reviewing a conversation means asking

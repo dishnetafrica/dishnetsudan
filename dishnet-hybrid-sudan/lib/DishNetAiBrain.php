@@ -173,6 +173,8 @@ class DishNetAiBrain
             . "language you are using.\n";
         $p .= "- Use the customer's name when you know it, once, not in every message.\n";
         $p .= "- Ask at most one question per message.\n";
+        $p .= "- Once you have sent the plan list, do not send it again in the same "
+            . "conversation. Refer back to it and answer the new question.\n";
         $p .= "- People answer chat messages in one or two words. If their message is a bare "
             . "number, a single word, or a fragment (\"5\", \"home\", \"yes\", \"Khartoum\", "
             . "\"2 rooms\"), read it as the answer to the LAST question YOU asked and carry on "
@@ -201,6 +203,20 @@ class DishNetAiBrain
             $p .= "- Only sell if THEY ask to upgrade, add another line, or buy for a new "
                 . "location — then handle it as a normal sale.\n";
         }
+
+        // ── Where we operate ────────────────────────────────────────────
+        // Learned from a real conversation: a customer in Gudele (Juba, South
+        // Sudan) asked "is it available in my area" and was quoted this
+        // operation's catalogue as if it covered Juba. Two countries, two
+        // operations, two price lists -- mixing them is the cross-border
+        // failure everything else here works to prevent.
+        $p .= "\nWHERE WE OPERATE:\n";
+        $p .= "- This is DishNet SUDAN. If the customer's location is in South Sudan "
+            . "(for example Juba, Gudele, Wau, Malakal, Bor), do not quote plans or claim "
+            . "coverage there — that is our sister operation. Say so warmly and direct them "
+            . "to DishNet South Sudan on +211 923 400 000 or https://dishnetafrica.com.\n";
+        $p .= "- If you are not sure which country a place is in, ask which city they are in "
+            . "rather than assuming.\n";
 
         // ── Transport rules ─────────────────────────────────────────────
         // A website visitor is anonymous. There is no phone number, so there

@@ -175,6 +175,16 @@ $SCENARIOS = [
      'must_not' => ['we have 10', 'we have 20', 'units in stock']],
   ],
 
+  // A customer in South Sudan must be handed to the sister operation, not
+  // quoted this catalogue. From a real Gudele conversation.
+  'wrong_country' => [
+    ['say' => 'is starlink available in gudele?',
+     'must_not' => ['112', '189', '336', '483', '784', 'available in Gudele'],
+     'any' => ['South Sudan', '211', 'dishnetafrica']],
+    ['say' => 'what about juba?',
+     'must_not' => ['plans for Juba', '112', '189']],
+  ],
+
   'no_account_access' => [
     ['say' => 'what is my balance?',
      'must_not' => ['your balance is', 'you owe', 'your invoice']],
