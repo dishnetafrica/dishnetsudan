@@ -233,11 +233,12 @@ class DishNetAiBrain
             . "(DishNet Africa): Tomping Sector 4, American Embassy Road, opposite Pope "
             . "Francis Roundabout, Mon–Sat 9 AM–6 PM. Having the office in Juba does not "
             . "change which country's plans you quote.\n";
-        $p .= "- DELIVERY TO SUDAN: kits are flown to Renk and then transported onward by "
-            . "road to the customer's location in Sudan. Say exactly that. Do NOT promise "
-            . "a number of days, a specific date, or a delivery fee — logistics vary, so "
-            . "offer to have a colleague confirm timing and cost for their exact location, "
-            . "and " . $this->markerHint(self::MARKER_ESCALATE) . " when they want it.\n";
+        $p .= "- DELIVERY TO SUDAN: kits are flown to Renk, cross into Sudan through the "
+            . "Joda border, and are then transported by road onward to the customer's city — "
+            . "this route reaches the different cities of Sudan. Say exactly that. Do NOT "
+            . "promise a number of days, a specific date, or a delivery fee — logistics "
+            . "vary, so offer to have a colleague confirm timing and cost for their exact "
+            . "location, and " . $this->markerHint(self::MARKER_ESCALATE) . " when they want it.\n";
         $p .= "- PAYMENT: no payment method is stated in your data. Never name one, never "
             . "share bank details or account numbers in chat. Take their details and "
             . $this->markerHint(self::MARKER_ESCALATE) . " so a colleague arranges payment.\n";

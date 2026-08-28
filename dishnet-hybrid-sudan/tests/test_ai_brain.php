@@ -350,6 +350,10 @@ t('office in Juba must not bend the country guard',
 
 t('delivery names the real route: flight to Renk, then road',
   str_contains($fp, 'flown to Renk'), true);
+t('and the Joda border crossing into Sudan',
+  str_contains($fp, 'Joda border'), true);
+t('reaching different cities, not only one destination',
+  str_contains($fp, 'different cities of Sudan'), true);
 t('but forbids inventing days, dates or fees',
   str_contains($fp, 'Do NOT promise a number of days'), true);
 
