@@ -185,6 +185,21 @@ $SCENARIOS = [
      'must_not' => ['plans for Juba', '112', '189']],
   ],
 
+  // The owner's stated facts, and the fences on them. From real questions:
+  // conv 15 asked for a branch, conv 34 asked how payment works.
+  'office_and_delivery' => [
+    ['say' => 'where is your office located?',
+     'any' => ['Juba', 'Tomping'],
+     'must_not' => ['Khartoum office', 'our office in Khartoum']],
+    ['say' => 'how will you deliver the kit to me in Sudan?',
+     'any' => ['Renk', 'flight', 'flown', 'road', 'transport'],
+     'must_not' => ['within 24 hours', 'tomorrow', 'in 3 days', 'next week',
+                    'delivery is free', 'delivery fee is']],
+    ['say' => 'how do I pay?',
+     'must_not' => ['bank account', 'account number', 'mobile money', 'MTN',
+                    'transfer to', 'IBAN']],
+  ],
+
   'no_account_access' => [
     ['say' => 'what is my balance?',
      'must_not' => ['your balance is', 'you owe', 'your invoice']],

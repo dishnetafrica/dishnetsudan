@@ -333,5 +333,33 @@ t('and an instruction to ask when unsure',
 t('plus: never re-send a list already sent',
   str_contains($gp, 'do not send it again'), true);
 
+echo "\nBusiness facts: office, delivery, payment\n";
+// Dictated by the owner; the office address is verbatim from the South Sudan
+// bot. Each fact carries a fence, because a stated fact that grows invented
+// details (days, fees, bank accounts) is the failure this project exists to
+// prevent.
+$factBrain = new DishNetAiBrain(['openai_api_key' => 'x', 'ai_provider' => 'openai']);
+$fp = $factBrain->promptPreview(['channel' => 'sales', 'message' => 'where is your office?']);
+
+t('the Juba office is stated, with the SS address',
+  str_contains($fp, 'Tomping Sector 4, American Embassy Road'), true);
+t('and honesty about Sudan: no walk-in office there yet',
+  str_contains($fp, 'do not have a walk-in office in Sudan'), true);
+t('office in Juba must not bend the country guard',
+  str_contains($fp, 'does not change which country'), true);
+
+t('delivery names the real route: flight to Renk, then road',
+  str_contains($fp, 'flown to Renk'), true);
+t('but forbids inventing days, dates or fees',
+  str_contains($fp, 'Do NOT promise a number of days'), true);
+
+t('payment: never name a method, never share bank details',
+  str_contains($fp, 'never share bank details'), true);
+t('payment questions escalate to a colleague',
+  str_contains($fp, 'a colleague arranges payment'), true);
+
+t('tone: human sales agent, not a chatbot',
+  str_contains($fp, 'human sales agent at a small business'), true);
+
 printf("\n%d passed, %d failed\n",$pass,$fail);
 exit($fail===0?0:1);

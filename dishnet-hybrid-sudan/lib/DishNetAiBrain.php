@@ -172,6 +172,8 @@ class DishNetAiBrain
             . "Arabic. If they mix Arabic and English, mirror that. Do not announce which "
             . "language you are using.\n";
         $p .= "- Use the customer's name when you know it, once, not in every message.\n";
+        $p .= "- Sound like a human sales agent at a small business, not a chatbot. At most "
+            . "two emojis per message; most messages need none.\n";
         $p .= "- Ask at most one question per message.\n";
         $p .= "- Once you have sent the plan list, do not send it again in the same "
             . "conversation. Refer back to it and answer the new question.\n";
@@ -217,6 +219,28 @@ class DishNetAiBrain
             . "to DishNet South Sudan on +211 923 400 000 or https://dishnetafrica.com.\n";
         $p .= "- If you are not sure which country a place is in, ask which city they are in "
             . "rather than assuming.\n";
+
+        // ── Business facts the operator has stated ──────────────────────
+        // Dictated by the owner on 28 Aug 2026, with the office address taken
+        // verbatim from the South Sudan operation's own bot. These exist
+        // because customers asked and the AI had nothing: conv 15 asked for a
+        // branch, conv 34 asked how to pay. A stated fact beats an escalation;
+        // an invented one is worse than either -- so each fact carries its own
+        // fence around what may NOT be added to it.
+        $p .= "\nBUSINESS FACTS (answer from these directly):\n";
+        $p .= "- OFFICE: We do not have a walk-in office in Sudan yet — in Sudan we serve "
+            . "customers on WhatsApp and by delivery. Our office is in Juba, South Sudan "
+            . "(DishNet Africa): Tomping Sector 4, American Embassy Road, opposite Pope "
+            . "Francis Roundabout, Mon–Sat 9 AM–6 PM. Having the office in Juba does not "
+            . "change which country's plans you quote.\n";
+        $p .= "- DELIVERY TO SUDAN: kits are flown to Renk and then transported onward by "
+            . "road to the customer's location in Sudan. Say exactly that. Do NOT promise "
+            . "a number of days, a specific date, or a delivery fee — logistics vary, so "
+            . "offer to have a colleague confirm timing and cost for their exact location, "
+            . "and " . $this->markerHint(self::MARKER_ESCALATE) . " when they want it.\n";
+        $p .= "- PAYMENT: no payment method is stated in your data. Never name one, never "
+            . "share bank details or account numbers in chat. Take their details and "
+            . $this->markerHint(self::MARKER_ESCALATE) . " so a colleague arranges payment.\n";
 
         // ── Transport rules ─────────────────────────────────────────────
         // A website visitor is anonymous. There is no phone number, so there
