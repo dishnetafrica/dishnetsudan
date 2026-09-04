@@ -1568,6 +1568,9 @@ async function fpSave() {
     if (res.status === 'success') {
       document.getElementById('forcePwdModal').remove();
       showToast(' Password updated successfully!', 'success');
+      // The token this page embedded is now rotated; reload so every later
+      // call uses the fresh one instead of failing with the dead token.
+      setTimeout(function(){ location.reload(); }, 900);
     } else {
       errEl.textContent = res.message || 'Failed to save. Try again.';
       errEl.style.display = 'block';

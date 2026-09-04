@@ -266,13 +266,30 @@
         $curPwd  = trim($body['current_password']  ?? '');
         $newPwd  = trim($body['new_password']       ?? '');
         $confPwd = trim($body['confirm_password']   ?? '');
-        if (!$curPwd)                   $er2('Current password is required.');
+        // The force-change modal renders only new+confirm -- by design: the
+        // account is still on the known default password, so asking for it
+        // back is no security and locked every new staff member out on this
+        // screen. The exemption is gated on the STORED record's
+        // must_change_pwd, not on anything the client sends; the profile
+        // flow, where the user chose their password, still verifies it.
+        $recR       = $auth->getRetailerById($rid);
+        $forcedFlow = !empty($recR['must_change_pwd']);
+        if (!$forcedFlow && !$curPwd)   $er2('Current password is required.');
         if (strlen($newPwd) < 8)        $er2('Password must be at least 8 characters.');
         if ($newPwd !== $confPwd)        $er2('Passwords do not match.');
-        // Verify current password
-        if (!$auth->verifyPassword($rid, $curPwd)) $er2('Current password is incorrect.');
+        // Verify current password (skipped only in the forced first-login change)
+        if (!$forcedFlow && !$auth->verifyPassword($rid, $curPwd)) $er2('Current password is incorrect.');
         $auth->updateRetailer($rid, ['password' => $newPwd], false);
-        if (isset($_SESSION['dn_retailer'])) $_SESSION['dn_retailer']['must_change_pwd'] = false;
+        // The token rotates with the password (CRIT-05), so the copy in the
+        // session -- which the page embeds as its Bearer token -- must follow,
+        // or every call after this one fails with the dead token.
+        if (isset($_SESSION['dn_retailer'])) {
+            $fresh = $auth->getRetailerById($rid);
+            $_SESSION['dn_retailer']['must_change_pwd'] = false;
+            if ($fresh && !empty($fresh['api_token'])) {
+                $_SESSION['dn_retailer']['api_token'] = $fresh['api_token'];
+            }
+        }
         $ok2([], 'Password changed successfully.');
     }
 
