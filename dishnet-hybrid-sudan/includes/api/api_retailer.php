@@ -272,8 +272,15 @@
         // screen. The exemption is gated on the STORED record's
         // must_change_pwd, not on anything the client sends; the profile
         // flow, where the user chose their password, still verifies it.
+        // Forced-flow detection trusts EITHER the live record OR the session
+        // that raised the modal ($me2). Requiring both was too brittle: if the
+        // stored flag was written under a different key or lost in a re-import,
+        // getRetailerById alone would send us back to demanding a password the
+        // modal never collects. The session flag comes from the same login
+        // that decided to show the modal, so the two agree in the normal case
+        // and the OR only helps when the record read is the one that's wrong.
         $recR       = $auth->getRetailerById($rid);
-        $forcedFlow = !empty($recR['must_change_pwd']);
+        $forcedFlow = !empty($recR['must_change_pwd']) || !empty($me2['must_change_pwd']);
         if (!$forcedFlow && !$curPwd)   $er2('Current password is required.');
         if (strlen($newPwd) < 8)        $er2('Password must be at least 8 characters.');
         if ($newPwd !== $confPwd)        $er2('Passwords do not match.');

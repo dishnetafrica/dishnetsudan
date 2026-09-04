@@ -43,8 +43,8 @@ t('and confirm_password', str_contains($modal, 'confirm_password'), true);
 t('and does NOT send current_password', str_contains($modal, 'current_password'), false);
 
 $api = file_get_contents($root . '/includes/api/api_retailer.php');
-t('the handler gates the current-password demand on the stored flag',
-  str_contains($api, "\$forcedFlow = !empty(\$recR['must_change_pwd']);"), true);
+t('the handler gates on the stored flag OR the session flag',
+  str_contains($api, "!empty(\$recR['must_change_pwd']) || !empty(\$me2['must_change_pwd'])"), true);
 t('required only outside the forced flow',
   str_contains($api, "if (!\$forcedFlow && !\$curPwd)   \$er2('Current password is required.');"), true);
 t('verified only outside the forced flow',
