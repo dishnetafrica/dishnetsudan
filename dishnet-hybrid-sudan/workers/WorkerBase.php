@@ -117,7 +117,9 @@ abstract class WorkerBase
      */
     protected function consumeFiltered(array $types, int $limit): array
     {
-        $events = $this->bus->consume($limit);
+        // Ask the bus for our types directly, so a backlog of some other
+        // (possibly unconsumed) type can never fill the batch and starve us.
+        $events = $this->bus->consume($limit, '', $types);
         if (empty($types) || in_array('*', $types)) return $events;
 
         $matched = [];

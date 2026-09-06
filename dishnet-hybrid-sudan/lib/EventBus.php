@@ -125,7 +125,7 @@ class EventBus
      * @param string $workerId  Unique worker ID (defaults to PID)
      * @return array Claimed events (may be empty)
      */
-    public function consume(int $limit = 20, string $workerId = ''): array
+    public function consume(int $limit = 20, string $workerId = '', array $types = []): array
     {
         if (!$workerId) {
             $workerId = (string)getmypid();
@@ -137,17 +137,35 @@ class EventBus
         // Step 2: Atomic claim + fetch in a single transaction
         $this->pdo->beginTransaction();
         try {
+            // Filter to the caller's own event types IN THE QUERY, not after.
+            // This is the fix for a real starvation: consume() used to fetch the
+            // globally oldest eligible events up to LIMIT and let the worker
+            // discard the wrong types in PHP. An event type that nothing
+            // consumes (wa.escalation had no worker) then piled up as the
+            // oldest rows, and once it reached the batch size every batch was
+            // full of foreign events -- the AI reply queue was claimed to zero
+            // and stopped answering customers. Selecting by type means one
+            // stuck type can never crowd out another again.
+            $typeClause = '';
+            $typeParams = [];
+            $wantTypes  = array_values(array_filter($types, fn($x) => $x !== '' && $x !== '*'));
+            if (!empty($types) && !in_array('*', $types, true) && $wantTypes) {
+                $ph = implode(',', array_fill(0, count($wantTypes), '?'));
+                $typeClause = " AND event_type IN ({$ph})";
+                $typeParams = $wantTypes;
+            }
+
             // Find eligible events
             $selectStmt = $this->pdo->prepare('
                 SELECT id FROM events
                 WHERE status IN (\'pending\', \'failed\')
                   AND attempts < max_attempts
                   AND next_retry_at <= datetime(\'now\')
-                  AND (locked_by IS NULL OR locked_by = \'\')
+                  AND (locked_by IS NULL OR locked_by = \'\')' . $typeClause . '
                 ORDER BY priority ASC, created_at ASC
                 LIMIT ?
             ');
-            $selectStmt->execute([$limit]);
+            $selectStmt->execute(array_merge($typeParams, [$limit]));
             $ids = $selectStmt->fetchAll(\PDO::FETCH_COLUMN);
 
             if (empty($ids)) {

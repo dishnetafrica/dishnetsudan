@@ -102,6 +102,28 @@ class MaintenanceWorker extends WorkerBase
             $results['health_error'] = $e->getMessage();
         }
 
+        // 4b. Resolve orphaned signal events that no worker consumes.
+        // wa.escalation is emitted as an audit record and actioned at emit time
+        // by AlertService; left 'pending' it never drains, and (before the
+        // type-filtered consume) a backlog of it starved the AI reply queue.
+        // Retiring it to 'done' keeps the queue honest. Any future
+        // emitted-but-unconsumed signal type is added here.
+        try {
+            $orphanTypes = ['wa.escalation'];
+            $ph = implode(',', array_fill(0, count($orphanTypes), '?'));
+            $stmt = $this->pdo->prepare(
+                "UPDATE events SET status='done', locked_by=NULL, locked_at=NULL
+                   WHERE status IN ('pending','failed') AND event_type IN ({$ph})"
+            );
+            $stmt->execute($orphanTypes);
+            $results['signal_events_resolved'] = $stmt->rowCount();
+            if ($stmt->rowCount() > 0) {
+                $this->log('INFO', "Resolved {$stmt->rowCount()} orphaned signal event(s)");
+            }
+        } catch (\Throwable $e) {
+            $results['signal_resolve_error'] = $e->getMessage();
+        }
+
         // 5. WAL checkpoint (keeps WAL file from growing unbounded)
         try {
             $this->pdo->exec("PRAGMA wal_checkpoint(TRUNCATE)");
