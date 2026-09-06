@@ -32,7 +32,26 @@ function getDataDir(string $pluginRoot): string
     if ($cachedDir !== null && $cachedRoot === $pluginRoot) {
         return $cachedDir;
     }
-    
+
+    // Pin to the established store: once the sibling data directory holds a
+    // database, it IS the live store and wins over everything else, ucrm.json
+    // included. This is what stops the directory from flipping.
+    //
+    // An incident left two databases side by side -- the sibling with every
+    // conversation, ticket and message (178 / 1,224 / 424), and an empty
+    // {pluginRoot}/data skeleton -- because ucrm.json's pluginDataDir took
+    // priority and could name the empty one. Had that been honoured on an
+    // upgrade, the plugin would have come up on the empty database and looked
+    // like it had lost everything. The data decides where the data lives.
+    $__parent  = dirname(rtrim($pluginRoot, '/'));
+    $__plugin  = basename(rtrim($pluginRoot, '/'));
+    $__sibling = $__parent . '/.' . $__plugin . '-data';
+    if (is_file($__sibling . '/plugin.sqlite3')) {
+        $cachedDir  = $__sibling;
+        $cachedRoot = $pluginRoot;
+        return $__sibling;
+    }
+
     $dataDir = null;
     
     // Priority 1: UCRM's persistent data directory (from ucrm.json)
